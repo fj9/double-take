@@ -1,7 +1,7 @@
 import { useState } from "preact/hooks";
 import type { Chart } from "@doubletake/core";
 import { findAllPatches } from "@doubletake/core";
-import { BLOCKING_TEXT, FINISHING_TEXT, HELP } from "../content";
+import { BLOCKING_TEXT, FINISHING_TEXT, HASHTAG, HELP } from "../content";
 import { allRoundsDone, currentRound, patchKey, patchesDone, percentComplete, setPace, toggleStep, TOTAL_ROUNDS } from "../lib/model";
 import { formatDate, plan, standing, todayIso, validPace } from "../lib/pace";
 import type { Pace } from "../lib/pace";
@@ -169,6 +169,12 @@ export function StepsScreen({ chart, progress }: { chart: Chart; progress: Progr
           </div>
         </section>
       ))}
+      {allRoundsDone(progress) && HASHTAG && (
+        <section class="card note" aria-labelledby="share">
+          <h2 id="share">Share your hat</h2>
+          <p style="margin:0">Finished, or nearly? Share a photo of both sides with {HASHTAG}. We’d love to see it.</p>
+        </section>
+      )}
     </div>
   );
 }

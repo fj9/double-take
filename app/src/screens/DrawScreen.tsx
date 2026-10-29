@@ -419,8 +419,8 @@ export function DrawScreen({ project }: { project: Project }) {
             Put a picture faintly over the grid and draw over it. It covers the body, rounds 1 to 75. It isn’t part of your chart, and it stays on this device.
           </p>
           <div class="row" style="flex-wrap:wrap">
-            <input id="trace-file" class="sr-only" type="file" accept="image/*" onChange={(e) => chooseUnderlay((e.currentTarget as HTMLInputElement).files?.[0])} />
-            <label class="btn small" for="trace-file" tabIndex={0} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), document.getElementById("trace-file")?.click())}>
+            <input id="trace-file" class="sr-only" aria-label="Choose a picture to trace over" type="file" accept="image/*" onChange={(e) => chooseUnderlay((e.currentTarget as HTMLInputElement).files?.[0])} />
+            <label class="btn small" for="trace-file">
               {underlay ? "Choose a different picture" : "Choose a picture"}
             </label>
             {underlay && (

@@ -123,8 +123,8 @@ export function HomeScreen() {
         <div class="card">
           <h3>Import a chart file</h3>
           <p class="small">Choose a Doubletake chart (.doubletake.json) or a backup you saved earlier. It stays on this device.</p>
-          <input ref={input} id="import-file" class="sr-only" type="file" accept=".json,application/json" onChange={(e) => onFile((e.currentTarget as HTMLInputElement).files?.[0])} />
-          <label class="btn block" for="import-file" tabIndex={0} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), input.current?.click())}>
+          <input ref={input} id="import-file" class="sr-only" aria-label="Choose a chart file" type="file" accept=".json,application/json" onChange={(e) => onFile((e.currentTarget as HTMLInputElement).files?.[0])} />
+          <label class="btn block" for="import-file">
             Choose a file
           </label>
         </div>

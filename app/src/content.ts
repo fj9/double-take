@@ -103,5 +103,5 @@ export const DUPLICATE_INTRO =
   "Work this after blocking. Thread a blunt needle with about 20 in (50 cm) of the duplicate stitch colour. Cover each square of a patch with a duplicate stitch over the stitch in the same position. Keep the needle within the layer you are working on and do not catch the other side. Finish one patch at a time and weave the ends in between the layers.";
 
 export const APP_VERSION = "0.1.0";
-export const CHANGELOG = [{ version: "0.1.0", date: "29 October 2026", notes: "First version: the leopard example, chart import, the round-by-round tracker and the duplicate stitch tracker." }];
-export const HASHTAG: string | null = null; // to be chosen (spec open question)
+export const CHANGELOG = [{ version: "0.1.0", date: "29 October 2026", notes: "First version. Knit the leopard example or your own chart round by round, with a duplicate stitch tracker and stripes. Make a chart from a picture, by drawing (with a picture to trace over), or with the Claude skill. Review it, print the chart pages, and export pictures and spreadsheets. Works offline, and everything stays on your device." }];
+export const HASHTAG: string | null = "#doubletakehat";

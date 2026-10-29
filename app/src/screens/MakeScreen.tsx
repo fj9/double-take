@@ -243,12 +243,12 @@ export function MakeScreen() {
             <h2>Choose a picture</h2>
             <p class="small">A pattern, a print or a simple picture works best. Big flat areas of colour knit better than fine detail. Only use pictures you have the right to use.</p>
             <div class="row" style="flex-wrap:wrap">
-              <input id="pic-file" class="sr-only" type="file" accept="image/*" onChange={(e) => choose((e.currentTarget as HTMLInputElement).files?.[0])} />
-              <label class="btn primary" for="pic-file" tabIndex={0} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), document.getElementById("pic-file")?.click())}>
+              <input id="pic-file" class="sr-only" aria-label="Choose a picture from your files" type="file" accept="image/*" onChange={(e) => choose((e.currentTarget as HTMLInputElement).files?.[0])} />
+              <label class="btn primary" for="pic-file">
                 {pic ? "Choose a different picture" : "Choose a picture"}
               </label>
-              <input id="pic-cam" class="sr-only" type="file" accept="image/*" capture="environment" onChange={(e) => choose((e.currentTarget as HTMLInputElement).files?.[0])} />
-              <label class="btn" for="pic-cam" tabIndex={0} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), document.getElementById("pic-cam")?.click())}>
+              <input id="pic-cam" class="sr-only" aria-label="Take a photo" type="file" accept="image/*" capture="environment" onChange={(e) => choose((e.currentTarget as HTMLInputElement).files?.[0])} />
+              <label class="btn" for="pic-cam">
                 Take a photo
               </label>
             </div>

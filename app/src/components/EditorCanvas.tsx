@@ -50,7 +50,7 @@ export function EditorCanvas({ view, label, mode, onStrokeStart, onStrokeCell, o
   };
 
   return (
-    <div class={`chart-scroll editor ${mode === "draw" ? "painting" : ""}`}>
+    <div class={`chart-scroll editor ${mode === "draw" ? "painting" : ""}`} tabIndex={0} role="region" aria-label="Drawing grid, scrolls in both directions">
       <canvas
         ref={canvas}
         role="img"

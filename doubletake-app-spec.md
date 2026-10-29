@@ -387,13 +387,16 @@ On the More tab of every hat, under **Print and export**:
 8. **Patches:** diagonals connect; patches wrap across the seam and the A/B join and run from body into crown.
 9. **Gauge:** fixed at 25 pairs and 34 rounds to 4 in (10 cm), so the app and the skill have no gauge input. Knitters match gauge by changing needle size, as the pattern says.
 
+10. **Hashtag:** #doubletakehat, shown on the About page and when the rounds are done.
+11. **Repository:** `double-take`, with its own GitHub Pages site (https://fj9.github.io/double-take/).
+12. **Licence:** the code is MIT. The leopard charts, the pattern text and the names and branding are not covered and stay personal use only.
+13. **Tutorial links:** shipped without links for now; the app shows a link wherever one is filled in (`HELP` in `content.ts`).
+
 ## 19. Open questions
 
-1. **Plain crown, confirm:** is `plain_from` (default 86 for custom charts, 76 for the leopard) what you want? It follows from decision 3 and the pattern’s fully plain leopard crown.
-2. **Stripes and the crown:** `round_pairs` covers the 75 body rounds only. What colours does a striped chart use in the crown?
-3. **Yardage calibration:** test knit at least one two-colour and one duplicate stitch hat to calibrate the estimate.
-4. **Tutorials:** which cast on, double knit decrease and duplicate stitch tutorials to link, or record your own.
+1. **Plain crown, confirm:** is `plain_from` (default 86 for custom charts, 76 for the leopard) what you want?
+2. **Stripes and the crown:** a striped chart currently has a plain crown in the top stripe’s colours. Is that what you want?
+3. **Yardage calibration:** test knit at least one two-colour and one duplicate stitch hat to calibrate the estimate. Until then the app says yardage isn’t calculated and to buy extra.
+4. **Tutorials:** choose which cast on, double knit decrease, duplicate stitch and jogless tutorials to link, or record your own.
 5. **Jogless stripes:** test knit the method and correct the wording.
-6. **Hashtag:** the hashtag for sharing finished hats.
-7. **Repository name and URL:** the repo name and the Pages address.
-8. **Pattern credit:** the pattern PDF has no credit to the Chrysanthemum hat by mirielgw, though the app’s About page will credit it.
+6. **Pattern credit:** the pattern PDF has no credit to the Chrysanthemum hat by mirielgw, though the app’s About page and the chart pages do.

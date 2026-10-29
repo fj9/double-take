@@ -36,6 +36,9 @@ export function ChartCanvas({ view, label, onCell, scrollTo, onPinch }: Props) {
     <div
       class="chart-scroll"
       ref={box}
+      tabIndex={0}
+      role="region"
+      aria-label={`${label.split(/[.:]/)[0]}, scrolls sideways`}
       onPointerDown={(e) => {
         pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
         if (pointers.current.size === 2) pinchStart.current = dist();
