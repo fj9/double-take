@@ -1,7 +1,7 @@
 import { signal } from "@preact/signals";
-import { newBlankChart, parseChartJson, validateChart, withPlainCrown } from "@doubletake/core";
+import { newBlankChart, parseChartJson, validateChart } from "@doubletake/core";
 import type { Chart, ChartError } from "@doubletake/core";
-import leopardJson from "../../fixtures/leopard/leopard-patterned.doubletake.json";
+import leopardJson from "../../fixtures/leopard/leopard.doubletake.json";
 import * as db from "./lib/db";
 import { newProgress } from "./lib/model";
 import type { Backup, Progress, Project } from "./lib/model";
@@ -44,8 +44,7 @@ function lsDel(key: string): void {
 }
 
 export const EXAMPLES = [
-  { id: "leopard-patterned", title: "Leopard, patterned crown", blurb: "The three-colour example from the pattern. The leopard print carries on through the crown.", build: () => structuredClone(leopard) },
-  { id: "leopard-plain", title: "Leopard, plain crown", blurb: "The same hat with a plain crown: purple outside, pink inside, no duplicate stitch on the crown.", build: () => withPlainCrown(structuredClone(leopard), 76) },
+  { id: "leopard", title: "Leopard", blurb: "The three-colour example from the pattern: purple and pink, with the spot centres in blue duplicate stitch.", build: () => structuredClone(leopard) },
 ] as const;
 
 export async function init(): Promise<void> {

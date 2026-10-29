@@ -13,7 +13,6 @@ import {
   removeDuplicateLayer,
   setYarnLook,
   symmetricCells,
-  withPlainCrown,
 } from "@doubletake/core";
 import type { Chart, EditLayer, Symmetry } from "@doubletake/core";
 import { EditorCanvas } from "../components/EditorCanvas";
@@ -54,7 +53,6 @@ export function DrawScreen({ project }: { project: Project }) {
   const [sym, setSym] = useState<Symmetry>(NO_SYMMETRY);
   const [mode, setMode] = useState<"draw" | "move">("draw");
   const [hidden, setHidden] = useState<Set<number>>(new Set());
-  const [plainFrom, setPlainFrom] = useState(86);
   const [checks, setChecks] = useState(() => analyse(work.current));
 
   useEffect(() => () => void flushChartSave(), []);
@@ -303,7 +301,7 @@ export function DrawScreen({ project }: { project: Project }) {
     <div>
       <h1>Draw your chart</h1>
       <p class="muted small">
-        Each square is one stitch pair, and its colour is the outside. The inside is the other colour. Round 1 is at the bottom, stitch 1 at the right. The line near the top is where the crown starts.
+        Each square is one stitch pair, and its colour is the outside. The inside is the other colour. Round 1 is at the bottom, stitch 1 at the right. The line near the top is where the crown starts: the crown is the same for every hat, so it can’t be drawn on.
       </p>
 
       <label class="field">
@@ -468,7 +466,7 @@ export function DrawScreen({ project }: { project: Project }) {
       </details>
 
       <details class="card">
-        <summary class="summary">Colours, duplicate stitch and crown</summary>
+        <summary class="summary">Colours and duplicate stitch</summary>
         <div class="stack" style="margin-top:12px">
           {chart.yarns.map((y) => (
             <div key={y.id} class="row" style="flex-wrap:wrap">
@@ -523,20 +521,6 @@ export function DrawScreen({ project }: { project: Project }) {
           </button>
           <p class="small muted" style="margin:0">
             Duplicate stitch is worked on top of the knitting, after blocking, on both faces. Use it for small details in a third colour (up to {MAX_DUPLICATE_LAYERS}).
-          </p>
-
-          <div class="row" style="flex-wrap:wrap">
-            <label class="small muted" for="plain-from">
-              Make the crown plain from round
-            </label>
-            <input id="plain-from" class="input" style="width:90px" type="number" min={76} max={95} value={plainFrom} onInput={(e) => setPlainFrom(Number((e.currentTarget as HTMLInputElement).value))} />
-            <button class="btn small" disabled={!(plainFrom >= 76 && plainFrom <= 95)} onClick={() => change(() => (work.current = withPlainCrown(work.current, plainFrom)))}>
-              Make it plain
-            </button>
-          </div>
-          <p class="small muted" style="margin:0">
-            {chart.crown.variant === "plain" ? `The crown is plain from round ${chart.crown.plain_from}: the main colour A on the outside. ` : "The crown follows your print. "}
-            Making it plain clears the print from that round up. Undo brings it back.
           </p>
         </div>
       </details>

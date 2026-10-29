@@ -1,5 +1,5 @@
 import { useRef, useState } from "preact/hooks";
-import { analyse, crownTable, validateChart } from "@doubletake/core";
+import { analyse, crownTable, validateChart, yarnsInRound } from "@doubletake/core";
 import { ChartCanvas } from "../components/ChartCanvas";
 import { allRoundsDone } from "../lib/model";
 import type { Progress, Project } from "../lib/model";
@@ -42,6 +42,7 @@ export function ReviewScreen({ project, progress }: { project: Project; progress
   };
 
   const yarnLabel = (id: string) => chart.yarns.find((y) => y.id === id)?.name ?? id;
+  const crownYarns = yarnsInRound(chart, 75).map(yarnLabel);
 
   return (
     <div>
@@ -141,8 +142,7 @@ export function ReviewScreen({ project, progress }: { project: Project; progress
       <section class="card" aria-labelledby="crown">
         <h2 id="crown">Crown</h2>
         <p>
-          {chart.crown.variant === "patterned" ? "The print carries on through the decreases." : `The print carries on to round ${(chart.crown.plain_from ?? 76) - 1}, then the crown is plain (${yarnLabel("A")} outside, the other colour inside).`}
-          {chart.crown.variant === "plain" && chart.crown.plain_from === 76 ? " The whole crown is plain." : ""}
+          The crown is the same for every hat: {crownYarns[0]} on the outside and {crownYarns[1]} on the inside{chart.mode === "stripes" ? ", in the top stripe’s colours" : ""}, with right-leaning decreases in eight wedges.
         </p>
         <details>
           <summary class="summary">The decrease table</summary>

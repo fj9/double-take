@@ -85,9 +85,7 @@ export function hitTest(view: ChartView, x: number, y: number): { round: number;
 
 function hasDuplicate(chart: Chart, layer: number, round: number, pair: number): boolean {
   const l = chart.duplicate[layer];
-  if (!l) return false;
-  const row = round <= BODY_ROUNDS ? l.body[round - 1] : l.crown[round - FIRST_CROWN_ROUND];
-  return row?.[pair - 1] === "1";
+  return !!l && round <= BODY_ROUNDS && l.body[round - 1]?.[pair - 1] === "1";
 }
 
 export function draw(canvas: HTMLCanvasElement, view: ChartView): void {

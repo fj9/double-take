@@ -29,9 +29,9 @@ describe("patchWindow", () => {
     expect(w.outsideCols).toEqual([3, 2, 1, 112, 111, 110]);
   });
 
-  it("doesn’t go below round 1 or above round 95", () => {
+  it("doesn’t go below round 1 or above round 75, the top of the body", () => {
     expect(patchWindow(patch([[1, 5]])).rows).toEqual([2, 1]);
-    expect(patchWindow(patch([[95, 5]])).rows).toEqual([95, 94]);
+    expect(patchWindow(patch([[75, 5]])).rows).toEqual([75, 74]);
   });
 
   it("copes with a single cell", () => {

@@ -1,17 +1,10 @@
 import { SCHEMA, yarnsInRound } from "./chart";
 import type { Chart } from "./chart";
-import {
-  BODY_ROUNDS,
-  CROWN_ROUNDS,
-  FIRST_CROWN_ROUND,
-  LAST_ROUND,
-  PAIRS,
-  crownLayout,
-} from "./hat";
+import { BODY_ROUNDS, CROWN_ROUNDS, PAIRS } from "./hat";
 
 export interface ChartError {
   code: string;
-  /** Where in the file, for example `body[11]` or `duplicate[0].crown[3]`. */
+  /** Where in the file, for example `body[11]` or `duplicate[0].body[3]`. */
   path: string;
   /** What happened, in words a knitter can act on. */
   message: string;
@@ -23,8 +16,7 @@ const MAX_ERRORS = 50;
 const MODES = ["two_colour", "duplicate", "stripes"];
 const ROLES = ["main", "stripe", "duplicate"];
 
-const isObject = (v: unknown): v is Record<string, unknown> =>
-  typeof v === "object" && v !== null && !Array.isArray(v);
+const isObject = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
 
 /** Parse the text of a `.doubletake.json` file and validate it. Never throws. */
 export function parseChartJson(text: string): ValidationResult {
@@ -41,7 +33,10 @@ function fail(code: string, path: string, message: string): ValidationResult {
   return { ok: false, errors: [{ code, path, message }] };
 }
 
-/** Check a chart against spec sections 10.1 and 10.2. Returns every problem found (up to 50). */
+/**
+ * Check a chart against spec sections 10.1 and 10.2. Returns every problem found (up to 50).
+ * The crown is the same for every hat, so a file has none; an older file's crown fields are ignored.
+ */
 export function validateChart(input: unknown): ValidationResult {
   if (!isObject(input)) return fail("not_a_chart", "", "That file isn’t a Doubletake chart.");
 
@@ -51,11 +46,7 @@ export function validateChart(input: unknown): ValidationResult {
   }
   if (schema !== SCHEMA) {
     return /^doubletake-chart\/\d+$/.test(schema)
-      ? fail(
-          "schema_version",
-          "schema",
-          `This chart is in a different format version (${schema}). This version of Doubletake reads ${SCHEMA}.`,
-        )
+      ? fail("schema_version", "schema", `This chart is in a different format version (${schema}). This version of Doubletake reads ${SCHEMA}.`)
       : fail("not_a_chart", "schema", "That file isn’t a Doubletake chart.");
   }
 
@@ -64,24 +55,13 @@ export function validateChart(input: unknown): ValidationResult {
     if (errors.length < MAX_ERRORS) errors.push({ code, path, message });
   };
 
-  if (typeof input.name !== "string" || input.name.trim() === "") {
-    err("name", "name", "The chart needs a name.");
-  }
+  if (typeof input.name !== "string" || input.name.trim() === "") err("name", "name", "The chart needs a name.");
   const mode = typeof input.mode === "string" && MODES.includes(input.mode) ? input.mode : undefined;
   if (!mode) err("mode", "mode", "The chart’s mode must be two_colour, duplicate or stripes.");
 
   const dim = input.dimensions;
-  if (
-    !isObject(dim) ||
-    dim.pairs !== PAIRS ||
-    dim.body_rounds !== BODY_ROUNDS ||
-    dim.crown_rounds !== CROWN_ROUNDS
-  ) {
-    err(
-      "dimensions",
-      "dimensions",
-      `Doubletake charts are always ${PAIRS} stitch pairs, ${BODY_ROUNDS} body rounds and ${CROWN_ROUNDS} crown rounds.`,
-    );
+  if (!isObject(dim) || dim.pairs !== PAIRS || dim.body_rounds !== BODY_ROUNDS || dim.crown_rounds !== CROWN_ROUNDS) {
+    err("dimensions", "dimensions", `Doubletake charts are always ${PAIRS} stitch pairs, ${BODY_ROUNDS} body rounds and ${CROWN_ROUNDS} crown rounds.`);
   }
 
   // ---- yarns ----
@@ -92,20 +72,12 @@ export function validateChart(input: unknown): ValidationResult {
     input.yarns.forEach((y, i) => {
       const p = `yarns[${i}]`;
       if (!isObject(y)) return err("yarns", p, "Each yarn needs an id, name, hex colour and role.");
-      if (typeof y.id !== "string" || !/^[A-F]$/.test(y.id)) {
-        err("yarn_id", p, "Yarn ids are single capital letters from A to F.");
-      } else if (yarnRole.has(y.id)) {
-        err("yarn_id", p, `Yarn ${y.id} is defined twice.`);
-      }
+      if (typeof y.id !== "string" || !/^[A-F]$/.test(y.id)) err("yarn_id", p, "Yarn ids are single capital letters from A to F.");
+      else if (yarnRole.has(y.id)) err("yarn_id", p, `Yarn ${y.id} is defined twice.`);
       if (typeof y.name !== "string" || y.name.trim() === "") err("yarn_name", p, "Each yarn needs a name.");
-      if (typeof y.hex !== "string" || !/^#[0-9a-fA-F]{6}$/.test(y.hex)) {
-        err("yarn_hex", p, "Yarn colours are written like #6B2D9E.");
-      }
-      if (typeof y.role !== "string" || !ROLES.includes(y.role)) {
-        err("yarn_role", p, "A yarn’s role must be main, stripe or duplicate.");
-      } else if (typeof y.id === "string") {
-        yarnRole.set(y.id, y.role);
-      }
+      if (typeof y.hex !== "string" || !/^#[0-9a-fA-F]{6}$/.test(y.hex)) err("yarn_hex", p, "Yarn colours are written like #6B2D9E.");
+      if (typeof y.role !== "string" || !ROLES.includes(y.role)) err("yarn_role", p, "A yarn’s role must be main, stripe or duplicate.");
+      else if (typeof y.id === "string") yarnRole.set(y.id, y.role);
     });
     const count = (r: string) => [...yarnRole.values()].filter((v) => v === r).length;
     if (mode === "two_colour" && !(count("main") === 2 && yarnRole.size === 2)) {
@@ -131,8 +103,7 @@ export function validateChart(input: unknown): ValidationResult {
       err("round_pairs", "round_pairs", `A striped chart lists the yarn pair for each of the ${BODY_ROUNDS} body rounds.`);
     } else {
       rp.forEach((pair, i) => {
-        const ok =
-          Array.isArray(pair) && pair.length === 2 && pair[0] !== pair[1] && pair.every((id) => typeof id === "string" && known(id));
+        const ok = Array.isArray(pair) && pair.length === 2 && pair[0] !== pair[1] && pair.every((id) => typeof id === "string" && known(id));
         if (!ok) err("round_pairs", `round_pairs[${i}]`, `Round ${i + 1} needs two different, defined yarns.`);
       });
     }
@@ -141,20 +112,15 @@ export function validateChart(input: unknown): ValidationResult {
   }
   if (errors.length > 0) return { ok: false, errors };
 
-  const shapeOk = (rows: unknown, n: number, path: string, what: string): rows is string[] => {
-    if (!Array.isArray(rows) || rows.length !== n) {
-      err("shape", path, `${what} needs ${n} rows${Array.isArray(rows) ? `, but has ${rows.length}` : ""}.`);
+  const shapeOk = (rows: unknown, path: string, what: string): rows is string[] => {
+    if (!Array.isArray(rows) || rows.length !== BODY_ROUNDS) {
+      err("shape", path, `${what} needs ${BODY_ROUNDS} rows${Array.isArray(rows) ? `, but has ${rows.length}` : ""}.`);
       return false;
     }
     let good = true;
     rows.forEach((row, i) => {
       if (typeof row !== "string" || row.length !== PAIRS) {
-        const round = path.startsWith("body") || path.endsWith("body") ? i + 1 : FIRST_CROWN_ROUND + i;
-        err(
-          "shape",
-          `${path}[${i}]`,
-          `Round ${round} has ${typeof row === "string" ? row.length : 0} stitch pairs in ${what}; every row needs ${PAIRS}.`,
-        );
+        err("shape", `${path}[${i}]`, `Round ${i + 1} has ${typeof row === "string" ? row.length : 0} stitch pairs in ${what}; every row needs ${PAIRS}.`);
         good = false;
       }
     });
@@ -162,7 +128,7 @@ export function validateChart(input: unknown): ValidationResult {
   };
 
   // ---- body ----
-  if (shapeOk(chart.body, BODY_ROUNDS, "body", "the chart")) {
+  if (shapeOk(chart.body, "body", "the chart")) {
     chart.body.forEach((row, i) => {
       const round = i + 1;
       const pair = yarnsInRound(chart, round);
@@ -180,108 +146,31 @@ export function validateChart(input: unknown): ValidationResult {
     });
   }
 
-  // ---- crown ----
-  const crown = chart.crown;
-  if (!isObject(crown)) {
-    err("crown", "crown", "The chart needs a crown.");
-  } else {
-    if (crown.variant !== "patterned" && crown.variant !== "plain") {
-      err("crown_variant", "crown.variant", "The crown must be patterned or plain.");
-    }
-    if (crown.variant === "patterned" && crown.plain_from !== null) {
-      err("plain_from", "crown.plain_from", "A patterned crown has plain_from set to null.");
-    }
-    if (
-      crown.variant === "plain" &&
-      !(Number.isInteger(crown.plain_from) && (crown.plain_from as number) >= FIRST_CROWN_ROUND && (crown.plain_from as number) <= LAST_ROUND)
-    ) {
-      err("plain_from", "crown.plain_from", `A plain crown says which round it is plain from (${FIRST_CROWN_ROUND} to ${LAST_ROUND}).`);
-    }
-    if (shapeOk(crown.rounds, CROWN_ROUNDS, "crown.rounds", "the crown")) {
-      const ground = chart.yarns.find((y) => y.role === "main")?.id;
-      crown.rounds.forEach((row, i) => {
-        const round = FIRST_CROWN_ROUND + i;
-        const { present } = crownLayout(round);
-        const pair = yarnsInRound(chart, round);
-        for (let p = 0; p < PAIRS; p++) {
-          const ch = row[p] as string;
-          if (!present[p]) {
-            if (ch !== ".") {
-              err("crown_layout", `crown.rounds[${i}]`, `Round ${round}, pair ${p + 1} was removed by an earlier decrease, so it must be “.”, not “${ch}”.`);
-              break;
-            }
-            continue;
-          }
-          if (ch === ".") {
-            err("crown_layout", `crown.rounds[${i}]`, `Round ${round}, pair ${p + 1} should still be there, but it is “.”.`);
-            break;
-          }
-          if (!known(ch) || !pair.includes(ch)) {
-            err("not_in_pair", `crown.rounds[${i}]`, `Round ${round}, pair ${p + 1}: “${ch}” isn’t one of the two yarns worked in this round.`);
-            break;
-          }
-          if (
-            crown.variant === "plain" &&
-            typeof crown.plain_from === "number" &&
-            round >= crown.plain_from &&
-            mode !== "stripes" &&
-            ch !== ground
-          ) {
-            err("plain_crown", `crown.rounds[${i}]`, `Round ${round} is in the plain part of the crown, so every pair must be yarn ${ground} on the outside.`);
-            break;
-          }
-        }
-      });
-    }
-  }
-
   // ---- duplicate stitch layers ----
   const layers: unknown = chart.duplicate;
   if (!Array.isArray(layers)) {
     err("duplicate", "duplicate", "The chart needs a duplicate list (it can be empty).");
   } else {
-    if (mode === "two_colour" && layers.length > 0) {
-      err("duplicate", "duplicate", "A two-colour chart has no duplicate stitch layers.");
-    }
-    if (mode === "duplicate" && (layers.length < 1 || layers.length > 4)) {
-      err("duplicate", "duplicate", "A duplicate stitch chart has one to four duplicate stitch layers.");
-    }
+    if (mode === "two_colour" && layers.length > 0) err("duplicate", "duplicate", "A two-colour chart has no duplicate stitch layers.");
+    if (mode === "duplicate" && (layers.length < 1 || layers.length > 4)) err("duplicate", "duplicate", "A duplicate stitch chart has one to four duplicate stitch layers.");
     if (layers.length > 4) err("duplicate", "duplicate", "A chart has at most four duplicate stitch layers.");
     const claimed = new Map<string, number>(); // "round:pair" -> layer index
     const usedYarns = new Set<string>();
     layers.forEach((layer, li) => {
       const lp = `duplicate[${li}]`;
-      if (!isObject(layer)) return err("duplicate", lp, "Each duplicate layer needs a yarn, faces, body and crown.");
+      if (!isObject(layer)) return err("duplicate", lp, "Each duplicate layer needs a yarn, faces and body.");
       const yarn = layer.yarn;
       if (typeof yarn !== "string" || !known(yarn)) {
         err("undefined_yarn", `${lp}.yarn`, "A duplicate layer’s yarn isn’t one of the chart’s yarns.");
       } else {
         const role = yarnRole.get(yarn);
-        if (mode === "duplicate" && role !== "duplicate") {
-          err("duplicate", `${lp}.yarn`, `Yarn ${yarn} isn’t a duplicate stitch yarn.`);
-        }
-        if (mode === "stripes" && role !== "stripe") {
-          err("duplicate", `${lp}.yarn`, `Yarn ${yarn} isn’t one of the stripe yarns.`);
-        }
+        if (mode === "duplicate" && role !== "duplicate") err("duplicate", `${lp}.yarn`, `Yarn ${yarn} isn’t a duplicate stitch yarn.`);
+        if (mode === "stripes" && role !== "stripe") err("duplicate", `${lp}.yarn`, `Yarn ${yarn} isn’t one of the stripe yarns.`);
         if (usedYarns.has(yarn)) err("duplicate", `${lp}.yarn`, `Yarn ${yarn} is used by two duplicate layers; each layer needs its own yarn.`);
         usedYarns.add(yarn);
       }
-      if (layer.faces !== "both" && layer.faces !== "outside") {
-        err("faces", `${lp}.faces`, "A duplicate layer’s faces must be both or outside.");
-      }
-      const bodyOk = shapeOk(layer.body, BODY_ROUNDS, `${lp}.body`, "a duplicate layer");
-      const crownOk = shapeOk(layer.crown, CROWN_ROUNDS, `${lp}.crown`, "a duplicate layer’s crown");
-      const mark = (round: number, p: number) => {
-        const key = `${round}:${p}`;
-        const prev = claimed.get(key);
-        if (prev !== undefined && prev !== li) {
-          err("duplicate_overlap", lp, `Round ${round}, pair ${p + 1} is in duplicate layers ${prev + 1} and ${li + 1}. A cell can be in only one layer.`);
-          return false;
-        }
-        claimed.set(key, li);
-        return true;
-      };
-      if (bodyOk) {
+      if (layer.faces !== "both" && layer.faces !== "outside") err("faces", `${lp}.faces`, "A duplicate layer’s faces must be both or outside.");
+      if (shapeOk(layer.body, `${lp}.body`, "a duplicate layer")) {
         for (let i = 0; i < BODY_ROUNDS; i++) {
           const row = (layer.body as string[])[i] as string;
           for (let p = 0; p < PAIRS; p++) {
@@ -290,35 +179,14 @@ export function validateChart(input: unknown): ValidationResult {
               err("duplicate_char", `${lp}.body[${i}]`, `Round ${i + 1}, pair ${p + 1}: duplicate layers use 1 and 0 only.`);
               break;
             }
-            if (ch === "1" && !mark(i + 1, p)) break;
-          }
-        }
-      }
-      if (crownOk) {
-        const plainFrom = isObject(crown) && crown.variant === "plain" && typeof crown.plain_from === "number" ? crown.plain_from : undefined;
-        for (let i = 0; i < CROWN_ROUNDS; i++) {
-          const round = FIRST_CROWN_ROUND + i;
-          const { present } = crownLayout(round);
-          const row = (layer.crown as string[])[i] as string;
-          for (let p = 0; p < PAIRS; p++) {
-            const ch = row[p];
-            if (!present[p]) {
-              if (ch !== ".") {
-                err("crown_layout", `${lp}.crown[${i}]`, `Round ${round}, pair ${p + 1} was removed, so it must be “.” in the duplicate layer too.`);
-                break;
-              }
-              continue;
-            }
-            if (ch !== "0" && ch !== "1") {
-              err("duplicate_char", `${lp}.crown[${i}]`, `Round ${round}, pair ${p + 1}: duplicate layers use 1, 0 and “.” only.`);
-              break;
-            }
             if (ch === "1") {
-              if (plainFrom !== undefined && round >= plainFrom) {
-                err("plain_crown", `${lp}.crown[${i}]`, `Round ${round} is in the plain part of the crown, so it can’t have duplicate stitch.`);
+              const key = `${i + 1}:${p}`;
+              const prev = claimed.get(key);
+              if (prev !== undefined && prev !== li) {
+                err("duplicate_overlap", lp, `Round ${i + 1}, pair ${p + 1} is in duplicate layers ${prev + 1} and ${li + 1}. A cell can be in only one layer.`);
                 break;
               }
-              if (!mark(round, p)) break;
+              claimed.set(key, li);
             }
           }
         }

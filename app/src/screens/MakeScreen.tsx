@@ -92,8 +92,6 @@ export function MakeScreen() {
   const [dupRole, setDupRole] = useState<number | null>(null);
   const [swap, setSwap] = useState(false);
   const [route, setRoute] = useState<"A" | "B" | null>(null);
-  const [crownVariant, setCrownVariant] = useState<"patterned" | "plain">("patterned");
-  const [plainFrom, setPlainFrom] = useState(86);
   const [names, setNames] = useState<string[]>([]);
   const [hexes, setHexes] = useState<string[]>([]);
   const [hatName, setHatName] = useState("My hat");
@@ -166,7 +164,7 @@ export function MakeScreen() {
     return chosenRoute === "B" ? { kind: "stripes" } : { kind: "duplicate" };
   };
 
-  const buildOpts = { name: hatName, yarnNames: names, yarnHex: hexes, crown: { variant: crownVariant, plainFrom } };
+  const buildOpts = { name: hatName, yarnNames: names, yarnHex: hexes };
   const built = useMemo(() => {
     if (!roles) return null;
     try {
@@ -175,7 +173,7 @@ export function MakeScreen() {
     } catch (e) {
       return { chart: null, analysis: null, error: e instanceof BuildError ? e.message : "That choice can’t be made into a chart." };
     }
-  }, [roles, dupRole, swap, chosenRoute, crownVariant, plainFrom, names, hexes, hatName]);
+  }, [roles, dupRole, swap, chosenRoute, names, hexes, hatName]);
 
   // For three colours: all three ways to knit it, to compare
   const colourways = useMemo(() => {
@@ -193,7 +191,7 @@ export function MakeScreen() {
       }
       return { d, chart, contrast };
     });
-  }, [roles, swap, names, hexes, crownVariant, plainFrom, hatName]);
+  }, [roles, swap, names, hexes, hatName]);
   const best = colourways.length ? colourways.reduce((a, b) => (b.contrast > a.contrast ? b : a)).d : null;
 
   const yarnName = (r: number) => names[r]?.trim() || `colour ${r + 1}`;
@@ -449,25 +447,6 @@ export function MakeScreen() {
               </p>
             </div>
           )}
-
-          <div class="card">
-            <h2>The crown</h2>
-            <div class="seg" role="group" aria-label="Crown">
-              <button aria-pressed={crownVariant === "patterned" && chosenRoute !== "B"} disabled={comparison !== null && chosenRoute === "B"} onClick={() => setCrownVariant("patterned")}>
-                Patterned
-              </button>
-              <button aria-pressed={crownVariant === "plain" || (comparison !== null && chosenRoute === "B")} onClick={() => setCrownVariant("plain")}>
-                Plain
-              </button>
-            </div>
-            <p class="small muted" style="margin:8px 0 0">
-              {comparison !== null && chosenRoute === "B"
-                ? "A striped hat has a plain crown in the top stripe’s colours."
-                : crownVariant === "patterned"
-                  ? "The print carries on through the decreases."
-                  : `The print carries on to round ${plainFrom - 1}, then the crown is plain.`}
-            </p>
-          </div>
 
           {built?.error && (
             <div class="card" role="alert" style="border-color:var(--error)">

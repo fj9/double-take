@@ -93,11 +93,13 @@ describe("the command line", () => {
     expect(readFileSync(b.chartFile, "utf-8")).toBe(readFileSync(a.chartFile, "utf-8"));
   });
 
-  it("makes a two-colour chart and a plain crown", () => {
-    const b = json(["build", spots("two.png"), "--colours", "2", "--crown", "plain", "--plain-from", "80", "--out", join(dir, "two")]);
+  it("makes a two-colour chart", () => {
+    const b = json(["build", spots("two.png"), "--colours", "2", "--out", join(dir, "two")]);
     expect(b.mode).toBe("two_colour");
-    expect(b.crown).toBe("plain from round 80");
-    expect(parseChartJson(readFileSync(b.chartFile, "utf-8")).ok).toBe(true);
+    expect(b).not.toHaveProperty("crown");
+    const chart = parseChartJson(readFileSync(b.chartFile, "utf-8"));
+    expect(chart.ok).toBe(true);
+    expect(readFileSync(b.chartFile, "utf-8")).not.toContain('"crown"');
   });
 
   it("compares the two ways to use more than three colours, and builds stripes", () => {

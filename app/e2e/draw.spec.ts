@@ -44,7 +44,7 @@ test("the drawing is saved and the hat reopens in the editor", async ({ page }) 
 
 test("a duplicate stitch colour can be added and drawn", async ({ page }) => {
   await startDrawing(page);
-  await page.getByText("Colours, duplicate stitch and crown").click();
+  await page.getByText("Colours and duplicate stitch").click();
   await page.getByRole("button", { name: "Add a duplicate stitch colour" }).click();
   await expect(page.getByRole("button", { name: "Duplicate: Duplicate colour" })).toHaveAttribute("aria-pressed", "true");
   await clickCell(page, 30, 40);
@@ -74,7 +74,7 @@ test("the leopard review warns about the amount of duplicate stitch", async ({ p
   await page.getByRole("link", { name: "Review the chart" }).click();
   await expect(page.getByRole("heading", { name: "Review your chart" })).toBeVisible();
   await expect(page.getByText(/Duplicate stitch covers 21% of the hat/)).toBeVisible();
-  await expect(page.getByText(/39 patches, 2011 squares/)).toBeVisible();
+  await expect(page.getByText(/31 patches, 1758 squares/)).toBeVisible();
   // Not started yet, so it can be edited, or copied
   await page.getByRole("button", { name: "Make an editable copy" }).click();
   await expect(page.getByRole("heading", { name: "Draw your chart" })).toBeVisible();

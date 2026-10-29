@@ -28,7 +28,7 @@ Run it from this skill's folder. It reads JPEG and PNG (convert WebP or HEIC fir
 | `colourways PICTURE --out DIR` | For 3 colours: pictures of the three ways to embroider it |
 | `build PICTURE --out DIR` | Writes the chart file and preview pictures |
 
-Options: `--zoom 1..4 --cx 0..1 --cy 0..1` (which part of the picture; zoom 1 uses as much as fits the hat's shape), `--colours 2..6`, `--seam fade|accept`, `--min-patch N`. For `build` also: `--name "Hat name"`, `--names a,b,c` and `--hex "#112233,#445566"` (by colour number: 0 is the most used colour), `--mode two|duplicate|stripes`, `--dup-roles 2,3`, `--outside-role R`, `--crown patterned|plain`, `--plain-from 86`.
+Options: `--zoom 1..4 --cx 0..1 --cy 0..1` (which part of the picture; zoom 1 uses as much as fits the hat's shape), `--colours 2..6`, `--seam fade|accept`, `--min-patch N`. For `build` also: `--name "Hat name"`, `--names a,b,c` and `--hex "#112233,#445566"` (by colour number: 0 is the most used colour), `--mode two|duplicate|stripes`, `--dup-roles 2,3`, `--outside-role R`.
 
 If you can't run scripts, say so, and point them to the Doubletake app's own "Make a chart from a picture", which does the same thing.
 
@@ -43,7 +43,6 @@ Ask only a few questions, and give a default for each.
    - **How many colours**, 2 to 6. Extra shades of one colour (shadow, pile) are not new colours, so use as few as the picture needs.
    - **The join.** `fade` blends the picture's edges so a repeating print carries on round the hat with no visible join (default for 2 or 3 colours). `accept` leaves the edges to meet at the join, which suits a picture with one clear subject (default for more colours). If you choose `accept`, tell them the join will show, and that it is also where stripe changes happen.
    - **Which part of the picture.** The hat is about twice as wide as tall. If the picture is a different shape, decide what to keep with `--zoom`, `--cx`, `--cy`, and say which part you kept.
-   - **The crown.** Patterned (the print carries on through the decreases) or plain (the print stops after round 85, the rest is the main colour A on the outside). Stripes charts always have a plain crown in the top stripe's colours.
    - **Yarn colours and names**, if they know them (`--names`, `--hex`). Otherwise the picture's colours are used.
 3. **Two colours.** One hat, two faces. Go straight to `build --colours 2`.
 4. **Three colours.** The third colour is worked in duplicate stitch, on both faces, after blocking. Any of the three can be the embroidered one. Run `colourways`, **look at each picture** (outside above, inside below), show the options, and suggest `mostContrasting`. Then ask which colour to embroider and which of the other two should be on the outside (`--dup-roles D --outside-role R`).
@@ -63,10 +62,10 @@ Ask only a few questions, and give a default for each.
 
 ## Reading the output
 
-- `build` prints `chartFile`, `previews`, `mode` (`two_colour`, `duplicate`, `stripes`), `crown`, `yarns` (id, name, hex, role), `duplicateStitch` (patches, squares, share of the hat) and `warnings` (`warn` or `stop`).
+- `build` prints `chartFile`, `previews`, `mode` (`two_colour`, `duplicate`, `stripes`), `yarns` (id, name, hex, role), `duplicateStitch` (patches, squares, share of the hat) and `warnings` (`warn` or `stop`).
 - Yarn **A** is the main colour on the outside, **B** the other main colour, and **C** onwards are the duplicate stitch colours (in stripes mode all yarns are stripe colours).
 - Colour numbers (`--names`, `--hex`, `--dup-roles`, `--outside-role`) start at 0 for the most used colour in the picture.
-- In the previews, round 1 is at the bottom, the crown is at the top (the white staircase is the decreases), stitch 1 is at the right on the outside, and a small square in a different colour is duplicate stitch.
+- In the previews, round 1 is at the bottom, the crown is at the top (the white staircase is the decreases; the crown is the same for every hat and is not part of the chart file), stitch 1 is at the right on the outside, and a small square in a different colour is duplicate stitch.
 
 ## Checks before sending
 

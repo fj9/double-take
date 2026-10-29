@@ -4,7 +4,7 @@ import type { Chart, DuplicateLayer } from "../src";
 import { newBlankChart } from "../src";
 
 export function loadLeopard(): Chart {
-  const path = fileURLToPath(new URL("../../fixtures/leopard/leopard-patterned.doubletake.json", import.meta.url));
+  const path = fileURLToPath(new URL("../../fixtures/leopard/leopard.doubletake.json", import.meta.url));
   return JSON.parse(readFileSync(path, "utf-8")) as Chart;
 }
 
@@ -21,7 +21,6 @@ export function emptyLayer(chart: Chart, yarn = "C", faces: "both" | "outside" =
     yarn,
     faces,
     body: chart.body.map((r) => "0".repeat(r.length)),
-    crown: chart.crown.rounds.map((r) => [...r].map((ch) => (ch === "." ? "." : "0")).join("")),
   };
 }
 

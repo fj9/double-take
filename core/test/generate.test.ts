@@ -157,29 +157,24 @@ describe("charts", () => {
     expect(swapped.yarns[0]?.name).toBe("colour 2");
   });
 
-  it("a patterned crown repeats rounds 1 to 20; a plain crown is plain from round 86", () => {
-    const roles = makeRoles(spots(RED, CREAM), { colours: 2 });
-    const patterned = buildChart(roles, { kind: "two" }, { crown: { variant: "patterned" } });
-    expect(patterned.crown.variant).toBe("patterned");
-    expect(outsideAt(patterned, 77, 30)).toBe(outsideAt(patterned, 2, 30));
-    const plain = buildChart(roles, { kind: "two" }, { crown: { variant: "plain" } });
-    expect(plain.crown.plain_from).toBe(86);
-    expect(validateChart(plain).ok).toBe(true);
-    for (let r = 86; r <= 95; r++) for (let p = 1; p <= 112; p++) expect([null, "A"]).toContain(outsideAt(plain, r, p));
-    const fullyPlain = buildChart(roles, { kind: "two" }, { crown: { variant: "plain", plainFrom: 76 } });
-    expect(validateChart(fullyPlain).ok).toBe(true);
-    expect(() => buildChart(roles, { kind: "two" }, { crown: { variant: "plain", plainFrom: 70 } })).toThrow(/76 to 95/);
+  it("the crown is not part of the chart: it is the same for every hat", () => {
+    const chart = buildChart(makeRoles(spots(RED, CREAM), { colours: 2 }), { kind: "two" });
+    expect("crown" in chart).toBe(false);
+    expect(chart.duplicate).toEqual([]);
+    for (let r = 76; r <= 95; r++) for (let p = 1; p <= 112; p++) expect([null, "A"]).toContain(outsideAt(chart, r, p));
   });
 
-  it("a duplicate stitch chart with a plain crown has none in the plain part", () => {
+  it("a duplicate stitch chart has no duplicate stitch in the crown", () => {
     const img = image(640, 316, (x, y) => {
       const cx = (x % 80) - 40;
       const cy = (y % 80) - 40;
       if (cx * cx + cy * cy < 8 * 8) return BLUE;
       return cx * cx + cy * cy < 22 * 22 ? RED : CREAM;
     });
-    const chart = buildChart(makeRoles(img, { colours: 3 }), { kind: "duplicate" }, { crown: { variant: "plain" } });
+    const chart = buildChart(makeRoles(img, { colours: 3 }), { kind: "duplicate" });
     expect(validateChart(chart).ok).toBe(true);
+    expect(chart.duplicate[0]?.body).toHaveLength(75);
+    expect(chart.duplicate[0]).not.toHaveProperty("crown");
   });
 
   it("refuses a two-colour chart from three colours", () => {
@@ -212,8 +207,7 @@ describe("more than three colours", () => {
     expect(chart.mode).toBe("stripes");
     expect(chart.round_pairs).toHaveLength(75);
     expect(chart.yarns.every((y) => y.role === "stripe")).toBe(true);
-    expect(chart.crown.variant).toBe("plain");
-    expect(chart.crown.plain_from).toBe(76);
+    expect(outsideAt(chart, 80, 5)).toBe(chart.round_pairs![74]![0]);
   });
 
   it("small scattered accents suit duplicate stitch (route A)", () => {

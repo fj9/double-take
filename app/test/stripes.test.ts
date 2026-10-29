@@ -6,7 +6,7 @@ import { geometry, stripeWidth } from "../src/lib/render";
 
 const read = (name: string) => JSON.parse(readFileSync(new URL(`../../fixtures/${name}`, import.meta.url), "utf-8")) as Chart;
 const bands = read("stripes/bands.doubletake.json"); // rounds 1-38 A+B, 39-56 A+D, 57-75 A+C
-const leopard = read("leopard/leopard-patterned.doubletake.json");
+const leopard = read("leopard/leopard.doubletake.json");
 
 const ids = (round: number) => stripeNotes(bands, round).map((n) => n.id);
 

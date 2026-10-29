@@ -70,25 +70,12 @@ export function chartPages(chart: Chart): PrintPage[] {
   for (const part of ["A", "B"] as const) {
     pages.push({
       id: `crown-${part}`,
-      title: `${chart.crown.variant === "plain" ? "plain" : "patterned"} crown ${part}`,
+      title: `crown ${part}`,
       meta: crownMeta(part),
       legend: crownKey,
       svg: chartSvg({ chart, cols: part === "A" ? A_COLS : B_COLS, rows: CROWN_ROWS, counts: true, label: `Crown, chart ${part}, rounds ${FIRST_CROWN_ROUND} to ${LAST_ROUND}` }),
     });
   }
-  chart.duplicate.forEach((layer, li) => {
-    if (!anyDuplicate(layer.crown)) return;
-    const name = chart.yarns.find((y) => y.id === layer.yarn)?.name ?? layer.yarn;
-    for (const part of ["A", "B"] as const) {
-      pages.push({
-        id: `crown-dup-${li}-${part}`,
-        title: `crown duplicate stitch ${part}`,
-        meta: `${name}, rounds ${FIRST_CROWN_ROUND}–${LAST_ROUND}, stitches ${part === "A" ? "1–56" : "57–112"}.`,
-        legend: dupKey(li),
-        svg: chartSvg({ chart, cols: part === "A" ? A_COLS : B_COLS, rows: CROWN_ROWS, onlyLayer: li, counts: true, label: `Crown duplicate stitch in ${name}, chart ${part}` }),
-      });
-    }
-  });
   return pages;
 }
 

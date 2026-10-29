@@ -24,7 +24,8 @@ Status on 29 October 2026. Everything marked **Done** is built and tested. The r
 - [ ] **Pattern PDF links.** The "make your chart" section still says "[Link to the app and chart skill to come]". The addresses will be https://fj9.github.io/double-take/ and https://fj9.github.io/double-take/#/skill once it's published.
 - [ ] **Pattern PDF yardage line.** It says "have a little extra" of the duplicate stitch colour. The app says to buy more than you think you need. You may want to match them.
 - [ ] **App icon.** The icon is a placeholder (two overlapping discs). Replace the files in `app/public` (and `app/scripts/make-icons.mjs` if you want to regenerate them).
-- [ ] **Confirm two choices.** A striped chart's crown is plain in the top stripe's colours. A custom chart's plain crown starts at round 86 (the leopard's at 76).
+- [ ] **Update the pattern PDF for the standard crown.** There is now one crown, with no patterned or plain choice: use `pattern-editor-prompt.md`.
+- [ ] **Confirm the crown.** It is yarn A outside and B inside from round 76, as in your pattern's plain crown. Say if you would rather it carry a little of the print first.
 
 ## Test on real phones (about 20 minutes)
 

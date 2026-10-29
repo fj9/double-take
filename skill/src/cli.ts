@@ -22,7 +22,6 @@ Shared options
 build options
   --name "Hat name"   --names a,b,c   --hex "#112233,#445566"   (by colour number, 0 = most used)
   --mode two|duplicate|stripes   --dup-roles 2,3   --outside-role R
-  --crown patterned|plain   --plain-from 86
 `;
 
 type Flags = Record<string, string | true>;
@@ -93,16 +92,12 @@ function choiceFrom(f: Flags, roles: RoleResult): Choice {
 }
 
 function optionsFrom(f: Flags) {
-  const plainFrom = num(f, "plain-from");
-  const crown = (f.crown as "patterned" | "plain" | undefined) ?? (plainFrom !== undefined ? "plain" : "patterned");
-  if (crown !== "patterned" && crown !== "plain") throw new Error("--crown is patterned or plain.");
   const names = list(f, "names");
   const hex = list(f, "hex");
   return {
     name: typeof f.name === "string" ? f.name : "My hat",
     ...(names ? { yarnNames: names } : {}),
     ...(hex ? { yarnHex: hex } : {}),
-    crown: { variant: crown, ...(plainFrom !== undefined ? { plainFrom } : {}) },
   } as const;
 }
 
@@ -110,7 +105,6 @@ function summary(chart: Chart) {
   const a = analyse(chart);
   return {
     mode: chart.mode,
-    crown: chart.crown.variant === "plain" ? `plain from round ${chart.crown.plain_from}` : "patterned",
     yarns: chart.yarns.map((y) => ({ id: y.id, name: y.name, hex: y.hex, role: y.role })),
     duplicateStitch: a.duplicate.map((d) => ({ yarn: d.yarn, patches: d.patches, squares: d.cells, shareOfHat: round(d.share) })),
     duplicateShare: round(a.duplicateShare),
