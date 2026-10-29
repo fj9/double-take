@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { analyse, buildChart, compareRoutes, extractPalette, FABRIC_ASPECT, makeRoles, outsideAt, planPairs, shrinkPixels, validateChart } from "../src";
+import { analyse, applyOrientation, buildChart, compareRoutes, extractPalette, FABRIC_ASPECT, makeRoles, outsideAt, planPairs, shrinkPixels, validateChart } from "../src";
 import type { Pixels } from "../src";
 
 type Rgb = [number, number, number];
@@ -260,5 +260,31 @@ describe("big pictures and real yarn colours", () => {
     const ignored = buildChart(roles, { kind: "two" }, { yarnHex: ["blue", "#ff6655"] });
     expect(ignored.yarns[0]?.hex).toMatch(/^#[0-9a-f]{6}$/);
     expect(ignored.yarns[1]?.hex).toBe("#ff6655");
+  });
+});
+
+describe("turning a sideways photo the right way up", () => {
+  // A 3 × 2 picture: top row 1 2 3, bottom row 4 5 6 (the number is the red value)
+  const small = (): Pixels => {
+    const data = new Uint8ClampedArray(3 * 2 * 4);
+    for (let i = 0; i < 6; i++) data.set([i + 1, 0, 0, 255], i * 4);
+    return { width: 3, height: 2, data };
+  };
+  const reds = (p: Pixels) => Array.from({ length: p.width * p.height }, (_, i) => p.data[i * 4]);
+
+  it("leaves a normal photo alone", () => {
+    expect(applyOrientation(small(), 1)).toEqual(small());
+  });
+  it("turns each of the eight orientations the way the EXIF note says", () => {
+    expect(reds(applyOrientation(small(), 2))).toEqual([3, 2, 1, 6, 5, 4]); // mirrored left to right
+    expect(reds(applyOrientation(small(), 3))).toEqual([6, 5, 4, 3, 2, 1]); // upside down
+    expect(reds(applyOrientation(small(), 4))).toEqual([4, 5, 6, 1, 2, 3]); // mirrored top to bottom
+    const six = applyOrientation(small(), 6); // needs turning clockwise
+    expect([six.width, six.height]).toEqual([2, 3]);
+    expect(reds(six)).toEqual([4, 1, 5, 2, 6, 3]);
+    const eight = applyOrientation(small(), 8); // needs turning anticlockwise
+    expect(reds(eight)).toEqual([3, 6, 2, 5, 1, 4]);
+    expect(reds(applyOrientation(small(), 5))).toEqual([1, 4, 2, 5, 3, 6]); // transpose
+    expect(reds(applyOrientation(small(), 7))).toEqual([6, 3, 5, 2, 4, 1]); // transverse
   });
 });

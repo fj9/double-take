@@ -4,14 +4,16 @@
   "type": "module",
   "workspaces": [
     "core",
-    "app"
+    "app",
+    "skill"
   ],
   "scripts": {
-    "test": "npm run test -w core && npm run test -w app",
-    "typecheck": "npm run typecheck -w core && npm run typecheck -w app",
+    "test": "npm run test -w core && npm run test -w app && npm run test -w skill",
+    "typecheck": "npm run typecheck -w core && npm run typecheck -w app && npm run typecheck -w skill",
     "dev": "npm run dev -w app",
     "build": "npm run build -w app",
-    "e2e": "npm run e2e -w app"
+    "e2e": "npm run e2e -w app",
+    "build:skill": "npm run build -w skill"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",

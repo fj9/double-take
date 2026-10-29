@@ -53,7 +53,7 @@ Rules: `core` has no dependencies and no DOM or Node APIs. Each environment only
 - **3b. Generator port in core.** Palette check, k-means, clean-up, crop, seam (fade or accept), duplicate split, route A vs B comparison, stripe planner, crown generation, colourways. Seeded random generator, own resize and blur. **Parity tests** against the old Python outputs on the sample images, cell by cell.
 - **3c. Generator UI.** Upload or camera, palette check screen, mode and colourway choice, route comparison table, sliders, crop with wrap preview, outside / inside / tube preview. Needs 3b and the editor from 3a.
 
-### Phase 4: the Claude skill
+### Phase 4: the Claude skill (done 29 October 2026)
 1. Bundle `core` into one JS file with esbuild; a small Node CLI that decodes an image, calls core and writes the chart file and preview PNGs.
 2. New `SKILL.md` for Doubletake (fixed hat, fixed gauge, no cowl or panel, no gauge questions), keeping the judging and talking workflow from the old skill.
 3. Re-run the parity tests through the CLI, then retire the Python engine.

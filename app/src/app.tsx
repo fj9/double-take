@@ -8,6 +8,7 @@ import { MakeScreen } from "./screens/MakeScreen";
 import { MoreScreen } from "./screens/MoreScreen";
 import { ReviewScreen } from "./screens/ReviewScreen";
 import { RoundScreen } from "./screens/RoundScreen";
+import { SkillScreen } from "./screens/SkillScreen";
 import { StepsScreen } from "./screens/StepsScreen";
 import { newProgress } from "./lib/model";
 import { pendingUpdate, progressById, projects, ready, toast } from "./store";
@@ -111,6 +112,8 @@ export function App() {
     body = <AboutScreen />;
   } else if (route === "make") {
     body = <MakeScreen />;
+  } else if (route === "skill") {
+    body = <SkillScreen />;
   } else if (inProject) {
     if (!ready.value) body = <p>Loading…</p>;
     else if (!project || !progress) {

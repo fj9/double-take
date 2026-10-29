@@ -7,3 +7,5 @@ test-results/
 playwright-report/
 app/test-results/
 app/playwright-report/
+skill/dist/
+app/public/skill/

@@ -135,6 +135,13 @@ export function HomeScreen() {
             Choose a picture
           </a>
         </div>
+        <div class="card">
+          <h3>Make a chart with Claude</h3>
+          <p class="small">Download a skill that lets Claude take you through the choices, then bring the chart file back here.</p>
+          <a class="btn block" href="#/skill">
+            Get the Claude skill
+          </a>
+        </div>
         <DrawCard />
       </section>
     </div>

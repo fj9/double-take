@@ -1,4 +1,5 @@
-import { GAUGE, PAIRS, BODY_ROUNDS } from "../hat";
+import { PAIRS, BODY_ROUNDS } from "../hat";
+import { DEFAULT_CROP, FABRIC_ASPECT, cropBox } from "./crop";
 import { kmeans, kmeansFrom, nearest, sample } from "./colour";
 import type { Rgb } from "./colour";
 import { cleanup, makeGrid, rankByShare } from "./grid";
@@ -32,8 +33,6 @@ export interface RoleResult {
 
 /** Subsamples per cell, along each side, when deciding which colour a cell is. */
 const WORK = 4;
-/** The picture is cropped to the shape of the fabric: pairs and rounds are not the same size. */
-export const FABRIC_ASPECT = PAIRS / GAUGE.pairs / (BODY_ROUNDS / GAUGE.rounds);
 
 /**
  * Turn a picture into the 112 × 75 body as colour roles: crop to the shape of the fabric, optionally make it
@@ -44,15 +43,16 @@ export function makeRoles(img: Pixels, opts: RoleOptions): RoleResult {
   const seam = opts.seam ?? (k <= 3 ? "fade" : "accept");
   const minPatch = opts.minPatch ?? (k <= 3 ? 3 : 5);
 
-  let rgb = toRgb(img);
-  if (opts.crop) rgb = crop(rgb, opts.crop);
-  rgb = cropToAspect(rgb, FABRIC_ASPECT);
+  // The part of the picture that is used. The colours are found from this part only, so asking for the middle
+  // of the picture and not asking at all give the same chart.
+  const box = opts.crop ?? cropBox(img.width, img.height, DEFAULT_CROP);
+  let rgb = cropToAspect(crop(toRgb(img), box), FABRIC_ASPECT);
   if (seam === "fade") rgb = seamless(rgb);
   rgb = gaussianBlur(resizeLanczos(rgb, PAIRS * WORK, BODY_ROUNDS * WORK), WORK * 0.6);
 
   const sub = sample(rgb.data, 30000);
   let centres: Float64Array;
-  const palette = opts.start === "random" ? null : extractPalette(img, { cap: k, ...(opts.crop ? { crop: opts.crop } : {}) });
+  const palette = opts.start === "random" ? null : extractPalette(img, { cap: k, crop: box });
   if (palette && palette.palette.length >= k) {
     centres = kmeansFrom(sub, Float64Array.from(palette.palette.slice(0, k).flat()), 25);
   } else {

@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc --noEmit -p . && vite build",
+    "dev": "node ../skill/build.mjs && vite",
+    "build": "node ../skill/build.mjs && tsc --noEmit -p . && vite build",
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "tsc --noEmit -p .",

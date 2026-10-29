@@ -1,0 +1,17 @@
+{
+  "name": "@doubletake/skill",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.0",
+    "jpeg-js": "^0.4.4",
+    "pngjs": "^7.0.0",
+    "@types/pngjs": "^6.0.5"
+  }
+}

@@ -3,9 +3,13 @@
  *
  *   npx tsx tools/parity.ts
  *
+ *   npx tsx tools/parity.ts --cli     the same, but through the bundled skill script (run `npm run build:skill` first)
+ *
  * The images stay where they are (not committed); the Python results are in tools/reference/out.
  */
-import { readFileSync, readdirSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { readFileSync, readdirSync, mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import jpeg from "jpeg-js";
@@ -65,7 +69,18 @@ for (const f of files) {
   const seam = f.includes("leopard") || f.includes("moquette") || f.includes("plaid") ? "fade" : "accept";
   const t0 = Date.now();
   const pal = extractPalette(img, { cap: 6 });
-  const roles = makeRoles(img, { colours: ref.colours, seam, minPatch: 4 });
+  let roles = makeRoles(img, { colours: ref.colours, seam, minPatch: 4 });
+  if (process.argv.includes("--cli")) {
+    // The same thing through the skill's one-file script: it must give the same cells
+    const dump = join(mkdtempSync(join(tmpdir(), "parity-")), "roles.json");
+    const script = new URL("../skill/dist/doubletake-chart/scripts/doubletake.mjs", import.meta.url).pathname;
+    execFileSync("node", [script, "roles", path, "--colours", String(ref.colours), "--seam", seam, "--min-patch", "4", "--dump", dump]);
+    const d = JSON.parse(readFileSync(dump, "utf-8")) as { roles: number[][] };
+    const viaCli = Int32Array.from(d.roles.flat());
+    const same = viaCli.every((v, i) => v === roles.grid.data[i]);
+    console.log(`  skill script gives the same cells as the core: ${same}`);
+    roles = { ...roles, grid: { ...roles.grid, data: viaCli } };
+  }
   const ms = Date.now() - t0;
   const k = Math.max(ref.role_shares.length, roles.centres.length);
   const refFlat = Int32Array.from((ref.roles as number[][]).flat());

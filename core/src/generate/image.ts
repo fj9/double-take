@@ -259,3 +259,34 @@ export function shrinkPixels(img: Pixels, maxSide = 2048): Pixels {
   }
   return { width: w, height: h, data: out };
 }
+
+/**
+ * Turn a picture the right way up, given its EXIF orientation (1 to 8). Phone photos are often stored sideways
+ * with a note saying how to turn them. Browsers do this themselves; the command line needs to.
+ */
+export function applyOrientation(img: Pixels, orientation: number): Pixels {
+  if (orientation < 2 || orientation > 8) return img;
+  const swap = orientation >= 5;
+  const w = swap ? img.height : img.width;
+  const h = swap ? img.width : img.height;
+  const out = new Uint8ClampedArray(w * h * 4);
+  for (let y = 0; y < img.height; y++) {
+    for (let x = 0; x < img.width; x++) {
+      let nx: number;
+      let ny: number;
+      switch (orientation) {
+        case 2: nx = img.width - 1 - x; ny = y; break;
+        case 3: nx = img.width - 1 - x; ny = img.height - 1 - y; break;
+        case 4: nx = x; ny = img.height - 1 - y; break;
+        case 5: nx = y; ny = x; break;
+        case 6: nx = img.height - 1 - y; ny = x; break;
+        case 7: nx = img.height - 1 - y; ny = img.width - 1 - x; break;
+        default: nx = y; ny = img.width - 1 - x; break; // 8
+      }
+      const s = (y * img.width + x) * 4;
+      const d = (ny * w + nx) * 4;
+      for (let c = 0; c < 4; c++) out[d + c] = img.data[s + c] as number;
+    }
+  }
+  return { width: w, height: h, data: out };
+}
