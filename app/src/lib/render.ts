@@ -102,7 +102,12 @@ export function draw(canvas: HTMLCanvasElement, view: ChartView): void {
   const thin = view.dark ? "#44546f" : "#aab1bd";
   const halo = view.dark ? "#0f1826" : "#ffffff";
   const coral = "#f26b5b";
-  const fontSize = Math.max(9, Math.min(g.cellH * 0.72, g.cellW * 0.58));
+  // Letters only where a cell is big enough to hold one; on small overviews the colours do the work.
+  const fontSize = Math.min(g.cellH * 0.72, g.cellW * 0.58);
+  const showLetters = fontSize >= 7.5;
+  // Grid lines shrink with the cells, and disappear when cells are too small for them to help
+  const lineScale = Math.min(1, g.cellW / 10);
+  const showLines = g.cellW >= 4;
   const hc = view.highContrast;
 
   ctx.textAlign = "center";
@@ -123,10 +128,12 @@ export function draw(canvas: HTMLCanvasElement, view: ChartView): void {
       ctx.globalAlpha = faded ? 0.4 : view.highlight && !picked ? 0.35 : 1;
       ctx.fillStyle = hex;
       ctx.fillRect(x, y, g.cellW, g.cellH);
-      ctx.strokeStyle = thin;
-      ctx.lineWidth = 0.5;
-      ctx.strokeRect(x + 0.25, y + 0.25, g.cellW - 0.5, g.cellH - 0.5);
-      if (fontSize >= 9) {
+      if (g.cellW >= 6) {
+        ctx.strokeStyle = thin;
+        ctx.lineWidth = 0.5;
+        ctx.strokeRect(x + 0.25, y + 0.25, g.cellW - 0.5, g.cellH - 0.5);
+      }
+      if (showLetters) {
         ctx.fillStyle = textOn(hex);
         ctx.font = `${hc ? 700 : 400} ${fontSize}px system-ui, sans-serif`;
         ctx.fillText(yarnId, x + g.cellW / 2, y + g.cellH / 2 + 0.5);
@@ -202,21 +209,21 @@ export function draw(canvas: HTMLCanvasElement, view: ChartView): void {
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
     ctx.strokeStyle = halo;
-    ctx.lineWidth = hc ? 5 : 3.2;
+    ctx.lineWidth = (hc ? 5 : 3.2) * lineScale;
     ctx.stroke();
     ctx.strokeStyle = hc ? ink : coral;
-    ctx.lineWidth = hc ? 2.6 : 1.6;
+    ctx.lineWidth = Math.max(0.8, (hc ? 2.6 : 1.6) * lineScale);
     ctx.stroke();
   };
   const bodyBottom = g.top + rows.length * g.cellH;
-  for (let ci = 0; ci < cols.length - 1; ci++) {
+  for (let ci = 0; showLines && ci < cols.length - 1; ci++) {
     const a = cols[ci] as number;
     const b = cols[ci + 1] as number;
     if (Math.abs(a - b) !== 1) continue;
     if (Math.min(a, b) % 5 === 0) heavy(g.left + (ci + 1) * g.cellW, g.top, g.left + (ci + 1) * g.cellW, bodyBottom);
   }
   rows.forEach((round, ri) => {
-    if (round % 5 === 0 && round < LAST_ROUND) heavy(g.left, g.top + ri * g.cellH, g.left + cols.length * g.cellW, g.top + ri * g.cellH);
+    if (showLines && round % 5 === 0 && round < LAST_ROUND) heavy(g.left, g.top + ri * g.cellH, g.left + cols.length * g.cellW, g.top + ri * g.cellH);
   });
 
   // Position marker in the current row: pairs worked so far are covered, with a coral bar at the boundary
@@ -263,7 +270,8 @@ export function draw(canvas: HTMLCanvasElement, view: ChartView): void {
   });
   ctx.textAlign = "left";
   rows.forEach((round, ri) => {
-    if (g.cellH < 11 && round % 5 !== 0 && round !== view.current) return;
+    const every = g.cellH >= 11 ? 1 : ([5, 10, 20].find((n) => n * g.cellH >= 12) ?? 20);
+    if (round % every !== 0 && round !== view.current) return;
     const y = g.top + ri * g.cellH + g.cellH / 2;
     ctx.font = `${round === view.current ? 700 : hc ? 700 : 400} ${labelSize}px system-ui, sans-serif`;
     ctx.fillText(String(round), g.left + cols.length * g.cellW + 6, y);

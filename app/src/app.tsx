@@ -4,6 +4,7 @@ import { AboutScreen } from "./screens/AboutScreen";
 import { DrawScreen } from "./screens/DrawScreen";
 import { DuplicateScreen } from "./screens/DuplicateScreen";
 import { HomeScreen } from "./screens/HomeScreen";
+import { MakeScreen } from "./screens/MakeScreen";
 import { MoreScreen } from "./screens/MoreScreen";
 import { ReviewScreen } from "./screens/ReviewScreen";
 import { RoundScreen } from "./screens/RoundScreen";
@@ -108,6 +109,8 @@ export function App() {
   let tool = false;
   if (route === "about") {
     body = <AboutScreen />;
+  } else if (route === "make") {
+    body = <MakeScreen />;
   } else if (inProject) {
     if (!ready.value) body = <p>Loading…</p>;
     else if (!project || !progress) {

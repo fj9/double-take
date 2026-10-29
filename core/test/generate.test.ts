@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { analyse, buildChart, compareRoutes, extractPalette, FABRIC_ASPECT, makeRoles, outsideAt, planPairs, validateChart } from "../src";
+import { analyse, buildChart, compareRoutes, extractPalette, FABRIC_ASPECT, makeRoles, outsideAt, planPairs, shrinkPixels, validateChart } from "../src";
 import type { Pixels } from "../src";
 
 type Rgb = [number, number, number];
@@ -239,5 +239,26 @@ describe("more than three colours", () => {
     const noise = image(640, 316, (x, y) => cols[(Math.floor(x / 40) * 5 + Math.floor(y / 40) * 3) % 6] as Rgb);
     const roles = makeRoles(noise, { colours: 6 });
     expect(compareRoutes(roles.grid).recommend).toBe("none");
+  });
+});
+
+describe("big pictures and real yarn colours", () => {
+  it("shrinks a big picture so its longer side fits, and leaves a small one alone", () => {
+    const big = image(4000, 3000, () => RED);
+    const small = shrinkPixels(big, 2048);
+    expect(Math.max(small.width, small.height)).toBe(2048);
+    expect(small.width / small.height).toBeCloseTo(4 / 3, 2);
+    expect(small.data[0]).toBe(200);
+    const tiny = image(100, 50, () => RED);
+    expect(shrinkPixels(tiny, 2048)).toBe(tiny);
+  });
+
+  it("uses the yarn colours and names you give it", () => {
+    const roles = makeRoles(spots(RED, CREAM), { colours: 2 });
+    const chart = buildChart(roles, { kind: "two" }, { yarnNames: ["navy", "coral"], yarnHex: ["#112233", "#ff6655"] });
+    expect(chart.yarns.map((y) => [y.name, y.hex])).toEqual([["navy", "#112233"], ["coral", "#ff6655"]]);
+    const ignored = buildChart(roles, { kind: "two" }, { yarnHex: ["blue", "#ff6655"] });
+    expect(ignored.yarns[0]?.hex).toMatch(/^#[0-9a-f]{6}$/);
+    expect(ignored.yarns[1]?.hex).toBe("#ff6655");
   });
 });

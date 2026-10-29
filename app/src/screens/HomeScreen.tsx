@@ -128,8 +128,14 @@ export function HomeScreen() {
             Choose a file
           </label>
         </div>
+        <div class="card">
+          <h3>Make a chart from a picture</h3>
+          <p class="small">Choose a print or a picture. Doubletake finds the colours and turns it into a chart for the hat. The picture never leaves this device.</p>
+          <a class="btn primary block" href="#/make">
+            Choose a picture
+          </a>
+        </div>
         <DrawCard />
-        <p class="small muted">Making a chart from an image is coming soon.</p>
       </section>
     </div>
   );

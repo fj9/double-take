@@ -19,6 +19,8 @@ export type Choice =
 export interface BuildOptions {
   name?: string;
   yarnNames?: string[];
+  /** Colours to use instead of the ones found in the picture (for example the real yarn colours), by colour role. */
+  yarnHex?: string[];
   crown?: { variant: "patterned" | "plain"; plainFrom?: number };
   created?: string;
 }
@@ -42,6 +44,7 @@ export function buildChart(roles: RoleResult, choice: Choice, opts: BuildOptions
   const k = roles.centres.length;
   const centre = (r: number) => roles.centres[r] as Rgb;
   const names = (r: number) => opts.yarnNames?.[r]?.trim() || `colour ${r + 1}`;
+  const colourOf = (r: number) => (opts.yarnHex?.[r] && /^#[0-9a-fA-F]{6}$/.test(opts.yarnHex[r] as string) ? (opts.yarnHex[r] as string) : hex(centre(r)));
   const body = (round: number, pair: number) => roles.grid.data[(H - round) * W + (W - pair)] as number; // round 1 at the bottom, pair 1 at the right
 
   // ---- the choice ----
@@ -140,20 +143,20 @@ export function buildChart(roles: RoleResult, choice: Choice, opts: BuildOptions
   if (choice.kind === "two" || choice.kind === "duplicate") {
     knit.forEach((role, i) => {
       knitId.set(role, LETTERS[i] as string);
-      yarns.push({ id: LETTERS[i] as string, name: names(role), hex: hex(centre(role)), role: "main" });
+      yarns.push({ id: LETTERS[i] as string, name: names(role), hex: colourOf(role), role: "main" });
     });
     if (choice.kind === "duplicate") {
       layerRoles = dupRoles;
       dupRoles.forEach((role, i) => {
         dupId.set(role, LETTERS[2 + i] as string);
-        yarns.push({ id: LETTERS[2 + i] as string, name: names(role), hex: hex(centre(role)), role: "duplicate" });
+        yarns.push({ id: LETTERS[2 + i] as string, name: names(role), hex: colourOf(role), role: "duplicate" });
       });
     }
   } else {
-    roles.centres.forEach((c, role) => {
+    roles.centres.forEach((_c, role) => {
       knitId.set(role, LETTERS[role] as string);
       dupId.set(role, LETTERS[role] as string);
-      yarns.push({ id: LETTERS[role] as string, name: names(role), hex: hex(c), role: "stripe" });
+      yarns.push({ id: LETTERS[role] as string, name: names(role), hex: colourOf(role), role: "stripe" });
     });
     const used = new Set<number>();
     for (let r = 1; r <= H; r++) for (let p = 0; p < W; p++) if (isDup(r, p)) used.add((real[r] as number[])[p] as number);
