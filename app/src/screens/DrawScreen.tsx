@@ -20,7 +20,12 @@ import { EditorCanvas } from "../components/EditorCanvas";
 import type { Geometry } from "../lib/render";
 import type { ChartView } from "../lib/render";
 import type { Project } from "../lib/model";
+import { cropBox } from "../lib/crop";
+import * as db from "../lib/db";
+import { decodePicture } from "../lib/decode";
 import { editorZoom, editorZoomBy, highContrast, isDark } from "../lib/settings";
+import { blobToCanvas, canvasToBlob, newUnderlay, pixelsToCanvas } from "../lib/underlay";
+import type { Underlay } from "../lib/underlay";
 import { flushChartSave, saveChartSoon } from "../store";
 
 type Tool = "pencil" | "fill" | "pick";
@@ -53,6 +58,57 @@ export function DrawScreen({ project }: { project: Project }) {
   const [checks, setChecks] = useState(() => analyse(work.current));
 
   useEffect(() => () => void flushChartSave(), []);
+
+  // A picture to trace over. It is kept on this device only and is not part of the chart.
+  const [underlay, setUnderlay] = useState<Underlay | null>(null);
+  const [underlayError, setUnderlayError] = useState<string | null>(null);
+  const underlayBlob = useRef<Blob | null>(null);
+  const underlayTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => {
+    let cancelled = false;
+    db.getUnderlay(project.id)
+      .then(async (u) => {
+        if (!u || cancelled) return;
+        underlayBlob.current = u.blob;
+        setUnderlay({ canvas: await blobToCanvas(u.blob), crop: u.crop, opacity: u.opacity, visible: u.visible });
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [project.id]);
+  const saveUnderlay = (u: Underlay) => {
+    clearTimeout(underlayTimer.current);
+    underlayTimer.current = setTimeout(() => {
+      const blob = underlayBlob.current;
+      if (blob) void db.putUnderlay({ projectId: project.id, blob, crop: u.crop, opacity: u.opacity, visible: u.visible }).catch(() => undefined);
+    }, 400);
+  };
+  const changeUnderlay = (patch: Partial<Underlay>) => {
+    if (!underlay) return;
+    const next = { ...underlay, ...patch };
+    setUnderlay(next);
+    saveUnderlay(next);
+  };
+  const chooseUnderlay = async (file: File | undefined) => {
+    if (!file) return;
+    setUnderlayError(null);
+    try {
+      const canvas = pixelsToCanvas(await decodePicture(file));
+      underlayBlob.current = await canvasToBlob(canvas);
+      const next = newUnderlay(canvas);
+      setUnderlay(next);
+      await db.putUnderlay({ projectId: project.id, blob: underlayBlob.current, crop: next.crop, opacity: next.opacity, visible: true });
+    } catch (e) {
+      setUnderlayError(e instanceof Error ? e.message : "Couldn’t open that picture.");
+    }
+  };
+  const removeUnderlay = () => {
+    clearTimeout(underlayTimer.current);
+    underlayBlob.current = null;
+    setUnderlay(null);
+    void db.deleteUnderlay(project.id).catch(() => undefined);
+  };
 
   const chart = work.current;
   const dupLayerIndex = layer.kind === "duplicate" ? layer.index : -1;
@@ -138,6 +194,14 @@ export function DrawScreen({ project }: { project: Project }) {
 
   const decorate = (ctx: CanvasRenderingContext2D, g: Geometry) => {
     const ink = isDark() ? "#e8edf5" : "#1b2a41";
+    if (underlay?.visible) {
+      // The picture covers the body (rounds 1-75). Its frame has the shape of the fabric, so it fits the grid exactly.
+      const b = cropBox(underlay.canvas.width, underlay.canvas.height, underlay.crop);
+      ctx.save();
+      ctx.globalAlpha = underlay.opacity;
+      ctx.drawImage(underlay.canvas, b.x, b.y, b.width, b.height, g.left, g.top + 20 * g.cellH, COLS.length * g.cellW, 75 * g.cellH);
+      ctx.restore();
+    }
     const gridW = COLS.length * g.cellW;
     // Where the crown starts
     const crownY = g.top + 20 * g.cellH;
@@ -318,6 +382,55 @@ export function DrawScreen({ project }: { project: Project }) {
           onStrokeEnd={onStrokeEnd}
         />
       </section>
+
+      <details class="card">
+        <summary class="summary">Trace over a picture</summary>
+        <div class="stack" style="margin-top:12px">
+          <p class="small muted" style="margin:0">
+            Put a picture faintly over the grid and draw over it. It covers the body, rounds 1 to 75. It isn’t part of your chart, and it stays on this device.
+          </p>
+          <div class="row" style="flex-wrap:wrap">
+            <input id="trace-file" class="sr-only" type="file" accept="image/*" onChange={(e) => chooseUnderlay((e.currentTarget as HTMLInputElement).files?.[0])} />
+            <label class="btn small" for="trace-file" tabIndex={0} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), document.getElementById("trace-file")?.click())}>
+              {underlay ? "Choose a different picture" : "Choose a picture"}
+            </label>
+            {underlay && (
+              <button class="btn small danger" onClick={removeUnderlay}>
+                Remove the picture
+              </button>
+            )}
+          </div>
+          {underlayError && (
+            <p class="small" role="alert" style="margin:0;color:var(--error)">
+              {underlayError}
+            </p>
+          )}
+          {underlay && (
+            <>
+              <label class="check">
+                <input type="checkbox" checked={underlay.visible} onChange={(e) => changeUnderlay({ visible: (e.currentTarget as HTMLInputElement).checked })} />
+                Show the picture
+              </label>
+              <label class="field">
+                <span class="small muted">How strong: {Math.round(underlay.opacity * 100)}%</span>
+                <input class="range" type="range" min="0.05" max="1" step="0.05" value={underlay.opacity} aria-label="How strong the picture shows" onInput={(e) => changeUnderlay({ opacity: Number((e.currentTarget as HTMLInputElement).value) })} />
+              </label>
+              <label class="field">
+                <span class="small muted">Zoom</span>
+                <input class="range" type="range" min="1" max="4" step="0.1" value={underlay.crop.zoom} aria-label="Zoom the picture" onInput={(e) => changeUnderlay({ crop: { ...underlay.crop, zoom: Number((e.currentTarget as HTMLInputElement).value) } })} />
+              </label>
+              <label class="field">
+                <span class="small muted">Left to right</span>
+                <input class="range" type="range" min="0" max="1" step="0.01" value={underlay.crop.cx} aria-label="Move the picture left or right" onInput={(e) => changeUnderlay({ crop: { ...underlay.crop, cx: Number((e.currentTarget as HTMLInputElement).value) } })} />
+              </label>
+              <label class="field">
+                <span class="small muted">Up and down</span>
+                <input class="range" type="range" min="0" max="1" step="0.01" value={underlay.crop.cy} aria-label="Move the picture up or down" onInput={(e) => changeUnderlay({ crop: { ...underlay.crop, cy: Number((e.currentTarget as HTMLInputElement).value) } })} />
+              </label>
+            </>
+          )}
+        </div>
+      </details>
 
       <details class="card">
         <summary class="summary">Colours, duplicate stitch and crown</summary>

@@ -89,3 +89,87 @@ test("a chart that is already being knitted can’t be edited in place", async (
   await expect(page.getByText(/its chart is locked/)).toBeVisible();
   await expect(page.getByRole("button", { name: "Edit this chart" })).toHaveCount(0);
 });
+
+/** A plain red PNG, so a pixel under the picture is easy to recognise. */
+async function redPng(page: Page): Promise<Buffer> {
+  const base64 = await page.evaluate(() => {
+    const c = document.createElement("canvas");
+    c.width = 320;
+    c.height = 160;
+    const ctx = c.getContext("2d") as CanvasRenderingContext2D;
+    ctx.fillStyle = "rgb(255,0,0)";
+    ctx.fillRect(0, 0, 320, 160);
+    return c.toDataURL("image/png").split(",")[1] as string;
+  });
+  return Buffer.from(base64, "base64");
+}
+
+/** The colour of the grid at a body cell, read from the canvas. */
+const cellColour = (page: Page, col: number, row: number) =>
+  page.evaluate(
+    ({ col, row }) => {
+      const canvas = document.querySelector('canvas[aria-label^="Drawing grid"]') as HTMLCanvasElement;
+      const dpr = window.devicePixelRatio || 1;
+      const cellW = parseFloat(canvas.style.width) / (6 + 112 + 3) ; // approximate; only the colour matters
+      void cellW;
+      const x = (6 + col * 12 + 6) * dpr;
+      const y = (14 + row * (12 / 1.36) + 4) * dpr;
+      const d = (canvas.getContext("2d") as CanvasRenderingContext2D).getImageData(x, y, 1, 1).data;
+      return [d[0], d[1], d[2]];
+    },
+    { col, row },
+  );
+
+test("a picture can be traced over, and it is kept when the page reloads", async ({ page }) => {
+  await startDrawing(page);
+  const [r0, g0] = (await cellColour(page, 20, 50)) as number[];
+  await page.getByText("Trace over a picture").click();
+  await page.locator("#trace-file").setInputFiles({ name: "red.png", mimeType: "image/png", buffer: await redPng(page) });
+  await expect(page.getByRole("button", { name: "Remove the picture" })).toBeVisible();
+  await expect(page.getByLabel("Show the picture")).toBeChecked();
+  // At full strength the picture covers the grid: the cell under it is red
+  await page.getByLabel("How strong the picture shows").fill("1");
+  await expect.poll(async () => ((await cellColour(page, 20, 50)) as number[]).join(",")).toBe("255,0,0");
+  expect([r0, g0]).not.toEqual([255, 0]);
+  // Hiding it brings the grid back
+  await page.getByLabel("Show the picture").uncheck();
+  await expect.poll(async () => ((await cellColour(page, 20, 50)) as number[]).slice(0, 2).join(",")).toBe(`${r0},${g0}`);
+  await page.getByLabel("Show the picture").check();
+  await page.waitForTimeout(700); // settings are saved a moment after they change
+
+  // Reload: the picture is still there
+  await page.reload();
+  await page.getByText("Trace over a picture").click();
+  await expect(page.getByRole("button", { name: "Remove the picture" })).toBeVisible();
+  await expect(page.getByLabel("Show the picture")).toBeChecked();
+
+  await page.getByRole("button", { name: "Remove the picture" }).click();
+  await expect(page.getByRole("button", { name: "Remove the picture" })).toHaveCount(0);
+  await page.reload();
+  await page.getByText("Trace over a picture").click();
+  await expect(page.getByRole("button", { name: "Remove the picture" })).toHaveCount(0);
+});
+
+test("the picture to trace is never part of the chart or sent anywhere", async ({ page }) => {
+  const external: string[] = [];
+  page.on("request", (req) => {
+    const url = new URL(req.url());
+    if (url.protocol.startsWith("http") && url.origin !== "http://localhost:4173") external.push(req.url());
+  });
+  await startDrawing(page);
+  await page.getByText("Trace over a picture").click();
+  await page.locator("#trace-file").setInputFiles({ name: "red.png", mimeType: "image/png", buffer: await redPng(page) });
+  await expect(page.getByRole("button", { name: "Remove the picture" })).toBeVisible();
+  await page.getByRole("link", { name: "Review and start knitting" }).click();
+  await expect(page.getByRole("heading", { name: "Review your chart" })).toBeVisible();
+  const chartJson = await page.evaluate(() => Object.keys(localStorage).filter((k) => k.includes("draft")).map((k) => localStorage.getItem(k) as string).join(""));
+  expect(chartJson.includes("red.png")).toBe(false);
+  expect(external).toEqual([]);
+});
+
+test("a file that isn’t a picture can’t be used to trace", async ({ page }) => {
+  await startDrawing(page);
+  await page.getByText("Trace over a picture").click();
+  await page.locator("#trace-file").setInputFiles({ name: "notes.txt", mimeType: "text/plain", buffer: Buffer.from("no") });
+  await expect(page.getByRole("alert").filter({ hasText: "isn’t a picture" })).toBeVisible();
+});
