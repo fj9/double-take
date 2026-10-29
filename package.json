@@ -3,11 +3,15 @@
   "private": true,
   "type": "module",
   "workspaces": [
-    "core"
+    "core",
+    "app"
   ],
   "scripts": {
-    "test": "npm run test -w core",
-    "typecheck": "npm run typecheck -w core"
+    "test": "npm run test -w core && npm run test -w app",
+    "typecheck": "npm run typecheck -w core && npm run typecheck -w app",
+    "dev": "npm run dev -w app",
+    "build": "npm run build -w app",
+    "e2e": "npm run e2e -w app"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
