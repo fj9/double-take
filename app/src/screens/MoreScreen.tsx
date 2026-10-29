@@ -124,6 +124,9 @@ export function MoreScreen({ project, progress }: { project: Project; progress: 
       </section>
 
       <p>
+        <a href={`#/p/${project.id}/review`}>Review the chart</a>
+      </p>
+      <p>
         <a href="#/about">About Doubletake</a>
       </p>
     </div>

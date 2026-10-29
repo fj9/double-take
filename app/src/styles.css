@@ -174,3 +174,15 @@ label.field { display: block; margin-bottom: 12px; }
 .hc .chart-box { border-width: 2px; border-color: var(--ink); }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
+
+/* ---- editor ---- */
+.input, .select { width: 100%; min-height: 48px; padding: 0 12px; border: 1.5px solid var(--line); border-radius: 8px; background: var(--card); color: var(--text); font: 400 16px var(--font-body); }
+.input:focus, .select:focus { border-color: var(--ink); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 480px) { .grid2 { grid-template-columns: 1fr; } }
+.summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 700; font-family: var(--font-display); color: var(--ink); }
+.colour-btn { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border: 1.5px solid var(--line); border-radius: 8px; background: var(--card); color: var(--text); font: 400 16px var(--font-body); cursor: pointer; }
+.colour-btn[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 3px var(--coral); }
+.colour-input { width: 48px; height: 48px; padding: 0; border: 1.5px solid var(--line); border-radius: 8px; background: none; cursor: pointer; }
+.chart-scroll.editor { max-height: 62vh; overflow: auto; }
+.chart-scroll.editor.painting canvas { touch-action: none; cursor: crosshair; }

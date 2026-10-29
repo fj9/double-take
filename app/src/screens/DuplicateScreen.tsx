@@ -4,6 +4,7 @@ import type { Chart, Patch } from "@doubletake/core";
 import { ChartCanvas } from "../components/ChartCanvas";
 import { DUPLICATE_INTRO, DUPLICATE_TIPS, HELP } from "../content";
 import { patchKey, patchesDone, togglePatchFace } from "../lib/model";
+import { useWidth } from "../lib/useWidth";
 import type { Progress } from "../lib/model";
 import { patchWindow } from "../lib/patchView";
 import { cellKey, drawMap, mapHit, type ChartView, type MapState } from "../lib/render";
@@ -17,21 +18,6 @@ interface Item {
   yarnName: string;
   yarnHex: string;
   number: number;
-}
-
-function useWidth(ref: { current: HTMLElement | null }): number {
-  const [w, setW] = useState(360);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const update = () => setW(Math.max(200, Math.floor(el.clientWidth)));
-    update();
-    if (typeof ResizeObserver === "undefined") return;
-    const ro = new ResizeObserver(update);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-  return w;
 }
 
 export function DuplicateScreen({ chart, progress }: { chart: Chart; progress: Progress }) {

@@ -26,6 +26,9 @@ export const showDuplicate = signal<boolean>(load("showDuplicate", true));
 /** Cell width in CSS pixels in the round view. */
 export const zoom = signal<number>(load("zoom", 14));
 
+/** Cell width in CSS pixels in the drawing editor. */
+export const editorZoom = signal<number>(load("editorZoom", 12));
+
 export const ZOOM_LEVELS = [8, 10, 12, 14, 18, 24, 32, 44];
 
 export function setTheme(value: Theme): void {
@@ -69,4 +72,11 @@ export function isDark(): boolean {
   const t = document.documentElement.getAttribute("data-theme");
   if (t) return t === "dark";
   return typeof matchMedia === "function" && matchMedia("(prefers-color-scheme: dark)").matches;
+}
+
+export function editorZoomBy(direction: 1 | -1): void {
+  const i = Math.max(0, ZOOM_LEVELS.indexOf(editorZoom.value));
+  const next = ZOOM_LEVELS[Math.min(ZOOM_LEVELS.length - 1, Math.max(0, i + direction))] as number;
+  editorZoom.value = next;
+  save("editorZoom", next);
 }

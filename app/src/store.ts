@@ -1,5 +1,5 @@
 import { signal } from "@preact/signals";
-import { parseChartJson, validateChart, withPlainCrown } from "@doubletake/core";
+import { newBlankChart, parseChartJson, validateChart, withPlainCrown } from "@doubletake/core";
 import type { Chart, ChartError } from "@doubletake/core";
 import leopardJson from "../../fixtures/leopard/leopard-patterned.doubletake.json";
 import * as db from "./lib/db";
@@ -16,6 +16,33 @@ export const pendingUpdate = signal<(() => void) | null>(null);
 
 const leopard = leopardJson as unknown as Chart;
 
+/**
+ * Database writes finish a moment after the tap, so a reload straight afterwards could lose it. Progress and
+ * unsaved chart edits are also kept in localStorage, which is written at once, and the newer copy wins on start.
+ */
+function lsGet<T>(key: string): T | undefined {
+  try {
+    const raw = localStorage.getItem(`doubletake:${key}`);
+    return raw === null ? undefined : (JSON.parse(raw) as T);
+  } catch {
+    return undefined;
+  }
+}
+function lsSet(key: string, value: unknown): void {
+  try {
+    localStorage.setItem(`doubletake:${key}`, JSON.stringify(value));
+  } catch {
+    /* full or blocked: the database copy still works */
+  }
+}
+function lsDel(key: string): void {
+  try {
+    localStorage.removeItem(`doubletake:${key}`);
+  } catch {
+    /* nothing to do */
+  }
+}
+
 export const EXAMPLES = [
   { id: "leopard-patterned", title: "Leopard, patterned crown", blurb: "The three-colour example from the pattern. The leopard print carries on through the crown.", build: () => structuredClone(leopard) },
   { id: "leopard-plain", title: "Leopard, plain crown", blurb: "The same hat with a plain crown: purple outside, pink inside, no duplicate stitch on the crown.", build: () => withPlainCrown(structuredClone(leopard), 76) },
@@ -24,18 +51,29 @@ export const EXAMPLES = [
 export async function init(): Promise<void> {
   const list = await db.listProjects();
   const progress: Record<string, Progress> = {};
-  for (const p of list) {
-    const pr = await db.getProgress(p.id);
-    progress[p.id] = pr ?? newProgress(p.id);
+  for (let i = 0; i < list.length; i++) {
+    const p = list[i] as Project;
+    const stored = (await db.getProgress(p.id)) ?? newProgress(p.id);
+    const mirror = lsGet<Progress>(`progress:${p.id}`);
+    const latest = mirror && mirror.updatedAt > stored.updatedAt ? mirror : stored;
+    if (latest !== stored) void db.putProgress(latest);
+    progress[p.id] = latest;
+    const draft = lsGet<{ chart: Chart; name: string }>(`draft:${p.id}`);
+    if (draft && validateChart(draft.chart).ok) {
+      list[i] = { ...p, chart: draft.chart, name: draft.name || p.name, updatedAt: Date.now() };
+      void db.putProject(list[i] as Project).then(() => lsDel(`draft:${p.id}`));
+    } else if (draft) {
+      lsDel(`draft:${p.id}`);
+    }
   }
   projects.value = list.sort((a, b) => b.updatedAt - a.updatedAt);
   progressById.value = progress;
   ready.value = true;
 }
 
-export async function createProject(chart: Chart, name = chart.name): Promise<Project> {
+export async function createProject(chart: Chart, name = chart.name, stage: Project["stage"] = "knit"): Promise<Project> {
   const now = Date.now();
-  const project: Project = { id: crypto.randomUUID(), name, chart, createdAt: now, updatedAt: now };
+  const project: Project = { id: crypto.randomUUID(), name, stage, chart, createdAt: now, updatedAt: now };
   const progress = newProgress(project.id, now);
   await db.putProject(project);
   await db.putProgress(progress);
@@ -48,12 +86,15 @@ export async function createProject(chart: Chart, name = chart.name): Promise<Pr
 /** Save new progress for a project. The screen updates at once; the save follows. */
 export function saveProgress(next: Progress): void {
   progressById.value = { ...progressById.value, [next.projectId]: next };
+  lsSet(`progress:${next.projectId}`, next);
   void db.putProgress(next).catch(() => {
     toast.value = { message: "Couldn’t save your progress. Free up some space on this device and try again." };
   });
 }
 
 export async function removeProject(id: string): Promise<void> {
+  lsDel(`progress:${id}`);
+  lsDel(`draft:${id}`);
   await db.deleteProject(id);
   projects.value = projects.value.filter((p) => p.id !== id);
   const { [id]: _gone, ...rest } = progressById.value;
@@ -90,4 +131,48 @@ export async function importText(text: string): Promise<ImportResult> {
   const result = validateChart(raw);
   if (!result.ok) return result;
   return { ok: true, project: await createProject(result.chart) };
+}
+
+/** A blank two-colour chart to draw on. */
+export function createDrawProject(a: { name: string; hex: string }, b: { name: string; hex: string }, name = "My hat"): Promise<Project> {
+  return createProject(newBlankChart(name, [a, b]), name, "design");
+}
+
+export async function saveProject(project: Project): Promise<void> {
+  const next = { ...project, updatedAt: Date.now() };
+  projects.value = projects.value.map((p) => (p.id === next.id ? next : p));
+  try {
+    await db.putProject(next);
+  } catch {
+    toast.value = { message: "Couldn’t save your chart. Free up some space on this device and try again." };
+  }
+}
+
+export function setStage(id: string, stage: "design" | "knit"): Promise<void> {
+  const project = projects.value.find((p) => p.id === id);
+  return project ? saveProject({ ...project, stage }) : Promise.resolve();
+}
+
+let pendingTimer: ReturnType<typeof setTimeout> | undefined;
+let pendingSave: (() => Promise<void>) | undefined;
+
+/** Save a chart that is being edited. Edits come fast, so the save waits a moment; `flushChartSave` forces it. */
+export function saveChartSoon(id: string, chart: Chart, name?: string): void {
+  lsSet(`draft:${id}`, { chart, name: name ?? projects.value.find((p) => p.id === id)?.name ?? "" });
+  pendingSave = async () => {
+    const project = projects.value.find((p) => p.id === id);
+    if (project) {
+      await saveProject({ ...project, chart, name: name ?? project.name });
+      lsDel(`draft:${id}`);
+    }
+  };
+  clearTimeout(pendingTimer);
+  pendingTimer = setTimeout(() => void flushChartSave(), 500);
+}
+
+export async function flushChartSave(): Promise<void> {
+  clearTimeout(pendingTimer);
+  const run = pendingSave;
+  pendingSave = undefined;
+  if (run) await run();
 }

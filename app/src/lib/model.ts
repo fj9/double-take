@@ -33,6 +33,8 @@ export type Undo =
 export interface Project {
   id: string;
   name: string;
+  /** Still being designed (drawing, then review) or being knitted. Missing means knitting. */
+  stage?: "design" | "knit";
   chart: Chart;
   createdAt: number;
   updatedAt: number;

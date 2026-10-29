@@ -19,6 +19,8 @@ export interface ChartView {
   dark: boolean;
   /** Cells to pick out ("round:pair"); everything else is faded. */
   highlight?: Set<string>;
+  /** Extra drawing on top, such as symmetry lines in the editor. */
+  decorate?: (ctx: CanvasRenderingContext2D, g: Geometry) => void;
 }
 
 export const cellKey = (round: number, pair: number) => `${round}:${pair}`;
@@ -250,8 +252,10 @@ export function draw(canvas: HTMLCanvasElement, view: ChartView): void {
   const labelSize = Math.max(9, Math.min(g.cellH * 0.8, 13));
   ctx.font = `${hc ? 700 : 400} ${labelSize}px system-ui, sans-serif`;
   ctx.fillStyle = text;
+  // Show a number every 5, 10, 20 or 40 stitches, whichever leaves room for the digits
+  const every = g.cellW >= 20 ? 1 : ([5, 10, 20, 40].find((n) => n * g.cellW >= 22) ?? 40);
   cols.forEach((pair, ci) => {
-    const show = g.cellW >= 20 || pair % 5 === 0 || pair === 1 || ci === 0 || ci === cols.length - 1;
+    const show = every === 1 || pair % every === 0 || (pair === 1 && every <= 10);
     if (!show) return;
     const x = g.left + ci * g.cellW + g.cellW / 2;
     ctx.fillText(String(pair), x, g.top / 2);
@@ -259,10 +263,12 @@ export function draw(canvas: HTMLCanvasElement, view: ChartView): void {
   });
   ctx.textAlign = "left";
   rows.forEach((round, ri) => {
+    if (g.cellH < 11 && round % 5 !== 0 && round !== view.current) return;
     const y = g.top + ri * g.cellH + g.cellH / 2;
     ctx.font = `${round === view.current ? 700 : hc ? 700 : 400} ${labelSize}px system-ui, sans-serif`;
     ctx.fillText(String(round), g.left + cols.length * g.cellW + 6, y);
   });
+  view.decorate?.(ctx, g);
 }
 
 /** Overview of the whole hat laid flat (rounds 1-95 by pairs 1-112, stitch 1 at the right), for duplicate stitch patches. */

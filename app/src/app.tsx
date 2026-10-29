@@ -1,9 +1,11 @@
 import { useEffect, useState } from "preact/hooks";
 import { LINKS } from "./content";
 import { AboutScreen } from "./screens/AboutScreen";
+import { DrawScreen } from "./screens/DrawScreen";
 import { DuplicateScreen } from "./screens/DuplicateScreen";
 import { HomeScreen } from "./screens/HomeScreen";
 import { MoreScreen } from "./screens/MoreScreen";
+import { ReviewScreen } from "./screens/ReviewScreen";
 import { RoundScreen } from "./screens/RoundScreen";
 import { StepsScreen } from "./screens/StepsScreen";
 import { newProgress } from "./lib/model";
@@ -84,17 +86,23 @@ function Toast() {
   );
 }
 
-type Tab = "round" | "steps" | "duplicate" | "more";
+type Tab = "round" | "steps" | "duplicate" | "more" | "draw" | "review";
+const KNIT_TABS: Tab[] = ["round", "steps", "duplicate", "more", "review"];
+const DESIGN_TABS: Tab[] = ["draw", "review", "more"];
 
 export function App() {
   const route = useHash();
   const parts = route.split("/");
   const inProject = parts[0] === "p" && !!parts[1];
   const projectId = inProject ? (parts[1] as string) : null;
-  const tab = (inProject ? (parts[2] || "round") : null) as Tab | null;
+  const asked = (inProject ? parts[2] || "" : "") as Tab | "";
   const project = projectId ? projects.value.find((p) => p.id === projectId) : undefined;
   const progress = projectId ? (progressById.value[projectId] ?? newProgress(projectId)) : undefined;
+  const designing = project?.stage === "design";
   const hasDuplicate = (project?.chart.duplicate.length ?? 0) > 0;
+  // A hat being designed shows Draw and Review; a hat being knitted shows the tracker. Anything else falls back to the first.
+  const allowed = designing ? DESIGN_TABS : KNIT_TABS;
+  const tab: Tab | null = inProject ? (allowed.includes(asked as Tab) ? (asked as Tab) : (allowed[0] as Tab)) : null;
 
   let body;
   let tool = false;
@@ -112,7 +120,11 @@ export function App() {
           </a>
         </div>
       );
-    } else if (tab === "steps") body = <StepsScreen chart={project.chart} progress={progress} />;
+    } else if (tab === "draw") {
+      body = <DrawScreen project={project} />;
+      tool = true;
+    } else if (tab === "review") body = <ReviewScreen project={project} progress={progress} />;
+    else if (tab === "steps") body = <StepsScreen chart={project.chart} progress={progress} />;
     else if (tab === "duplicate") body = <DuplicateScreen chart={project.chart} progress={progress} />;
     else if (tab === "more") body = <MoreScreen project={project} progress={progress} />;
     else {
@@ -143,9 +155,18 @@ export function App() {
       </main>
       {showTabs && (
         <nav class="tabs" aria-label="Sections">
-          {tabLink("round", "Round", "M12 3v18M5 10l7-7 7 7")}
-          {tabLink("steps", "Steps", "M4 6h16M4 12h16M4 18h10")}
-          {hasDuplicate && tabLink("duplicate", "Stitch", "M12 4a8 8 0 100 16 8 8 0 000-16zM8 12l3 3 5-6")}
+          {designing ? (
+            <>
+              {tabLink("draw", "Draw", "M4 20l4-1 11-11-3-3L5 16l-1 4zM14 6l3 3")}
+              {tabLink("review", "Review", "M5 12l4 4 10-10")}
+            </>
+          ) : (
+            <>
+              {tabLink("round", "Round", "M12 3v18M5 10l7-7 7 7")}
+              {tabLink("steps", "Steps", "M4 6h16M4 12h16M4 18h10")}
+              {hasDuplicate && tabLink("duplicate", "Stitch", "M12 4a8 8 0 100 16 8 8 0 000-16zM8 12l3 3 5-6")}
+            </>
+          )}
           {tabLink("more", "More", "M5 12h.01M12 12h.01M19 12h.01")}
         </nav>
       )}

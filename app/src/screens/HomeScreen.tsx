@@ -2,7 +2,7 @@ import { useRef, useState } from "preact/hooks";
 import type { ChartError } from "@doubletake/core";
 import { currentRound, percentComplete, TOTAL_ROUNDS } from "../lib/model";
 import { readFile } from "../lib/files";
-import { EXAMPLES, createProject, importText, progressById, projects, ready } from "../store";
+import { EXAMPLES, createDrawProject, createProject, importText, progressById, projects, ready } from "../store";
 
 export function ImportErrors({ errors, onClose }: { errors: ChartError[]; onClose: () => void }) {
   return (
@@ -22,12 +22,40 @@ export function ImportErrors({ errors, onClose }: { errors: ChartError[]; onClos
   );
 }
 
+function DrawCard() {
+  const [a, setA] = useState({ name: "Colour A", hex: "#6b2d9e" });
+  const [b, setB] = useState({ name: "Colour B", hex: "#f07eb5" });
+  const field = (label: string, v: { name: string; hex: string }, set: (v: { name: string; hex: string }) => void) => (
+    <div class="row" style="flex-wrap:wrap;margin-bottom:12px">
+      <input type="color" class="colour-input" aria-label={`${label} colour`} value={v.hex} onInput={(e) => set({ ...v, hex: (e.currentTarget as HTMLInputElement).value })} />
+      <input class="input" style="flex:1;min-width:140px" aria-label={`${label} name`} value={v.name} onInput={(e) => set({ ...v, name: (e.currentTarget as HTMLInputElement).value })} />
+    </div>
+  );
+  return (
+    <div class="card">
+      <h3>Draw your own chart</h3>
+      <p class="small">Pick your two main yarn colours, then draw on the grid. The outside shows one colour and the inside shows the other.</p>
+      {field("First yarn", a, setA)}
+      {field("Second yarn", b, setB)}
+      <button
+        class="btn primary block"
+        onClick={async () => {
+          const project = await createDrawProject({ name: a.name.trim() || "Colour A", hex: a.hex }, { name: b.name.trim() || "Colour B", hex: b.hex });
+          location.hash = `#/p/${project.id}/draw`;
+        }}
+      >
+        Start drawing
+      </button>
+    </div>
+  );
+}
+
 export function HomeScreen() {
   const [errors, setErrors] = useState<ChartError[] | null>(null);
   const input = useRef<HTMLInputElement>(null);
 
   const open = (id: string) => {
-    location.hash = `#/p/${id}/round`;
+    location.hash = `#/p/${id}/${projects.value.find((p) => p.id === id)?.stage === "design" ? "draw" : "round"}`;
   };
 
   const onFile = async (file: File | undefined) => {
@@ -61,8 +89,8 @@ export function HomeScreen() {
                   <div>
                     <h3 style="margin:0">{p.name}</h3>
                     <p class="small muted num" style="margin:4px 0 0">
-                      {pr ? (pr.completed >= TOTAL_ROUNDS ? "All rounds done" : `Round ${currentRound(pr)} of ${TOTAL_ROUNDS}`) : ""}
-                      {pr ? ` · ${percentComplete(pr)}%` : ""}
+                      {p.stage === "design" ? "Being designed" : pr ? (pr.completed >= TOTAL_ROUNDS ? "All rounds done" : `Round ${currentRound(pr)} of ${TOTAL_ROUNDS}`) : ""}
+                      {p.stage !== "design" && pr ? ` · ${percentComplete(pr)}%` : ""}
                     </p>
                   </div>
                   <button class="btn primary" onClick={() => open(p.id)} aria-label={`Open ${p.name}`}>
@@ -100,7 +128,8 @@ export function HomeScreen() {
             Choose a file
           </label>
         </div>
-        <p class="small muted">Making your own chart from an image, or by drawing one, is coming soon.</p>
+        <DrawCard />
+        <p class="small muted">Making a chart from an image is coming soon.</p>
       </section>
     </div>
   );
