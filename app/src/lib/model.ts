@@ -1,4 +1,5 @@
 import type { Chart } from "@doubletake/core";
+import type { Pace } from "./pace";
 
 /** Total rounds in the hat (body 1-75, crown 76-95). */
 export const TOTAL_ROUNDS = 95;
@@ -19,6 +20,8 @@ export interface Progress {
   steps: Partial<Record<ManualStep, boolean>>;
   /** Keyed `${layer}:${patchIndex}`. */
   patches: Record<string, PatchTick>;
+  /** An optional plan to spread the rounds over some days. It stays on this device and is never part of the chart. */
+  pace?: Pace;
   /** What the last few changes replaced, newest last, so Undo can put things back. */
   history: Undo[];
   updatedAt: number;
@@ -136,4 +139,10 @@ export interface Backup {
   kind: "doubletake-backup/1";
   project: Project;
   progress: Progress;
+}
+
+/** Set or clear the pace plan. This is a setting, not a step, so Undo leaves it alone. */
+export function setPace(p: Progress, pace: Pace | undefined, now = Date.now()): Progress {
+  const { pace: _old, ...rest } = p;
+  return pace ? { ...rest, pace, updatedAt: now } : { ...rest, updatedAt: now };
 }

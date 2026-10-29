@@ -207,6 +207,7 @@ Steps come from the pattern and are the same for every chart:
 - Large Next round, Previous round and Undo controls that work one-handed.
 - Optional position marker within a round (“I’m at pair 37”), so the knitter can put the work down mid-round.
 - Colour per cell shown as colour plus a symbol, with a high-contrast option.
+- For a striped chart, a strip beside the round numbers shows the two yarns in each round, with a coral line where the stripe changes, and the page says which two colours to use this round.
 - Zoom and pinch on the chart. Keep the screen awake while the tracker is open (where the browser allows).
 
 ### 9.3 Notes shown at the right moment
@@ -226,7 +227,7 @@ Steps come from the pattern and are the same for every chart:
 ### 9.5 Progress and pace
 - Progress saved automatically on the device and separate from the chart file, so the design data stays shareable.
 - Percent complete and rounds remaining.
-- **Optional pace planner:** the user chooses a start date and a number of days; the app shows target rounds for each day. Start date and days are set in the app and never stored in the chart file.
+- **Optional pace planner (built on the Steps tab):** the user chooses a start date and a number of days from 1 to 365; the 95 rounds are spread evenly (each day’s share rounds to a whole number, and with more days than rounds some days have none). The app lists every day with its dates (as 28 October 2026) and rounds, marks today, and says where the knitter stands: “By the end of today, aim for round 40: 3 rounds ahead.” The same line shows on the round view. The plan is saved with the progress on the device, is a setting that Undo leaves alone, and is never stored in the chart file or shared.
 
 ## 10. Chart file format (`doubletake-chart/1`)
 

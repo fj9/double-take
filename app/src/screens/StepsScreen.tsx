@@ -1,7 +1,10 @@
+import { useState } from "preact/hooks";
 import type { Chart } from "@doubletake/core";
 import { findAllPatches } from "@doubletake/core";
 import { BLOCKING_TEXT, FINISHING_TEXT, HELP } from "../content";
-import { allRoundsDone, currentRound, patchKey, patchesDone, percentComplete, toggleStep, TOTAL_ROUNDS } from "../lib/model";
+import { allRoundsDone, currentRound, patchKey, patchesDone, percentComplete, setPace, toggleStep, TOTAL_ROUNDS } from "../lib/model";
+import { formatDate, plan, standing, todayIso, validPace } from "../lib/pace";
+import type { Pace } from "../lib/pace";
 import type { ManualStep, Progress } from "../lib/model";
 import { saveProgress } from "../store";
 
@@ -18,6 +21,92 @@ interface Step {
   detail?: string;
 }
 
+function PacePlanner({ progress }: { progress: Progress }) {
+  const pace = progress.pace;
+  const [editing, setEditing] = useState(false);
+  const [start, setStart] = useState(pace?.start ?? todayIso());
+  const [days, setDays] = useState(String(pace?.days ?? 14));
+  const draft: Pace = { start, days: Number(days) };
+  const ok = validPace(draft);
+  const today = todayIso();
+
+  if (!pace || editing) {
+    return (
+      <section class="card" aria-labelledby="pace">
+        <h2 id="pace">Pace planner</h2>
+        <p class="small muted">Spread the rounds over the days you have. It is only a guide, and it stays on this device.</p>
+        <div class="grid2">
+          <label class="field">
+            <span class="small muted">Start date</span>
+            <input class="input" type="date" value={start} onInput={(e) => setStart((e.currentTarget as HTMLInputElement).value)} />
+          </label>
+          <label class="field">
+            <span class="small muted">Number of days</span>
+            <input class="input" type="number" min={1} max={365} value={days} onInput={(e) => setDays((e.currentTarget as HTMLInputElement).value)} />
+          </label>
+        </div>
+        {!ok && <p class="small" style="color:var(--error)">Choose a start date and a number of days from 1 to 365.</p>}
+        <div class="row" style="flex-wrap:wrap">
+          <button
+            class="btn primary"
+            disabled={!ok}
+            onClick={() => {
+              saveProgress(setPace(progress, draft));
+              setEditing(false);
+            }}
+          >
+            {pace ? "Save the plan" : "Make a plan"}
+          </button>
+          {pace && (
+            <button class="btn" onClick={() => setEditing(false)}>
+              Cancel
+            </button>
+          )}
+        </div>
+      </section>
+    );
+  }
+
+  const days_ = plan(pace);
+  const st = standing(pace, progress.completed, today);
+  return (
+    <section class="card" aria-labelledby="pace">
+      <h2 id="pace">Pace planner</h2>
+      <p style="margin:0 0 8px">
+        <strong>{pace.days} days from {formatDate(pace.start)}</strong>
+      </p>
+      <p class="small" style="margin:0 0 8px">{st.text}</p>
+      <details>
+        <summary class="summary">All {pace.days} days</summary>
+        <div class="list">
+          {days_.map((d) => {
+            const isToday = d.date === today;
+            const done = d.to >= d.from && progress.completed >= d.to;
+            return (
+              <div key={d.day} class="row between" style={isToday ? "background:var(--wash);box-shadow:inset 4px 0 0 var(--coral);padding-left:12px" : ""}>
+                <span>
+                  <span class="num">Day {d.day}</span> · {formatDate(d.date)}
+                  <br />
+                  <span class="small muted">{d.to < d.from ? "no rounds" : d.from === d.to ? `round ${d.from}` : `rounds ${d.from}–${d.to}`}</span>
+                </span>
+                {isToday ? <span class="pill">Today</span> : done ? <span class="pill done">Done</span> : null}
+              </div>
+            );
+          })}
+        </div>
+      </details>
+      <div class="row" style="flex-wrap:wrap;margin-top:12px">
+        <button class="btn small" onClick={() => setEditing(true)}>
+          Change the plan
+        </button>
+        <button class="btn small" onClick={() => saveProgress(setPace(progress, undefined))}>
+          Remove the plan
+        </button>
+      </div>
+    </section>
+  );
+}
+
 export function StepsScreen({ chart, progress }: { chart: Chart; progress: Progress }) {
   const id = progress.projectId;
   const bodyDone = progress.completed >= 75;
@@ -27,7 +116,7 @@ export function StepsScreen({ chart, progress }: { chart: Chart; progress: Progr
 
   const steps: Step[] = [
     { id: "swatch", title: "Swatch and check gauge", manual: "swatch", state: progress.steps.swatch ? "done" : "todo", body: "Swatch in double knit stockinette and block it before you cast on. You want 25 stitch pairs and 34 rounds to 4 in (10 cm). Change needle size until you match." },
-    { id: "caston", title: "Cast on 224 stitches", manual: "caston", state: progress.steps.caston ? "done" : "todo", help: "caston", body: "Use your two main colours and the alternating invisible cast on for double knitting in the round: 112 stitches of each colour, making 112 stitch pairs. Place a marker and join in the round, taking care not to twist." },
+    { id: "caston", title: "Cast on 224 stitches", manual: "caston", state: progress.steps.caston ? "done" : "todo", help: "caston", body: chart.mode === "stripes" ? `Use the two colours for round 1 (${(chart.round_pairs?.[0] ?? []).map((id) => chart.yarns.find((y) => y.id === id)?.name ?? id).join(" and ")}) and the alternating invisible cast on for double knitting in the round: 112 stitches of each colour, making 112 stitch pairs. Place a marker and join in the round, taking care not to twist.` : "Use your two main colours and the alternating invisible cast on for double knitting in the round: 112 stitches of each colour, making 112 stitch pairs. Place a marker and join in the round, taking care not to twist." },
     { id: "body", title: "Body, rounds 1–75", state: bodyDone ? "done" : "todo", body: "Work Chart A then Chart B for each round. Knit the front stitch in the colour shown, then purl the back stitch in the other colour. Slip the marker at the start of every round.", help: "doubleknit", link: { href: `#/p/${id}/round`, label: "Open the round view" }, detail: bodyDone ? "All 75 body rounds done" : `${Math.min(progress.completed, 75)} of 75 rounds done` },
     { id: "crown", title: "Crown, rounds 76–95", state: crownDone ? "done" : "todo", body: "The crown decreases in eight identical wedges. A square marked / is a right-leaning decrease, worked over that pair and the pair just before it.", help: "decrease", link: { href: `#/p/${id}/round`, label: "Open the round view" }, detail: crownDone ? "All 20 crown rounds done" : `${Math.max(0, Math.min(progress.completed, 95) - 75)} of 20 rounds done` },
     { id: "finish", title: "Finish the crown", manual: "finish", state: progress.steps.finish ? "done" : "todo", body: FINISHING_TEXT },
@@ -50,6 +139,7 @@ export function StepsScreen({ chart, progress }: { chart: Chart; progress: Progr
       <div class="progress" style="margin-bottom:16px">
         <div style={`width:${percentComplete(progress)}%`} />
       </div>
+      <PacePlanner progress={progress} />
       {steps.map((s, i) => (
         <section class="card" key={s.id} aria-labelledby={`step-${s.id}`} style={s.state === "now" ? "border-color:var(--coral);border-width:2px" : ""}>
           <div class="row between">

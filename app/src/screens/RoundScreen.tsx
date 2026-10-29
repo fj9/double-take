@@ -1,5 +1,5 @@
 import { useEffect } from "preact/hooks";
-import { CHART_A_LAST_PAIR, LAST_ROUND, pairsInRound } from "@doubletake/core";
+import { CHART_A_LAST_PAIR, LAST_ROUND, pairsInRound, yarnsInRound } from "@doubletake/core";
 import type { Chart } from "@doubletake/core";
 import { ChartCanvas } from "../components/ChartCanvas";
 import { Legend } from "../components/Legend";
@@ -8,6 +8,7 @@ import { geometry, type ChartView } from "../lib/render";
 import { allRoundsDone, canUndo, currentRound, nextRound, percentComplete, previousRound, setPair, undo } from "../lib/model";
 import type { Progress } from "../lib/model";
 import { highContrast, isDark, keepAwake, showDuplicate, zoom, zoomBy } from "../lib/settings";
+import { standing as paceStanding, todayIso } from "../lib/pace";
 import { roundText } from "../lib/text";
 import { saveProgress } from "../store";
 
@@ -47,7 +48,9 @@ export function RoundScreen({ chart, progress }: { chart: Chart; progress: Progr
   );
   const pairs = pairsInRound(round);
   const set = (p: Progress) => saveProgress(p);
-  const notes = notesForRound(round);
+  const notes = notesForRound(round, chart);
+  const stripes = chart.mode === "stripes";
+  const pairNow = stripes ? yarnsInRound(chart, round) : null;
 
   const part = (which: "A" | "B") => {
     const lo = which === "A" ? 1 : CHART_A_LAST_PAIR + 1;
@@ -65,6 +68,7 @@ export function RoundScreen({ chart, progress }: { chart: Chart; progress: Progr
       inside: false,
       highContrast: highContrast.value,
       dark: isDark(),
+      stripes,
     };
     const g = geometry(view);
     const boundaryX = marker ? g.left + (hi - marker + 1) * g.cellW : undefined;
@@ -91,6 +95,25 @@ export function RoundScreen({ chart, progress }: { chart: Chart; progress: Progr
       <p class="small muted">
         {percentComplete(progress)}% · {LAST_ROUND - progress.completed} rounds to go
       </p>
+      {progress.pace && (
+        <p class="small" style="margin:0 0 8px">
+          <strong>Your plan:</strong> {paceStanding(progress.pace, progress.completed, todayIso()).text}
+        </p>
+      )}
+      {pairNow && (
+        <p class="small" style="margin:0 0 8px">
+          <strong>Colours this round:</strong>{" "}
+          {pairNow.map((id) => {
+            const y = chart.yarns.find((yy) => yy.id === id);
+            return (
+              <span key={id} style="margin-right:12px;white-space:nowrap">
+                <span class="swatch sm" style={`background:${y?.hex ?? "#ccc"}`} aria-hidden="true" />
+                {y?.name ?? id} ({id})
+              </span>
+            );
+          })}
+        </p>
+      )}
 
       {done && (
         <div class="card note">

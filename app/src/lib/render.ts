@@ -1,4 +1,4 @@
-import { CELL_ASPECT, LAST_ROUND, insideAt, outsideAt, crownLayout, BODY_ROUNDS, FIRST_CROWN_ROUND } from "@doubletake/core";
+import { CELL_ASPECT, LAST_ROUND, insideAt, outsideAt, crownLayout, BODY_ROUNDS, FIRST_CROWN_ROUND, yarnsInRound } from "@doubletake/core";
 import type { Chart } from "@doubletake/core";
 
 export interface ChartView {
@@ -19,6 +19,8 @@ export interface ChartView {
   dark: boolean;
   /** Cells to pick out ("round:pair"); everything else is faded. */
   highlight?: Set<string>;
+  /** For a striped chart: a strip beside the rounds showing the two yarns in each round, with a line where the stripe changes. */
+  stripes?: boolean;
   /** Extra drawing on top, such as symmetry lines in the editor. */
   decorate?: (ctx: CanvasRenderingContext2D, g: Geometry) => void;
 }
@@ -35,6 +37,9 @@ export function textOn(hex: string): "#000000" | "#ffffff" {
   return l > 0.4 ? "#000000" : "#ffffff";
 }
 
+/** Width of the strip that shows each round's two yarns in a striped chart. */
+export const stripeWidth = (cellW: number) => Math.max(34, cellW * 3);
+
 export interface Geometry {
   cellW: number;
   cellH: number;
@@ -46,14 +51,15 @@ export interface Geometry {
   height: number;
 }
 
-export function geometry(view: Pick<ChartView, "cols" | "rows" | "cellW">): Geometry {
+export function geometry(view: Pick<ChartView, "cols" | "rows" | "cellW"> & { stripes?: boolean }): Geometry {
   const cellW = view.cellW;
   const cellH = cellW / CELL_ASPECT;
   const strip = Math.max(14, cellH * 1.5);
   const left = 6;
   const top = strip;
   const bottom = strip;
-  const right = Math.max(28, cellW * 3);
+  const numbers = Math.max(28, cellW * 3);
+  const right = numbers + (view.stripes ? stripeWidth(cellW) : 0);
   return {
     cellW,
     cellH,
@@ -276,6 +282,42 @@ export function draw(canvas: HTMLCanvasElement, view: ChartView): void {
     ctx.font = `${round === view.current ? 700 : hc ? 700 : 400} ${labelSize}px system-ui, sans-serif`;
     ctx.fillText(String(round), g.left + cols.length * g.cellW + 6, y);
   });
+  // Striped charts: the two yarns in each round, and a line where the stripe changes
+  if (view.stripes && chart.mode === "stripes") {
+    const sw = stripeWidth(g.cellW);
+    const x0 = g.left + cols.length * g.cellW + Math.max(28, g.cellW * 3);
+    const half = (sw - 4) / 2;
+    ctx.textAlign = "center";
+    rows.forEach((round, ri) => {
+      const y = g.top + ri * g.cellH;
+      const pair = yarnsInRound(chart, round);
+      const faded = view.current !== undefined && view.current !== round;
+      ctx.globalAlpha = faded ? 0.5 : 1;
+      pair.forEach((id, k) => {
+        const yarn = chart.yarns.find((yy) => yy.id === id);
+        const hex = yarn?.hex ?? "#cccccc";
+        const x = x0 + 2 + k * half;
+        ctx.fillStyle = hex;
+        ctx.fillRect(x, y + 0.5, half - 1, Math.max(1, g.cellH - 1));
+        if (g.cellH >= 9) {
+          ctx.fillStyle = textOn(hex);
+          ctx.font = `700 ${Math.min(g.cellH * 0.7, 12)}px system-ui, sans-serif`;
+          ctx.fillText(id, x + (half - 1) / 2, y + g.cellH / 2 + 0.5);
+        }
+      });
+      ctx.globalAlpha = 1;
+      const before = round > 1 ? yarnsInRound(chart, round - 1) : null;
+      if (before && (before[0] !== pair[0] || before[1] !== pair[1])) {
+        ctx.strokeStyle = coral;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x0, y);
+        ctx.lineTo(x0 + sw, y);
+        ctx.stroke();
+      }
+    });
+    ctx.textAlign = "left";
+  }
   view.decorate?.(ctx, g);
 }
 

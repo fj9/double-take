@@ -1,4 +1,5 @@
-import { LAST_ROUND } from "@doubletake/core";
+import { LAST_ROUND, yarnsInRound } from "@doubletake/core";
+import type { Chart } from "@doubletake/core";
 
 /** Tutorial links. Left empty until the tutorials are chosen (spec open question 4): empty means no link is shown. */
 export const HELP: Record<"caston" | "doubleknit" | "decrease" | "duplicate" | "jogless", string | null> = {
@@ -23,9 +24,42 @@ export interface Note {
   help?: keyof typeof HELP;
 }
 
-/** Notes shown at the right moment while knitting (spec 9.3). Stripe notes come with stripes mode. */
-export function notesForRound(round: number): Note[] {
+const yarnName = (chart: Chart, id: string) => chart.yarns.find((y) => y.id === id)?.name ?? id;
+const samePair = (a: [string, string], b: [string, string]) => a[0] === b[0] && a[1] === b[1];
+
+/**
+ * Notes for a striped chart. A stripe changes at the start of a round, at the marker. On the first round of
+ * the new stripe it is worked as normal; on the second round, the jogless step hides the step at the join.
+ */
+export function stripeNotes(chart: Chart, round: number): Note[] {
+  if (chart.mode !== "stripes" || round < 2 || round > 75) return [];
+  const pair = yarnsInRound(chart, round);
+  const before = yarnsInRound(chart, round - 1);
   const notes: Note[] = [];
+  if (!samePair(pair, before)) {
+    const [a, b] = pair.map((id) => `${yarnName(chart, id)} (${id})`);
+    notes.push({
+      id: "stripe-change",
+      title: "New stripe",
+      body: `Change colours at the start of the round, at the marker. This stripe uses ${a} and ${b}. Work the round as normal, including the first stitch pair. Weave in ends between the layers later.`,
+      help: "jogless",
+    });
+  }
+  const twoBack = round >= 3 ? yarnsInRound(chart, round - 2) : null;
+  if (twoBack && samePair(before, pair) && !samePair(twoBack, before)) {
+    notes.push({
+      id: "stripe-jogless",
+      title: "Jogless step (second round of the stripe)",
+      body: "Before you work the first stitch pair, lift the old-colour stitch from the round below, on the knit face, and knit it together with the first knit stitch. Do the same on the purl face: lift the stitch below, on the purl face, and purl it together with the first purl stitch. Then work the rest of the round as normal. Tighten the first few stitches a little. Your stitch count does not change. This method is a draft that is still to be test-knit.",
+      help: "jogless",
+    });
+  }
+  return notes;
+}
+
+/** Notes shown at the right moment while knitting (spec 9.3). */
+export function notesForRound(round: number, chart?: Chart): Note[] {
+  const notes: Note[] = chart ? stripeNotes(chart, round) : [];
   if (round === 1) {
     notes.push({
       id: "first-round",
