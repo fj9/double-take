@@ -48,6 +48,7 @@ export interface StoredUnderlay {
   crop: CropSettings;
   opacity: number;
   visible: boolean;
+  mirror?: boolean;
 }
 export const getUnderlay = (id: string) => run<StoredUnderlay | undefined>("underlays", "readonly", (s) => s.get(id));
 export const putUnderlay = (u: StoredUnderlay) => run("underlays", "readwrite", (s) => s.put(u));

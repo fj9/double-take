@@ -29,3 +29,43 @@ describe("cropBox", () => {
     expect([corner.x, corner.y]).toEqual([0, 0]);
   });
 });
+
+import { frameBox, tileDraws } from "../src/lib/crop";
+
+describe("tiling when zoomed out", () => {
+  it("zoom 1 and above is a single piece that fills the frame", () => {
+    const t = tileDraws(1000, 1000, { zoom: 1, cx: 0.5, cy: 0.5 }, false);
+    expect(t).toHaveLength(1);
+    expect(t[0]).toMatchObject({ nx: 0, ny: 0, nw: 1, nh: 1, flipX: false, flipY: false });
+  });
+
+  it("zooming out repeats the picture, and the pieces always fill the frame exactly", () => {
+    for (const zoom of [0.9, 0.5, 0.33, 0.2]) {
+      for (const [cx, cy] of [[0.5, 0.5], [0, 0], [1, 1], [0.27, 0.8]] as const) {
+        const t = tileDraws(640, 480, { zoom, cx, cy }, false);
+        const area = t.reduce((a, p) => a + p.nw * p.nh, 0);
+        expect(area).toBeCloseTo(1, 6);
+        for (const p of t) {
+          expect(p.sx).toBeGreaterThanOrEqual(-1e-9);
+          expect(p.sx + p.sw).toBeLessThanOrEqual(640 + 1e-9);
+          expect(p.sy + p.sh).toBeLessThanOrEqual(480 + 1e-9);
+        }
+      }
+    }
+    expect(tileDraws(640, 480, { zoom: 0.2, cx: 0.5, cy: 0.5 }, false).length).toBeGreaterThan(4);
+  });
+
+  it("the frame below zoom 1 is bigger than the picture and the same shape as the fabric", () => {
+    const f = frameBox(400, 400, { zoom: 0.5, cx: 0.5, cy: 0.5 });
+    expect(f.width).toBeCloseTo(800, 6);
+    expect(f.width / f.height).toBeCloseTo(FABRIC_ASPECT, 6);
+  });
+
+  it("mirroring flips every other copy, so the neighbouring edges meet", () => {
+    const t = tileDraws(500, 500, { zoom: 0.5, cx: 0.5, cy: 0.5 }, true);
+    const row = t.filter((p) => Math.abs(p.ny - t[0]!.ny) < 1e-9).sort((a, b) => a.nx - b.nx);
+    expect(row.length).toBeGreaterThanOrEqual(2);
+    for (let i = 1; i < row.length; i++) expect(row[i]!.flipX).not.toBe(row[i - 1]!.flipX);
+    expect(tileDraws(500, 500, { zoom: 0.5, cx: 0.5, cy: 0.5 }, false).every((p) => !p.flipX && !p.flipY)).toBe(true);
+  });
+});

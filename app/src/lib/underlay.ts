@@ -9,6 +9,8 @@ export interface Underlay {
   /** 0 to 1. */
   opacity: number;
   visible: boolean;
+  /** When zoomed out so the picture repeats, flip every other copy so the edges match. */
+  mirror: boolean;
 }
 
 /** Stored pictures are kept small: a trace doesn't need more. */
@@ -23,7 +25,7 @@ export function pixelsToCanvas(p: Pixels): HTMLCanvasElement {
 }
 
 export function newUnderlay(canvas: HTMLCanvasElement): Underlay {
-  return { canvas, crop: DEFAULT_CROP, opacity: 0.4, visible: true };
+  return { canvas, crop: DEFAULT_CROP, opacity: 0.4, visible: true, mirror: false };
 }
 
 /** A small JPEG of the picture, for keeping on the device. */

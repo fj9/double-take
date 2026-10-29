@@ -20,7 +20,7 @@ import { EditorCanvas } from "../components/EditorCanvas";
 import type { Geometry } from "../lib/render";
 import type { ChartView } from "../lib/render";
 import type { Project } from "../lib/model";
-import { cropBox } from "../lib/crop";
+import { tileDraws } from "../lib/crop";
 import * as db from "../lib/db";
 import { decodePicture } from "../lib/decode";
 import { editorZoom, editorZoomBy, highContrast, isDark } from "../lib/settings";
@@ -64,13 +64,14 @@ export function DrawScreen({ project }: { project: Project }) {
   const [underlayError, setUnderlayError] = useState<string | null>(null);
   const underlayBlob = useRef<Blob | null>(null);
   const underlayTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const tiled = useRef<{ key: string; src: HTMLCanvasElement; canvas: HTMLCanvasElement } | null>(null);
   useEffect(() => {
     let cancelled = false;
     db.getUnderlay(project.id)
       .then(async (u) => {
         if (!u || cancelled) return;
         underlayBlob.current = u.blob;
-        setUnderlay({ canvas: await blobToCanvas(u.blob), crop: u.crop, opacity: u.opacity, visible: u.visible });
+        setUnderlay({ canvas: await blobToCanvas(u.blob), crop: u.crop, opacity: u.opacity, visible: u.visible, mirror: u.mirror ?? false });
       })
       .catch(() => undefined);
     return () => {
@@ -81,7 +82,7 @@ export function DrawScreen({ project }: { project: Project }) {
     clearTimeout(underlayTimer.current);
     underlayTimer.current = setTimeout(() => {
       const blob = underlayBlob.current;
-      if (blob) void db.putUnderlay({ projectId: project.id, blob, crop: u.crop, opacity: u.opacity, visible: u.visible }).catch(() => undefined);
+      if (blob) void db.putUnderlay({ projectId: project.id, blob, crop: u.crop, opacity: u.opacity, visible: u.visible, mirror: u.mirror }).catch(() => undefined);
     }, 400);
   };
   const changeUnderlay = (patch: Partial<Underlay>) => {
@@ -97,17 +98,19 @@ export function DrawScreen({ project }: { project: Project }) {
       const canvas = pixelsToCanvas(await decodePicture(file));
       underlayBlob.current = await canvasToBlob(canvas);
       const next = newUnderlay(canvas);
+      // Keep it first, then show it, so a quick reload never finds a picture that wasn't saved
+      await db.putUnderlay({ projectId: project.id, blob: underlayBlob.current, crop: next.crop, opacity: next.opacity, visible: true, mirror: false });
       setUnderlay(next);
-      await db.putUnderlay({ projectId: project.id, blob: underlayBlob.current, crop: next.crop, opacity: next.opacity, visible: true });
     } catch (e) {
       setUnderlayError(e instanceof Error ? e.message : "Couldn’t open that picture.");
     }
   };
-  const removeUnderlay = () => {
+  const removeUnderlay = async () => {
     clearTimeout(underlayTimer.current);
     underlayBlob.current = null;
+    // Delete it first, then hide it, so a quick reload never brings it back
+    await db.deleteUnderlay(project.id).catch(() => undefined);
     setUnderlay(null);
-    void db.deleteUnderlay(project.id).catch(() => undefined);
   };
 
   const chart = work.current;
@@ -196,10 +199,36 @@ export function DrawScreen({ project }: { project: Project }) {
     const ink = isDark() ? "#e8edf5" : "#1b2a41";
     if (underlay?.visible) {
       // The picture covers the body (rounds 1-75). Its frame has the shape of the fabric, so it fits the grid exactly.
-      const b = cropBox(underlay.canvas.width, underlay.canvas.height, underlay.crop);
+      const rect = { x: g.left, y: g.top + 20 * g.cellH, w: COLS.length * g.cellW, h: 75 * g.cellH };
+      const key = `${rect.w}|${underlay.crop.zoom}|${underlay.crop.cx}|${underlay.crop.cy}|${underlay.mirror}`;
+      let cached = tiled.current;
+      if (!cached || cached.key !== key || cached.src !== underlay.canvas) {
+        // Build the (possibly repeated) picture once at full strength, so copies don't overlap and double up when faded
+        const dpr = window.devicePixelRatio || 1;
+        const off = document.createElement("canvas");
+        off.width = Math.max(1, Math.ceil(rect.w * dpr));
+        off.height = Math.max(1, Math.ceil(rect.h * dpr));
+        const octx = off.getContext("2d");
+        if (octx) {
+          octx.scale(dpr, dpr);
+          for (const t of tileDraws(underlay.canvas.width, underlay.canvas.height, underlay.crop, underlay.mirror)) {
+            const dx = t.nx * rect.w - 0.3;
+            const dy = t.ny * rect.h - 0.3;
+            const dw = t.nw * rect.w + 0.6;
+            const dh = t.nh * rect.h + 0.6;
+            octx.save();
+            octx.translate(dx + dw / 2, dy + dh / 2);
+            octx.scale(t.flipX ? -1 : 1, t.flipY ? -1 : 1);
+            octx.drawImage(underlay.canvas, t.sx, t.sy, t.sw, t.sh, -dw / 2, -dh / 2, dw, dh);
+            octx.restore();
+          }
+        }
+        cached = { key, src: underlay.canvas, canvas: off };
+        tiled.current = cached;
+      }
       ctx.save();
       ctx.globalAlpha = underlay.opacity;
-      ctx.drawImage(underlay.canvas, b.x, b.y, b.width, b.height, g.left, g.top + 20 * g.cellH, COLS.length * g.cellW, 75 * g.cellH);
+      ctx.drawImage(cached.canvas, rect.x, rect.y, rect.w, rect.h);
       ctx.restore();
     }
     const gridW = COLS.length * g.cellW;
@@ -416,9 +445,15 @@ export function DrawScreen({ project }: { project: Project }) {
                 <input class="range" type="range" min="0.05" max="1" step="0.05" value={underlay.opacity} aria-label="How strong the picture shows" onInput={(e) => changeUnderlay({ opacity: Number((e.currentTarget as HTMLInputElement).value) })} />
               </label>
               <label class="field">
-                <span class="small muted">Zoom</span>
-                <input class="range" type="range" min="1" max="4" step="0.1" value={underlay.crop.zoom} aria-label="Zoom the picture" onInput={(e) => changeUnderlay({ crop: { ...underlay.crop, zoom: Number((e.currentTarget as HTMLInputElement).value) } })} />
+                <span class="small muted">Zoom: {underlay.crop.zoom.toFixed(2).replace(/0$/, "")}{underlay.crop.zoom < 1 ? ", repeating the picture" : ""}</span>
+                <input class="range" type="range" min="0.2" max="4" step="0.05" value={underlay.crop.zoom} aria-label="Zoom the picture" onInput={(e) => changeUnderlay({ crop: { ...underlay.crop, zoom: Number((e.currentTarget as HTMLInputElement).value) } })} />
               </label>
+              {underlay.crop.zoom < 1 && (
+                <label class="check">
+                  <input type="checkbox" checked={underlay.mirror} onChange={(e) => changeUnderlay({ mirror: (e.currentTarget as HTMLInputElement).checked })} />
+                  Flip every other copy so the edges match
+                </label>
+              )}
               <label class="field">
                 <span class="small muted">Left to right</span>
                 <input class="range" type="range" min="0" max="1" step="0.01" value={underlay.crop.cx} aria-label="Move the picture left or right" onInput={(e) => changeUnderlay({ crop: { ...underlay.crop, cx: Number((e.currentTarget as HTMLInputElement).value) } })} />

@@ -173,3 +173,24 @@ test("a file that isn’t a picture can’t be used to trace", async ({ page }) 
   await page.locator("#trace-file").setInputFiles({ name: "notes.txt", mimeType: "text/plain", buffer: Buffer.from("no") });
   await expect(page.getByRole("alert").filter({ hasText: "isn’t a picture" })).toBeVisible();
 });
+
+test("zooming the picture out repeats it to fill the whole body", async ({ page }) => {
+  await startDrawing(page);
+  await page.getByText("Trace over a picture").click();
+  // A small red picture: not tall enough to cover the body by itself when zoomed out
+  await page.locator("#trace-file").setInputFiles({ name: "red.png", mimeType: "image/png", buffer: await redPng(page) });
+  await page.getByLabel("How strong the picture shows").fill("1");
+  await page.getByLabel("Zoom the picture").fill("0.3");
+  await expect(page.getByText(/repeating the picture/)).toBeVisible();
+  // Both ends of the body are covered, not just one copy in the middle
+  for (const [col, row] of [[3, 25], [60, 45], [108, 70]] as const) {
+    await expect.poll(async () => ((await cellColour(page, col, row)) as number[]).join(",")).toBe("255,0,0");
+  }
+  await page.getByLabel("Flip every other copy so the edges match").check();
+  await expect.poll(async () => ((await cellColour(page, 108, 70)) as number[]).join(",")).toBe("255,0,0");
+  await page.waitForTimeout(700);
+  await page.reload();
+  await page.getByText("Trace over a picture").click();
+  await expect(page.getByLabel("Flip every other copy so the edges match")).toBeChecked();
+  await expect(page.getByLabel("Zoom the picture")).toHaveValue("0.3");
+});
