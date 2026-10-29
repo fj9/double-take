@@ -1,0 +1,17 @@
+{
+  "name": "double-take",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "core"
+  ],
+  "scripts": {
+    "test": "npm run test -w core",
+    "typecheck": "npm run typecheck -w core"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
+}
