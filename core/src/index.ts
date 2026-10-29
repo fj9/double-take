@@ -4,3 +4,4 @@ export * from "./validate";
 export * from "./patches";
 export * from "./edit";
 export * from "./analyse";
+export * from "./generate";

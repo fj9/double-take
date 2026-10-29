@@ -303,6 +303,11 @@ The skill:
 - The skill outputs the chart file and preview PNGs. The app produces the printable chart pages (PDF, section 13), so the skill no longer needs WeasyPrint.
 - The old Python skill is the reference. Before it is replaced, the core is run on the sample images (leopard, the desert scene, Great Wave, the transport fabric) and its charts are compared cell by cell with the Python output. Differences are explained or fixed.
 - Floating-point differences in maths functions between engines are checked in those tests.
+- **Parity results (29 October 2026, `npx tsx tools/parity.ts`).** The JavaScript core agrees with the old Python skill on 99.0% to 99.2% of cells for the rainbow leopard picture (two and three colours) and 93.7% for the Great Wave (five colours). The moquette (three colours) and plaid (four colours) agree on 68% and 77%. The differences are explained, not bugs:
+  - The colour search starts from the picture's own palette instead of random points, so the same picture always gives the same colours. The Python skill's random start lands on one of several valid answers: for the moquette it finds either 64 / 30 / 5% or 74 / 21 / 4% depending on the start, and the core's answer (4.4% duplicate stitch) is the closer to the 4.5% your skill notes for the transport fabric.
+  - Clean-up always treats the most used colour as the ground, where the Python code treated whichever cluster came first.
+  - Patches join diagonally and across the seam (section 9.4), where the Python code used side-by-side connectivity.
+  - Pictures with stripes thinner than a stitch (the plaid) are unstable in both: small differences in resizing and blurring change the result.
 
 Changes to the skill for Doubletake:
 - Write `.doubletake.json` (the old skill wrote PDF, PNG and CSV only).
