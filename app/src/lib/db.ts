@@ -1,4 +1,6 @@
 /** Projects and progress live in IndexedDB on the device. Nothing is sent anywhere. */
+import { upgradeChart } from "@doubletake/core";
+import type { Chart } from "@doubletake/core";
 import type { Progress, Project } from "./model";
 import type { CropSettings } from "./crop";
 
@@ -35,8 +37,10 @@ function run<T>(store: "projects" | "progress" | "underlays", mode: IDBTransacti
   );
 }
 
-export const listProjects = () => run<Project[]>("projects", "readonly", (s) => s.getAll());
-export const getProject = (id: string) => run<Project | undefined>("projects", "readonly", (s) => s.get(id));
+/** A chart saved by an earlier version has no crown; give it a solid one. */
+const upgraded = (p: Project): Project => ({ ...p, chart: upgradeChart(p.chart) as Chart });
+export const listProjects = () => run<Project[]>("projects", "readonly", (s) => s.getAll()).then((all) => all.map(upgraded));
+export const getProject = (id: string) => run<Project | undefined>("projects", "readonly", (s) => s.get(id)).then((p) => (p ? upgraded(p) : p));
 export const putProject = (p: Project) => run("projects", "readwrite", (s) => s.put(p));
 export const getProgress = (id: string) => run<Progress | undefined>("progress", "readonly", (s) => s.get(id));
 export const putProgress = (p: Progress) => run("progress", "readwrite", (s) => s.put(p));

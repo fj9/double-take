@@ -15,6 +15,8 @@ import {
   setYarnLook,
   symmetricCells,
   validateChart,
+  fadeCrown,
+  crownPrint,
 } from "../src";
 import type { Chart } from "../src";
 import { loadLeopard } from "./helpers";
@@ -37,12 +39,18 @@ describe("painting", () => {
     expect(setOutside(c, 10, 20, "C")).toBe(false);
   });
 
-  it("can’t paint the crown: it is the same for every hat", () => {
+  it("can’t paint a pair that a decrease has removed", () => {
     const c = newBlankChart("t");
-    expect(setOutside(c, 76, 2, "B")).toBe(false);
-    expect(setOutside(c, 90, 5, "B")).toBe(false);
-    expect(setOutside(c, 75, 2, "B")).toBe(true);
-    expect(outsideAt(c, 80, 5)).toBe("A");
+    expect(crownLayout(76).present[0]).toBe(false);
+    expect(setOutside(c, 76, 1, "B")).toBe(false);
+    expect(setOutside(c, 76, 2, "B")).toBe(true);
+  });
+
+  it("lets you paint all the way to the top of the crown", () => {
+    const c = newBlankChart("t");
+    expect(setOutside(c, 95, crownLayout(95).present.indexOf(true) + 1, "B")).toBe(true);
+    expect(setOutside(c, 85, crownLayout(85).present.indexOf(true) + 1, "B")).toBe(true);
+    expect(valid(c)).toEqual([]);
   });
 });
 
@@ -80,6 +88,13 @@ describe("duplicate stitch layers", () => {
     expect(setDuplicate(c, 1, 5, 5, true)).toBe(true);
     expect(c.duplicate[0]!.body[4]![4]).toBe("0");
     expect(c.duplicate[1]!.body[4]![4]).toBe("1");
+    expect(valid(c)).toEqual([]);
+  });
+
+  it("allows duplicate stitch in the crown", () => {
+    const c = newBlankChart("t");
+    addDuplicateLayer(c, { name: "blue", hex: "#2a5fd0" });
+    expect(setDuplicate(c, 0, 85, crownLayout(85).present.indexOf(true) + 1, true)).toBe(true);
     expect(valid(c)).toEqual([]);
   });
 
@@ -136,8 +151,9 @@ describe("symmetry", () => {
     expect(mid.map((c) => c.pair).sort((a, b) => a - b)).toEqual([56, 57]);
   });
 
-  it("mirror top to bottom pairs round 1 with 75", () => {
+  it("mirror top to bottom pairs round 1 with 75, and leaves the crown alone", () => {
     expect(symmetricCells(1, 5, { ...NO_SYMMETRY, mirrorY: true }).map((c) => c.round).sort((a, b) => a - b)).toEqual([1, 75]);
+    expect(symmetricCells(80, 5, { ...NO_SYMMETRY, mirrorY: true })).toHaveLength(1);
   });
 
   it("repeats evenly round the hat", () => {
@@ -149,10 +165,12 @@ describe("symmetry", () => {
     expect(symmetricCells(10, 3, { ...NO_SYMMETRY, repeat: 4 }).map((c) => c.pair).sort((a, b) => a - b)).toEqual([3, 31, 59, 87]);
   });
 
-  it("combines all three, and never reaches into the crown", () => {
+  it("combines all three, and skips removed pairs in the crown", () => {
     expect(symmetricCells(10, 3, { mirrorX: true, mirrorY: true, repeat: 4 })).toHaveLength(4 * 2 * 2);
-    expect(symmetricCells(76, 2, { ...NO_SYMMETRY, repeat: 8 })).toHaveLength(0);
-    expect(symmetricCells(75, 2, { mirrorX: false, mirrorY: true, repeat: 1 }).map((c) => c.round).sort((a, b) => a - b)).toEqual([1, 75]);
+    // Round 76 has pair 1 removed in each wedge, so repeating from pair 15 gives fewer than 8 painted cells
+    const crown = symmetricCells(76, 2, { ...NO_SYMMETRY, repeat: 8 });
+    expect(crown).toHaveLength(8);
+    expect(symmetricCells(76, 1, { ...NO_SYMMETRY, repeat: 8 })).toHaveLength(0);
   });
 });
 
@@ -177,6 +195,9 @@ describe("any sequence of edits leaves the chart valid", () => {
       else for (const cell of symmetricCells(round, pair, { mirrorX: rnd(2) === 1, mirrorY: rnd(2) === 1, repeat: REPEATS[rnd(REPEATS.length)] as number })) setOutside(c, cell.round, cell.pair, "B");
     }
     expect(valid(c)).toEqual([]);
+    fadeCrown(c);
+    expect(valid(c)).toEqual([]);
+    expect(crownPrint(c)?.lastRound ?? 0).toBeLessThan(85);
   });
 });
 
@@ -184,14 +205,14 @@ describe("analysis", () => {
   it("warns about a hat that is one colour so far", () => {
     const a = analyse(newBlankChart("t"));
     expect(a.warnings.map((w) => w.code)).toContain("one_colour");
-    expect(a.totalCells).toBe(8400);
+    expect(a.totalCells).toBe(8400 + 1336);
   });
 
-  it("the leopard has about 21% duplicate stitch, which gets a warning", () => {
+  it("the leopard has about 19% duplicate stitch, which gets a warning", () => {
     const a = analyse(loadLeopard());
-    expect(a.duplicate[0]?.cells).toBe(1758);
-    expect(a.duplicate[0]?.patches).toBe(31);
-    expect(a.duplicateShare).toBeCloseTo(0.2093, 3);
+    expect(a.duplicate[0]?.cells).toBe(1842);
+    expect(a.duplicate[0]?.patches).toBe(33);
+    expect(a.duplicateShare).toBeCloseTo(0.1892, 3);
     expect(a.warnings.map((w) => w.code)).toContain("duplicate_a_lot");
     expect(a.warnings.some((w) => w.level === "stop")).toBe(false);
   });

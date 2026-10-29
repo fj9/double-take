@@ -1,5 +1,5 @@
 import type { Chart } from "./chart";
-import { BODY_ROUNDS, CROWN_PAIRS_PER_ROUND, FIRST_CROWN_ROUND, LAST_ROUND, PAIRS, crownLayout } from "./hat";
+import { BODY_ROUNDS, CROWN_PAIRS_PER_ROUND, FIRST_CROWN_ROUND, PAIRS, LAST_ROUND, crownLayout } from "./hat";
 import { findPatches } from "./patches";
 
 export interface Warning {
@@ -10,9 +10,9 @@ export interface Warning {
 }
 
 export interface Analysis {
-  /** Cells in the body, 8,400: shares are of these. The crown is the same for every hat. */
+  /** Cells in the hat: 8,400 in the body plus the crown's pairs. */
   totalCells: number;
-  /** Share of the outside of the body that each yarn covers, 0 to 1. */
+  /** Share of the outside that each yarn covers, 0 to 1. */
   outsideShare: Record<string, number>;
   duplicate: { yarn: string; cells: number; share: number; patches: number; singles: number }[];
   duplicateShare: number;
@@ -26,15 +26,19 @@ export const DUPLICATE_STOP = 0.25;
 const pct = (x: number) => `${Math.round(x * 100)}%`;
 
 export function analyse(chart: Chart): Analysis {
-  const totalCells = BODY_ROUNDS * PAIRS;
+  const totalCells = BODY_ROUNDS * PAIRS + CROWN_PAIRS_PER_ROUND.reduce((a, b) => a + b, 0);
   const counts: Record<string, number> = {};
-  for (const row of chart.body) for (const ch of row) counts[ch] = (counts[ch] ?? 0) + 1;
+  const tally = (row: string) => {
+    for (const ch of row) if (ch !== ".") counts[ch] = (counts[ch] ?? 0) + 1;
+  };
+  chart.body.forEach(tally);
+  chart.crown.rounds.forEach(tally);
   const outsideShare: Record<string, number> = {};
   for (const y of chart.yarns) outsideShare[y.id] = (counts[y.id] ?? 0) / totalCells;
 
   const duplicate = chart.duplicate.map((layer) => {
     let cells = 0;
-    for (const row of layer.body) for (const ch of row) if (ch === "1") cells++;
+    for (const row of [...layer.body, ...layer.crown]) for (const ch of row) if (ch === "1") cells++;
     const patches = findPatches(layer);
     return { yarn: layer.yarn, cells, share: cells / totalCells, patches: patches.length, singles: patches.filter((p) => p.cells.length === 1).length };
   });
@@ -78,12 +82,9 @@ export function analyse(chart: Chart): Analysis {
   return { totalCells, outsideShare, duplicate, duplicateShare, warnings };
 }
 
-/** Pairs left at the end of each crown round, for the decrease table. */
+/** Pairs at the start and end of each crown round, for the decrease table. */
 export function crownTable(): { round: number; pairs: number }[] {
   const rows: { round: number; pairs: number }[] = [];
   for (let r = FIRST_CROWN_ROUND; r <= LAST_ROUND; r++) rows.push({ round: r, pairs: crownLayout(r).pairs });
   return rows;
 }
-
-/** Total pairs knitted in the whole hat (body plus crown): 9,736. Kept for yardage work later. */
-export const TOTAL_PAIRS = BODY_ROUNDS * PAIRS + CROWN_PAIRS_PER_ROUND.reduce((a, b) => a + b, 0);

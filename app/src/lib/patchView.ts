@@ -1,5 +1,5 @@
 import type { Patch } from "@doubletake/core";
-import { BODY_ROUNDS, PAIRS } from "@doubletake/core";
+import { LAST_ROUND, PAIRS } from "@doubletake/core";
 
 export interface PatchWindow {
   /** Pair numbers left to right as seen from the outside (stitch 1 at the right). */
@@ -45,7 +45,7 @@ export function patchWindow(patch: Patch, margin = 1): PatchWindow {
   const firstRound = Math.min(...rounds);
   const lastRound = Math.max(...rounds);
   const lo = Math.max(1, firstRound - margin);
-  const hi = Math.min(BODY_ROUNDS, lastRound + margin);
+  const hi = Math.min(LAST_ROUND, lastRound + margin);
   return {
     insideCols: ascending,
     outsideCols: [...ascending].reverse(),

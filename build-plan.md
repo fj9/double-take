@@ -8,7 +8,7 @@ Draft v0.1, 29 October 2026. Builds the app in `doubletake-app-spec.md` using th
 |---|---|---|---|
 | 1 | ~~App name in the UI~~ | | **Decided:** Doubletake, one word (wordmark `doubletake`, `double` 300 and `take` 700). `style.md` updated to match |
 | 2 | ~~Stack~~ | | **Decided:** Vite + TypeScript + Preact + Workbox (vite-plugin-pwa) + Vitest + Playwright |
-| 3 | ~~Leopard source data~~ | | **Done:** converted from the old skill's CSVs to `fixtures/leopard/leopard.doubletake.json` by `tools/convert_leopard.py`; all checks pass. There is now one standard crown, which is not stored in the chart file |
+| 3 | ~~Leopard source data~~ | | **Done:** converted from the old skill's CSVs to `fixtures/leopard/leopard.doubletake.json` by `tools/convert_leopard.py`; all checks pass. The crown fades out by round 85 (`tools/fade_leopard.ts`) |
 | 4 | **Sample images and old skill outputs** (leopard photo, desert, Great Wave, transport fabric). | Parity tests for the new core | Needed before the generator is ported |
 | 5 | Labels: the style guide has a `Front` / `Back` switch, the pattern says outside / inside. | Review and tracker UI | Outside / Inside, to match the pattern |
 | 6 | Chart cell style: gridline weight, symbol set (open item in `style.md`). | Chart renderer | I propose a set in step 2.1 and you approve it |
@@ -96,4 +96,4 @@ Writers on the same files must not overlap: Phase 2 owns `app/` screens for trac
 
 ## 6. Not in the plan yet (waiting on you)
 
-Yardage calibration (sample knitting), tutorial links, jogless stripes test knit, hashtag, repo name and URL, pattern credit, confirming the standard crown.
+Yardage calibration (sample knitting), tutorial links, jogless stripes test knit, hashtag, repo name and URL, pattern credit, the crown fade (round 85).

@@ -49,7 +49,7 @@ describe("spreadsheets (CSV)", () => {
   it("each duplicate stitch layer lists exactly its squares", () => {
     const rows = lines(duplicateCsv(leopard(), 0));
     const ones = rows.slice(1).flatMap((r) => r.split(",").slice(1)).filter((c) => c === "1").length;
-    expect(ones).toBe(1758);
+    expect(ones).toBe(1842);
   });
 
   it("a striped chart has a stripes sheet, and others don't", () => {
@@ -109,8 +109,8 @@ describe("chart pictures (SVG)", () => {
 });
 
 describe("chart pages", () => {
-  it("has body, duplicate stitch and crown pages in A then B order (the crown has no duplicate stitch)", () => {
-    expect(chartPages(leopard()).map((p) => p.id)).toEqual(["body-A", "body-B", "dup-0-A", "dup-0-B", "crown-A", "crown-B"]);
+  it("has body, duplicate stitch and crown pages in A then B order", () => {
+    expect(chartPages(leopard()).map((p) => p.id)).toEqual(["body-A", "body-B", "dup-0-A", "dup-0-B", "crown-A", "crown-B", "crown-dup-0-A", "crown-dup-0-B"]);
   });
   it("a two-colour chart has no duplicate stitch pages", () => {
     expect(chartPages(newBlankChart("t")).map((p) => p.id)).toEqual(["body-A", "body-B", "crown-A", "crown-B"]);
@@ -167,5 +167,5 @@ describe("compressed zip files", () => {
 });
 
 it("analysis still agrees with the numbers the exports quote", () => {
-  expect(analyse(leopard()).duplicate[0]?.cells).toBe(1758);
+  expect(analyse(leopard()).duplicate[0]?.cells).toBe(1842);
 });

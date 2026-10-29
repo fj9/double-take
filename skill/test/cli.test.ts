@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
 import jpeg from "jpeg-js";
 import { PNG } from "pngjs";
-import { parseChartJson } from "@doubletake/core";
+import { crownPrint, parseChartJson } from "@doubletake/core";
 import { exifOrientation } from "../src/exif";
 
 const here = new URL(".", import.meta.url).pathname;
@@ -93,13 +93,12 @@ describe("the command line", () => {
     expect(readFileSync(b.chartFile, "utf-8")).toBe(readFileSync(a.chartFile, "utf-8"));
   });
 
-  it("makes a two-colour chart", () => {
+  it("makes a two-colour chart whose crown is one colour from round 85", () => {
     const b = json(["build", spots("two.png"), "--colours", "2", "--out", join(dir, "two")]);
     expect(b.mode).toBe("two_colour");
-    expect(b).not.toHaveProperty("crown");
-    const chart = parseChartJson(readFileSync(b.chartFile, "utf-8"));
-    expect(chart.ok).toBe(true);
-    expect(readFileSync(b.chartFile, "utf-8")).not.toContain('"crown"');
+    const parsed = parseChartJson(readFileSync(b.chartFile, "utf-8"));
+    expect(parsed.ok).toBe(true);
+    if (parsed.ok) expect(crownPrint(parsed.chart)?.lastRound ?? 0).toBeLessThan(85);
   });
 
   it("compares the two ways to use more than three colours, and builds stripes", () => {

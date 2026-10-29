@@ -108,13 +108,13 @@ test("the crown shows its note and decrease key at round 76", async ({ page }) =
 test("the duplicate stitch tracker counts patches and faces", async ({ page }) => {
   await startLeopard(page);
   await page.getByRole("link", { name: "Stitch" }).click();
-  await expect(page.getByText("0 of 31 patches done")).toBeVisible();
+  await expect(page.getByText("0 of 33 patches done")).toBeVisible();
   await page.getByRole("button", { name: "Outside: mark as done" }).click();
-  await expect(page.getByText("0 of 31 patches done")).toBeVisible(); // one face is not enough
+  await expect(page.getByText("0 of 33 patches done")).toBeVisible(); // one face is not enough
   await page.getByRole("button", { name: "Inside: mark as done" }).click();
-  await expect(page.getByText("1 of 31 patches done")).toBeVisible();
+  await expect(page.getByText("1 of 33 patches done")).toBeVisible();
   await page.getByRole("button", { name: "Next patch to do" }).click();
-  await expect(page.getByRole("heading", { name: "Patch 2 of 31" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Patch 2 of 33" })).toBeVisible();
 });
 
 test("nothing is sent to any other site", async ({ page }) => {

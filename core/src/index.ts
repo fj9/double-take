@@ -5,3 +5,4 @@ export * from "./patches";
 export * from "./edit";
 export * from "./analyse";
 export * from "./generate";
+export * from "./fade";

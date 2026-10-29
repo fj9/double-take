@@ -448,6 +448,15 @@ export function MakeScreen() {
             </div>
           )}
 
+          <div class="card">
+            <h2>The crown</h2>
+            <p class="small" style="margin:0">
+              {comparison !== null && chosenRoute === "B"
+                ? "A striped hat has a crown in one colour, in the top stripe’s colours."
+                : "The print fades out over the first rounds of the crown and is gone by round 85, so the top of the hat is one colour. The drawing editor lets you change the crown if you want more print there."}
+            </p>
+          </div>
+
           {built?.error && (
             <div class="card" role="alert" style="border-color:var(--error)">
               <h3 style="color:var(--error)">That can’t be made into a chart</h3>

@@ -21,6 +21,7 @@ export function emptyLayer(chart: Chart, yarn = "C", faces: "both" | "outside" =
     yarn,
     faces,
     body: chart.body.map((r) => "0".repeat(r.length)),
+    crown: chart.crown.rounds.map((r) => [...r].map((ch) => (ch === "." ? "." : "0")).join("")),
   };
 }
 

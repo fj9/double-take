@@ -43,6 +43,7 @@ Ask only a few questions, and give a default for each.
    - **How many colours**, 2 to 6. Extra shades of one colour (shadow, pile) are not new colours, so use as few as the picture needs.
    - **The join.** `fade` blends the picture's edges so a repeating print carries on round the hat with no visible join (default for 2 or 3 colours). `accept` leaves the edges to meet at the join, which suits a picture with one clear subject (default for more colours). If you choose `accept`, tell them the join will show, and that it is also where stripe changes happen.
    - **Which part of the picture.** The hat is about twice as wide as tall. If the picture is a different shape, decide what to keep with `--zoom`, `--cx`, `--cy`, and say which part you kept.
+   - **The crown.** The tool fades the print out over rounds 76 to 84 and the crown is one colour from round 85, whatever the picture. A striped hat's crown is one colour from round 76, in the top stripe's colours. If someone wants more print in the crown, they can draw it in the app's editor.
    - **Yarn colours and names**, if they know them (`--names`, `--hex`). Otherwise the picture's colours are used.
 3. **Two colours.** One hat, two faces. Go straight to `build --colours 2`.
 4. **Three colours.** The third colour is worked in duplicate stitch, on both faces, after blocking. Any of the three can be the embroidered one. Run `colourways`, **look at each picture** (outside above, inside below), show the options, and suggest `mostContrasting`. Then ask which colour to embroider and which of the other two should be on the outside (`--dup-roles D --outside-role R`).
@@ -65,7 +66,7 @@ Ask only a few questions, and give a default for each.
 - `build` prints `chartFile`, `previews`, `mode` (`two_colour`, `duplicate`, `stripes`), `yarns` (id, name, hex, role), `duplicateStitch` (patches, squares, share of the hat) and `warnings` (`warn` or `stop`).
 - Yarn **A** is the main colour on the outside, **B** the other main colour, and **C** onwards are the duplicate stitch colours (in stripes mode all yarns are stripe colours).
 - Colour numbers (`--names`, `--hex`, `--dup-roles`, `--outside-role`) start at 0 for the most used colour in the picture.
-- In the previews, round 1 is at the bottom, the crown is at the top (the white staircase is the decreases; the crown is the same for every hat and is not part of the chart file), stitch 1 is at the right on the outside, and a small square in a different colour is duplicate stitch.
+- In the previews, round 1 is at the bottom, the crown is at the top (the white staircase is the decreases), stitch 1 is at the right on the outside, and a small square in a different colour is duplicate stitch.
 
 ## Checks before sending
 

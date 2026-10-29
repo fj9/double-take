@@ -1,11 +1,11 @@
 /**
- * Editing a chart cell by cell (spec 7.3 and 7.5). These functions change the chart they are given, and only
- * ever make changes that keep it valid. Only the 75 body rounds can be edited: the crown is the same for
- * every hat. A cell is in at most one duplicate layer.
+ * Editing a chart cell by cell (spec 7.3 and 7.5). These functions change the chart they are given, and
+ * only ever make changes that keep it valid: a removed pair can't be painted,
+ * and a cell is in at most one duplicate layer.
  */
 import { outsideAt, yarnsInRound } from "./chart";
 import type { Chart, DuplicateLayer } from "./chart";
-import { BODY_ROUNDS, PAIRS } from "./hat";
+import { BODY_ROUNDS, FIRST_CROWN_ROUND, LAST_ROUND, PAIRS, crownLayout } from "./hat";
 
 export interface CellRef {
   round: number;
@@ -21,7 +21,7 @@ export type EditLayer = { kind: "main" } | { kind: "duplicate"; index: number };
 export interface Symmetry {
   /** Mirror across the seam and the Chart A / Chart B join: pair 1 with 112, 56 with 57. */
   mirrorX: boolean;
-  /** Mirror the body top to bottom: round 1 with 75. */
+  /** Mirror the body top to bottom: round 1 with 75. The crown is not mirrored. */
   mirrorY: boolean;
   /** Repeat the motif this many times round the hat. */
   repeat: number;
@@ -31,37 +31,43 @@ export const NO_SYMMETRY: Symmetry = { mirrorX: false, mirrorY: false, repeat: 1
 
 const wrapPair = (p: number) => ((((p - 1) % PAIRS) + PAIRS) % PAIRS) + 1;
 
-/** True for a cell that can be edited: a pair in the body. The crown is fixed. */
-export function isEditable(round: number, pair: number): boolean {
-  return Number.isInteger(round) && Number.isInteger(pair) && round >= 1 && round <= BODY_ROUNDS && pair >= 1 && pair <= PAIRS;
+export function isPresent(round: number, pair: number): boolean {
+  if (round < 1 || round > LAST_ROUND || pair < 1 || pair > PAIRS) return false;
+  return round <= BODY_ROUNDS || crownLayout(round).present[pair - 1] === true;
 }
 
 function setChar(s: string, i: number, ch: string): string {
   return s.slice(0, i) + ch + s.slice(i + 1);
 }
 
-/** Does this duplicate layer cover this cell? */
-export function hasDuplicate(layer: DuplicateLayer, round: number, pair: number): boolean {
-  return round >= 1 && round <= BODY_ROUNDS && layer.body[round - 1]?.[pair - 1] === "1";
+function layerRow(layer: DuplicateLayer, round: number): string {
+  return (round <= BODY_ROUNDS ? layer.body[round - 1] : layer.crown[round - FIRST_CROWN_ROUND]) as string;
 }
 
 function writeLayer(layer: DuplicateLayer, round: number, pair: number, ch: string): void {
-  layer.body[round - 1] = setChar(layer.body[round - 1] as string, pair - 1, ch);
+  if (round <= BODY_ROUNDS) layer.body[round - 1] = setChar(layer.body[round - 1] as string, pair - 1, ch);
+  else layer.crown[round - FIRST_CROWN_ROUND] = setChar(layer.crown[round - FIRST_CROWN_ROUND] as string, pair - 1, ch);
+}
+
+/** Does this duplicate layer cover this cell? */
+export function hasDuplicate(layer: DuplicateLayer, round: number, pair: number): boolean {
+  return layerRow(layer, round)[pair - 1] === "1";
 }
 
 /** Set the outside yarn of a pair. Returns true if anything changed. */
 export function setOutside(chart: Chart, round: number, pair: number, yarn: string): boolean {
-  if (!isEditable(round, pair)) return false;
+  if (!isPresent(round, pair)) return false;
   if (!yarnsInRound(chart, round).includes(yarn)) return false;
   if (outsideAt(chart, round, pair) === yarn) return false;
-  chart.body[round - 1] = setChar(chart.body[round - 1] as string, pair - 1, yarn);
+  if (round <= BODY_ROUNDS) chart.body[round - 1] = setChar(chart.body[round - 1] as string, pair - 1, yarn);
+  else chart.crown.rounds[round - FIRST_CROWN_ROUND] = setChar(chart.crown.rounds[round - FIRST_CROWN_ROUND] as string, pair - 1, yarn);
   return true;
 }
 
 /** Turn duplicate stitch on or off for a cell in one layer. Turning it on takes the cell out of any other layer. */
 export function setDuplicate(chart: Chart, layerIndex: number, round: number, pair: number, on: boolean): boolean {
   const layer = chart.duplicate[layerIndex];
-  if (!layer || !isEditable(round, pair)) return false;
+  if (!layer || !isPresent(round, pair)) return false;
   if (hasDuplicate(layer, round, pair) === on) return false;
   if (on) {
     chart.duplicate.forEach((other, i) => {
@@ -83,9 +89,9 @@ export function paintCell(chart: Chart, layer: EditLayer, round: number, pair: n
   return layer.kind === "main" ? setOutside(chart, round, pair, value) : setDuplicate(chart, layer.index, round, pair, value === "1");
 }
 
-/** Fill the connected region of same-valued cells that contains a cell. Joins across the seam. */
+/** Fill the connected region of same-valued cells that contains a cell. Joins across the seam and from body to crown. */
 export function floodFill(chart: Chart, layer: EditLayer, round: number, pair: number, value: string): CellRef[] {
-  if (!isEditable(round, pair)) return [];
+  if (!isPresent(round, pair) && value === "1") return [];
   const target = valueAt(chart, layer, round, pair);
   if (target === value) return [];
   const key = (r: number, p: number) => r * 256 + p;
@@ -98,7 +104,7 @@ export function floodFill(chart: Chart, layer: EditLayer, round: number, pair: n
     for (const [dr, dp] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
       const r = c.round + dr;
       const p = wrapPair(c.pair + dp);
-      if (!isEditable(r, p) || seen.has(key(r, p))) continue;
+      if (!isPresent(r, p) || seen.has(key(r, p))) continue;
       if (valueAt(chart, layer, r, p) !== target) continue;
       seen.add(key(r, p));
       stack.push({ round: r, pair: p });
@@ -114,13 +120,13 @@ export function symmetricCells(round: number, pair: number, sym: Symmetry): Cell
   const step = PAIRS / (REPEATS.includes(sym.repeat as (typeof REPEATS)[number]) ? sym.repeat : 1);
   const out = new Map<number, CellRef>();
   const add = (r: number, p: number) => {
-    if (isEditable(r, p)) out.set(r * 256 + p, { round: r, pair: p });
+    if (isPresent(r, p)) out.set(r * 256 + p, { round: r, pair: p });
   };
   for (let k = 0; k < PAIRS / step; k++) {
     const p = wrapPair(pair + k * step);
     add(round, p);
     if (sym.mirrorX) add(round, PAIRS + 1 - p);
-    if (sym.mirrorY) {
+    if (sym.mirrorY && round <= BODY_ROUNDS) {
       add(BODY_ROUNDS + 1 - round, p);
       if (sym.mirrorX) add(BODY_ROUNDS + 1 - round, PAIRS + 1 - p);
     }
@@ -140,7 +146,12 @@ export function addDuplicateLayer(chart: Chart, look: { name: string; hex: strin
   const id = nextYarnId(chart);
   if (!id) return null;
   chart.yarns.push({ id, name: look.name, hex: look.hex, role: "duplicate" });
-  chart.duplicate.push({ yarn: id, faces: "both", body: chart.body.map((r) => "0".repeat(r.length)) });
+  chart.duplicate.push({
+    yarn: id,
+    faces: "both",
+    body: chart.body.map((r) => "0".repeat(r.length)),
+    crown: chart.crown.rounds.map((r) => [...r].map((ch) => (ch === "." ? "." : "0")).join("")),
+  });
   chart.mode = "duplicate";
   return chart.duplicate.length - 1;
 }

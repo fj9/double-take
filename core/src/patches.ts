@@ -1,8 +1,8 @@
 import type { Chart, DuplicateLayer } from "./chart";
-import { BODY_ROUNDS, PAIRS } from "./hat";
+import { BODY_ROUNDS, FIRST_CROWN_ROUND, LAST_ROUND, PAIRS, crownLayout } from "./hat";
 
 export interface Cell {
-  /** 1 to 75. */
+  /** 1 to 95. */
   round: number;
   /** 1 to 112. */
   pair: number;
@@ -18,17 +18,47 @@ export interface Patch {
   cells: Cell[];
 }
 
+/** Which pairs exist in each round, index 1 to 95. */
+function presenceByRound(): boolean[][] {
+  const rows: boolean[][] = [[]];
+  for (let r = 1; r <= LAST_ROUND; r++) {
+    rows[r] = r <= BODY_ROUNDS ? new Array<boolean>(PAIRS).fill(true) : [...crownLayout(r).present];
+  }
+  return rows;
+}
+
+const PRESENT = presenceByRound();
+
 const wrap = (i: number) => ((i % PAIRS) + PAIRS) % PAIRS;
 
-/** Cells next to a cell (spec 9.4): the eight surrounding cells, wrapping across the seam (pair 112 next to pair 1). */
+/**
+ * Cells next to a cell (spec 9.4): the eight surrounding cells, wrapping across the seam (pair 112 next
+ * to pair 1), running from the body into the crown, and reaching across a pair removed by a decrease.
+ */
 function neighbours(round: number, i: number): [number, number][] {
   const out: [number, number][] = [];
   for (let dr = -1; dr <= 1; dr++) {
     const r = round + dr;
-    if (r < 1 || r > BODY_ROUNDS) continue;
+    if (r < 1 || r > LAST_ROUND) continue;
+    const row = PRESENT[r] as boolean[];
     for (let dc = -1; dc <= 1; dc++) {
       if (dr === 0 && dc === 0) continue;
-      out.push([r, wrap(i + dc)]);
+      const q = wrap(i + dc);
+      if (row[q]) {
+        out.push([r, q]);
+        continue;
+      }
+      // A hole left by a decrease: the nearest pair beyond it counts as the neighbour.
+      for (const dir of dc === 0 ? [-1, 1] : [dc]) {
+        let k = q;
+        for (let step = 0; step < PAIRS; step++) {
+          k = wrap(k + dir);
+          if (row[k]) {
+            out.push([r, k]);
+            break;
+          }
+        }
+      }
     }
   }
   return out;
@@ -38,6 +68,9 @@ function layerCells(layer: DuplicateLayer): Set<number> {
   const cells = new Set<number>(); // round * PAIRS + index
   layer.body.forEach((row, r) => {
     for (let i = 0; i < PAIRS; i++) if (row[i] === "1") cells.add((r + 1) * PAIRS + i);
+  });
+  layer.crown.forEach((row, r) => {
+    for (let i = 0; i < PAIRS; i++) if (row[i] === "1") cells.add((FIRST_CROWN_ROUND + r) * PAIRS + i);
   });
   return cells;
 }

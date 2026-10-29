@@ -15,11 +15,10 @@ test("the chart pages are one sheet to a page and print to a PDF with the same n
   await page.getByRole("link", { name: "Chart pages (PDF)" }).click();
   await expect(page.getByRole("heading", { name: "Chart pages" })).toBeVisible();
   const sheets = page.locator(".sheet");
-  await expect(sheets).toHaveCount(7); // how to read, body A and B, duplicate stitch A and B, crown A and B
-  await expect(page.getByText("Page 3 of 7")).toBeVisible();
+  await expect(sheets).toHaveCount(9); // how to read, body A and B, duplicate A and B, crown A and B, crown duplicate A and B
+  await expect(page.getByText("Page 3 of 9")).toBeVisible();
   await expect(page.getByRole("heading", { name: "chart A" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "crown A", exact: true })).toBeVisible();
-  await expect(page.getByRole("heading", { name: /patterned|plain/i })).toHaveCount(0);
 
   // Every chart is real SVG that the browser can parse, and sits inside its sheet
   const bad = await page.evaluate(() => {
@@ -42,7 +41,7 @@ test("the chart pages are one sheet to a page and print to a PDF with the same n
   // Printed, each sheet is exactly one A4 page
   const pdf = await page.pdf({ preferCSSPageSize: true, printBackground: true });
   const pages = (pdf.toString("latin1").match(/\/Type\s*\/Page[^s]/g) ?? []).length;
-  expect(pages).toBe(7);
+  expect(pages).toBe(9);
   expect(pdf.subarray(0, 5).toString()).toBe("%PDF-");
 });
 

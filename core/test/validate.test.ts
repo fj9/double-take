@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { crownGround, crownLayout, insideAt, newBlankChart, outsideAt, parseChartJson, validateChart } from "../src";
+import { crownLayout, crownPrint, newBlankChart, parseChartJson, validateChart } from "../src";
 import type { Chart } from "../src";
-import { readFileSync } from "node:fs";
 import { blankDuplicateChart, clone, loadLeopard, setChar } from "./helpers";
 
 function codes(chart: unknown): string[] {
@@ -19,9 +18,12 @@ describe("valid charts", () => {
     expect(validateChart(newBlankChart("blank")).ok).toBe(true);
   });
 
-  it("an older file with crown fields still loads: the crown is ignored", () => {
-    const old = { ...loadLeopard(), crown: { variant: "patterned", plain_from: null, rounds: ["x"] } } as unknown;
-    expect(validateChart(old).ok).toBe(true);
+  it("the leopard fades out over the crown", () => {
+    const leopard = loadLeopard();
+    const print = crownPrint(leopard);
+    expect(print).not.toBeNull();
+    expect(print!.lastRound).toBeLessThan(85);
+    expect(new Set(leopard.crown.rounds[10]!.replaceAll(".", ""))).toEqual(new Set(["A"]));
   });
 
   it("parses the leopard from JSON text", () => {
@@ -75,6 +77,11 @@ describe("shape and dimensions", () => {
     if (!result.ok) expect(result.errors[0]?.message).toContain("Round 12");
   });
 
+  it("rejects a crown with the wrong number of rounds", () => {
+    const c = loadLeopard();
+    c.crown.rounds.pop();
+    expect(codes(c)).toContain("shape");
+  });
 });
 
 describe("yarns and the two-colours-per-round rule", () => {
@@ -104,7 +111,7 @@ describe("yarns and the two-colours-per-round rule", () => {
 
   it("rejects a two-colour chart with a duplicate layer", () => {
     const c = newBlankChart("x");
-    c.duplicate.push({ yarn: "A", faces: "both", body: c.body });
+    c.duplicate.push({ yarn: "A", faces: "both", body: c.body, crown: c.crown.rounds });
     expect(codes(c)).toContain("duplicate");
   });
 
@@ -116,32 +123,54 @@ describe("yarns and the two-colours-per-round rule", () => {
 });
 
 describe("the crown", () => {
-  it("is the same for every hat: yarn A outside, the other colour inside, with the decreases' blank pairs", () => {
-    const c = newBlankChart("t");
-    expect(crownGround(c)).toBe("A");
-    expect(outsideAt(c, 76, 2)).toBe("A");
-    expect(insideAt(c, 76, 2)).toBe("B");
-    expect(crownLayout(76).present[0]).toBe(false);
-    expect(outsideAt(c, 76, 1)).toBeNull();
-    expect(insideAt(c, 76, 1)).toBeNull();
-    expect(outsideAt(c, 95, 14)).toBe("A"); // pairs 12 and 14 of each wedge are the last to go
-    expect(outsideAt(c, 95, 3)).toBeNull(); // pair 3 of the wedge was removed by round 78
+  it("rejects a letter where a pair has been removed", () => {
+    const c = loadLeopard();
+    const removedAt = crownLayout(76).present.indexOf(false); // pair 1
+    c.crown.rounds[0] = setChar(c.crown.rounds[0] as string, removedAt, "A");
+    expect(codes(c)).toContain("crown_layout");
   });
 
-  it("does not depend on the print in the body, even if the top rounds are the other colour", () => {
-    const c = newBlankChart("t");
-    c.body[74] = "B".repeat(112);
-    expect(outsideAt(c, 80, 5)).toBe("A");
+  it("rejects a dot where a pair should still exist", () => {
+    const c = loadLeopard();
+    c.crown.rounds[0] = setChar(c.crown.rounds[0] as string, 40, ".");
+    expect(codes(c)).toContain("crown_layout");
   });
 
-  it("in a striped hat it is the first yarn of the top round's pair", () => {
-    const c = JSON.parse(readFileSync(new URL("../../fixtures/stripes/bands.doubletake.json", import.meta.url), "utf-8"));
-    expect(crownGround(c)).toBe(c.round_pairs[74][0]);
-    expect(insideAt(c, 90, 14)).toBe(c.round_pairs[74][1]);
+  it("rejects a pair that comes back after being removed", () => {
+    const c = loadLeopard();
+    const i = crownLayout(76).present.indexOf(false);
+    c.crown.rounds[10] = setChar(c.crown.rounds[10] as string, i, "A");
+    expect(codes(c)).toContain("crown_layout");
+  });
+
+  it("an older chart without a crown gets a solid one", () => {
+    const c = loadLeopard() as unknown as Record<string, unknown>;
+    delete c.crown;
+    for (const layer of c.duplicate as Record<string, unknown>[]) delete layer.crown;
+    const result = validateChart(c);
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(crownPrint(result.chart)).toBeNull();
+  });
+
+  it("ignores the old patterned and plain crown fields", () => {
+    const c = loadLeopard() as unknown as { crown: Record<string, unknown> };
+    c.crown.variant = "plain";
+    c.crown.plain_from = 80;
+    const result = validateChart(c);
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(Object.keys(result.chart.crown)).toEqual(["rounds"]);
   });
 });
 
 describe("duplicate stitch layers", () => {
+  it("rejects a duplicate cell on a removed pair", () => {
+    const c = loadLeopard();
+    const removed = crownLayout(76).present.indexOf(false);
+    const layer = c.duplicate[0]!;
+    layer.crown[0] = setChar(layer.crown[0] as string, removed, "1");
+    expect(codes(c)).toContain("crown_layout");
+  });
+
   it("rejects a cell in two layers", () => {
     const c: Chart = blankDuplicateChart(2);
     c.duplicate[0]!.body[5] = setChar(c.duplicate[0]!.body[5] as string, 7, "1");

@@ -6,6 +6,8 @@ import {
   REPEATS,
   addDuplicateLayer,
   analyse,
+  crownPrint,
+  fadeCrown,
   floodFill,
   hasDuplicate,
   outsideAt,
@@ -301,7 +303,7 @@ export function DrawScreen({ project }: { project: Project }) {
     <div>
       <h1>Draw your chart</h1>
       <p class="muted small">
-        Each square is one stitch pair, and its colour is the outside. The inside is the other colour. Round 1 is at the bottom, stitch 1 at the right. The line near the top is where the crown starts: the crown is the same for every hat, so it can’t be drawn on.
+        Each square is one stitch pair, and its colour is the outside. The inside is the other colour. Round 1 is at the bottom, stitch 1 at the right. The line near the top is where the crown starts.
       </p>
 
       <label class="field">
@@ -410,6 +412,12 @@ export function DrawScreen({ project }: { project: Project }) {
         />
       </section>
 
+      {crownPrint(chart) && (
+        <p class="card note small" style="margin:0 0 12px">
+          <strong>Colour in the crown.</strong> Changing colour in the crown makes the knitting more complicated, because the rounds are short and the decreases move across the pattern, but it can be done. One colour from round 85 keeps it simple.
+        </p>
+      )}
+
       <details class="card">
         <summary class="summary">Trace over a picture</summary>
         <div class="stack" style="margin-top:12px">
@@ -466,7 +474,7 @@ export function DrawScreen({ project }: { project: Project }) {
       </details>
 
       <details class="card">
-        <summary class="summary">Colours and duplicate stitch</summary>
+        <summary class="summary">Colours, duplicate stitch and crown</summary>
         <div class="stack" style="margin-top:12px">
           {chart.yarns.map((y) => (
             <div key={y.id} class="row" style="flex-wrap:wrap">
@@ -522,6 +530,16 @@ export function DrawScreen({ project }: { project: Project }) {
           <p class="small muted" style="margin:0">
             Duplicate stitch is worked on top of the knitting, after blocking, on both faces. Use it for small details in a third colour (up to {MAX_DUPLICATE_LAYERS}).
           </p>
+
+          <p class="small muted" style="margin:0">
+            The crown is part of the grid, so you can draw all the way to the top. Colour changes in the crown make the knitting more complicated, because the rounds are short and the decreases move, but it can be done.
+          </p>
+          <div class="row" style="flex-wrap:wrap">
+            <button class="btn small" disabled={!crownPrint(chart)} onClick={() => change(() => fadeCrown(work.current))}>
+              Fade the print out of the crown
+            </button>
+            <span class="small muted">Keeps the print next to the body, thins it out, and makes the crown one colour from round 85. Undo brings it back.</span>
+          </div>
         </div>
       </details>
 

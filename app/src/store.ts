@@ -44,7 +44,7 @@ function lsDel(key: string): void {
 }
 
 export const EXAMPLES = [
-  { id: "leopard", title: "Leopard", blurb: "The three-colour example from the pattern: purple and pink, with the spot centres in blue duplicate stitch.", build: () => structuredClone(leopard) },
+  { id: "leopard", title: "Leopard", blurb: "The three-colour example from the pattern. The leopard print fades out over the crown.", build: () => structuredClone(leopard) },
 ] as const;
 
 export async function init(): Promise<void> {

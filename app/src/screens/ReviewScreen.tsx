@@ -1,5 +1,5 @@
 import { useRef, useState } from "preact/hooks";
-import { analyse, crownTable, validateChart, yarnsInRound } from "@doubletake/core";
+import { analyse, crownPrint, crownTable, validateChart, yarnsInRound } from "@doubletake/core";
 import { ChartCanvas } from "../components/ChartCanvas";
 import { allRoundsDone } from "../lib/model";
 import type { Progress, Project } from "../lib/model";
@@ -43,6 +43,7 @@ export function ReviewScreen({ project, progress }: { project: Project; progress
 
   const yarnLabel = (id: string) => chart.yarns.find((y) => y.id === id)?.name ?? id;
   const crownYarns = yarnsInRound(chart, 75).map(yarnLabel);
+  const print = crownPrint(chart);
 
   return (
     <div>
@@ -142,7 +143,9 @@ export function ReviewScreen({ project, progress }: { project: Project; progress
       <section class="card" aria-labelledby="crown">
         <h2 id="crown">Crown</h2>
         <p>
-          The crown is the same for every hat: {crownYarns[0]} on the outside and {crownYarns[1]} on the inside{chart.mode === "stripes" ? ", in the top stripe’s colours" : ""}, with right-leaning decreases in eight wedges.
+          {print
+            ? `The print carries on into the crown as far as round ${print.lastRound}. Above that the crown is ${crownYarns[0]} on the outside and ${crownYarns[1]} on the inside, with right-leaning decreases in eight wedges.`
+            : `The crown is ${crownYarns[0]} on the outside and ${crownYarns[1]} on the inside${chart.mode === "stripes" ? ", in the top stripe’s colours" : ""}, with right-leaning decreases in eight wedges.`}
         </p>
         <details>
           <summary class="summary">The decrease table</summary>

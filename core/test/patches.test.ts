@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { findAllPatches, findPatches } from "../src";
+import { crownLayout, findAllPatches, findPatches } from "../src";
 import type { Cell, DuplicateLayer } from "../src";
 import { blankDuplicateChart, loadLeopard, setChar } from "./helpers";
 
@@ -8,7 +8,8 @@ function layerWith(cells: [number, number][]): DuplicateLayer {
   const chart = blankDuplicateChart(1);
   const layer = chart.duplicate[0] as DuplicateLayer;
   for (const [round, pair] of cells) {
-    layer.body[round - 1] = setChar(layer.body[round - 1] as string, pair - 1, "1");
+    if (round <= 75) layer.body[round - 1] = setChar(layer.body[round - 1] as string, pair - 1, "1");
+    else layer.crown[round - 76] = setChar(layer.crown[round - 76] as string, pair - 1, "1");
   }
   return layer;
 }
@@ -42,6 +43,20 @@ describe("patch rules", () => {
     expect(findPatches(layerWith([[30, 56], [30, 57]]))).toHaveLength(1);
   });
 
+  it("runs from the body into the crown", () => {
+    expect(findPatches(layerWith([[75, 30], [76, 30]]))).toHaveLength(1);
+  });
+
+  it("joins across a pair removed by a decrease", () => {
+    // Round 76 removes pair 1 of each wedge (pairs 1, 15, ...), so pairs 112 and 2 sit either side of pair 1.
+    expect(crownLayout(76).present[0]).toBe(false);
+    expect(findPatches(layerWith([[76, 112], [76, 2]]))).toHaveLength(1);
+  });
+
+  it("does not join cells that only touch through a longer gap", () => {
+    expect(findPatches(layerWith([[76, 112], [76, 4]]))).toHaveLength(2);
+  });
+
   it("numbers patches from the bottom of the hat and sorts their cells", () => {
     const patches = findPatches(layerWith([[40, 5], [10, 50], [10, 51], [10, 49]]));
     expect(patches.map((p) => p.index)).toEqual([0, 1]);
@@ -61,17 +76,16 @@ describe("patch rules", () => {
 });
 
 describe("the leopard", () => {
-  it("has 31 patches and 1,758 duplicate cells under the spec rules", () => {
-    // Confirmed with an independent Python check (tools/convert_leopard.py).
+  it("has 33 patches and 1,842 duplicate cells once the crown print has faded", () => {
     const [layer] = findAllPatches(loadLeopard());
-    expect(layer).toHaveLength(31);
-    expect(layer?.reduce((n, p) => n + p.cells.length, 0)).toBe(1758);
+    expect(layer).toHaveLength(33);
+    expect(layer?.reduce((n, p) => n + p.cells.length, 0)).toBe(1842);
   });
 
-  it("its smallest patch is three squares and its largest is 95", () => {
+  it("its smallest patch is seven cells and its largest is 95", () => {
     const [layer] = findAllPatches(loadLeopard());
     const sizes = (layer ?? []).map((p) => p.cells.length);
-    expect(Math.min(...sizes)).toBe(3);
+    expect(Math.min(...sizes)).toBe(7);
     expect(Math.max(...sizes)).toBe(95);
   });
 

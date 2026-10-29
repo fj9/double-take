@@ -1,8 +1,9 @@
 import { SCHEMA } from "../chart";
 import type { Chart, DuplicateLayer, Yarn } from "../chart";
-import { BODY_ROUNDS, CROWN_ROUNDS, PAIRS } from "../hat";
+import { BODY_ROUNDS, CROWN_ROUNDS, FIRST_CROWN_ROUND, LAST_ROUND, PAIRS, crownLayout } from "../hat";
 import { validateChart } from "../validate";
 import type { Rgb } from "./colour";
+import { FADE_ROUNDS, fadeMask } from "../fade";
 import { components, ring } from "./grid";
 import { planPairs } from "./routes";
 import type { Pair } from "./routes";
@@ -33,8 +34,8 @@ const H = BODY_ROUNDS;
 const hex = (c: Rgb) => `#${c.map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0")).join("")}`;
 
 /**
- * Build a chart file from the colour roles and a choice of how to knit them. A chart is the 75 body rounds:
- * the crown is the same for every hat. Throws a BuildError if the choice can't be made into a valid chart.
+ * Build a chart file from the colour roles and a choice of how to knit them.
+ * Throws a BuildError if the choice can't be made into a valid chart.
  */
 export function buildChart(roles: RoleResult, choice: Choice, opts: BuildOptions = {}): Chart {
   const k = roles.centres.length;
@@ -60,22 +61,39 @@ export function buildChart(roles: RoleResult, choice: Choice, opts: BuildOptions
     pairs = planPairs(roles.grid, choice.lam ?? 25);
   }
   const stripes = pairs !== null;
-  const pairOf = (round: number): Pair => (pairs as Pair[])[round - 1] as Pair;
+  const pairOf = (round: number): Pair => (pairs as Pair[])[Math.min(round, H) - 1] as Pair;
 
-  // ---- the real colour role of every body cell ----
+  const ground = stripes ? pairOf(H)[0] : knit[0];
+
+  // ---- the real colour role of every cell in rounds 1 to 95 (-1 where a decrease has removed the pair) ----
   const real: number[][] = [[]];
   for (let r = 1; r <= H; r++) real[r] = Array.from({ length: W }, (_, i) => body(r, i + 1));
+  // The crown mirrors the top rounds upward and fades: patches are eroded a little more in each round, and what is
+  // left is gone by round 85. A striped hat has a solid crown in the top stripe's colours.
+  const fadeRows = stripes ? 0 : FADE_ROUNDS;
+  const keep = fadeMask(fadeRows, (i, p) => body(H - i, p + 1) !== ground);
+  for (let r = FIRST_CROWN_ROUND; r <= LAST_ROUND; r++) {
+    const { present } = crownLayout(r);
+    const i = r - FIRST_CROWN_ROUND;
+    real[r] = Array.from({ length: W }, (_, p) => {
+      if (!present[p]) return -1;
+      return i < fadeRows && keep[i * W + p] ? body(H - i, p + 1) : ground;
+    });
+  }
 
+  // ---- which cells are embroidered ----
   const isDup = (round: number, p: number): boolean => {
     const role = (real[round] as number[])[p] as number;
-    if (stripes) return !pairOf(round).includes(role);
+    if (role < 0) return false;
+    if (stripes) return round <= H && !pairOf(round).includes(role);
     return dupRoles.includes(role);
   };
 
   // ---- the colour knitted under every cell ----
   const under: number[][] = [[]];
-  for (let r = 1; r <= H; r++) {
+  for (let r = 1; r <= LAST_ROUND; r++) {
     under[r] = (real[r] as number[]).map((role) => {
+      if (role < 0) return -1;
       if (stripes) {
         const pr = pairOf(r);
         if (pr.includes(role)) return role;
@@ -87,12 +105,12 @@ export function buildChart(roles: RoleResult, choice: Choice, opts: BuildOptions
   }
   if (!stripes && dupRoles.length > 0) {
     // Each embroidered patch is knitted in whichever knitted colour mostly surrounds it
-    const stacked = new Uint8Array(H * W);
-    for (let r = 1; r <= H; r++) for (let p = 0; p < W; p++) stacked[(r - 1) * W + p] = isDup(r, p) ? 1 : 0;
-    const { labels, count } = components(stacked, W, H, true);
+    const stacked = new Uint8Array(LAST_ROUND * W);
+    for (let r = 1; r <= LAST_ROUND; r++) for (let p = 0; p < W; p++) stacked[(r - 1) * W + p] = isDup(r, p) ? 1 : 0;
+    const { labels, count } = components(stacked, W, LAST_ROUND, true);
     for (let label = 1; label <= count; label++) {
       const counts = [0, 0];
-      for (const q of ring(labels, label, W, H, true)) {
+      for (const q of ring(labels, label, W, LAST_ROUND, true)) {
         const v = (real[Math.floor(q / W) + 1] as number[])[q % W];
         if (v === knit[0]) counts[0]!++;
         else if (v === knit[1]) counts[1]!++;
@@ -134,12 +152,19 @@ export function buildChart(roles: RoleResult, choice: Choice, opts: BuildOptions
   }
 
   // ---- strings ----
-  const rowString = (round: number) => (under[round] as number[]).map((role) => knitId.get(role) as string).join("");
-  const layers: DuplicateLayer[] = layerRoles.map((role) => ({
-    yarn: dupId.get(role) as string,
-    faces: stripes ? "outside" : ((choice as { faces?: "both" | "outside" }).faces ?? "both"),
-    body: Array.from({ length: H }, (_, i) => Array.from({ length: W }, (_, p) => ((real[i + 1] as number[])[p] === role && isDup(i + 1, p) ? "1" : "0")).join("")),
-  }));
+  const rowString = (round: number) => (under[round] as number[]).map((role) => (role < 0 ? "." : (knitId.get(role) as string))).join("");
+  const layers: DuplicateLayer[] = layerRoles.map((role) => {
+    const cell = (round: number, p: number) => ((real[round] as number[])[p] === role && isDup(round, p) ? "1" : "0");
+    return {
+      yarn: dupId.get(role) as string,
+      faces: stripes ? "outside" : (choice as { faces?: "both" | "outside" }).faces ?? "both",
+      body: Array.from({ length: H }, (_, i) => Array.from({ length: W }, (_, p) => cell(i + 1, p)).join("")),
+      crown: Array.from({ length: CROWN_ROUNDS }, (_, i) => {
+        const round = FIRST_CROWN_ROUND + i;
+        return Array.from({ length: W }, (_, p) => ((real[round] as number[])[p] === -1 ? "." : cell(round, p))).join("");
+      }),
+    };
+  });
 
   const chart: Chart = {
     schema: SCHEMA,
@@ -152,6 +177,7 @@ export function buildChart(roles: RoleResult, choice: Choice, opts: BuildOptions
     body: Array.from({ length: H }, (_, i) => rowString(i + 1)),
     round_pairs: stripes ? (pairs as Pair[]).map(([a, b]) => [LETTERS[a] as string, LETTERS[b] as string]) : null,
     duplicate: layers,
+    crown: { rounds: Array.from({ length: CROWN_ROUNDS }, (_, i) => rowString(FIRST_CROWN_ROUND + i)) },
     source: { kind: "image", settings: { colours: k, seam: roles.seam, choice } },
   };
   const result = validateChart(chart);

@@ -1,7 +1,7 @@
-"""One-off converter: the old skill's leopard CSVs -> doubletake-chart/1 (the 75 body rounds; the crown is the same for every hat).
+"""One-off converter: the old skill's leopard CSVs -> doubletake-chart/1 (the crown fades out).
 
 Also checks the CSVs against the rules in doubletake-app-spec.md (sections 5 and 10).
-Run from the repo root: python3 tools/convert_leopard.py
+Run from the repo root: python3 tools/convert_leopard.py, then npx tsx tools/fade_leopard.ts
 """
 import csv, json, sys
 from collections import Counter
@@ -110,7 +110,8 @@ chart = {
     ],
     "body": body,
     "round_pairs": None,
-    "duplicate": [{"yarn": "C", "faces": "both", "body": body_dup}],
+    "duplicate": [{"yarn": "C", "faces": "both", "body": body_dup, "crown": crown_dup}],
+    "crown": {"variant": "patterned", "plain_from": None, "rounds": crown},
     "source": {"kind": "example", "note": "leopard print, converted from the original skill CSVs"},
 }
 # yardage deliberately omitted: TODO until sample knitting.
@@ -128,6 +129,9 @@ print("two-colour rule (A/B only):", all(set(s) <= {"A", "B"} for s in body))
 cells = set()
 for r in range(1, 76):
     for i, ch in enumerate(body_dup[r - 1]):
+        if ch == "1": cells.add((r, i))
+for r in range(76, 96):
+    for i, ch in enumerate(crown_dup[r - 76]):
         if ch == "1": cells.add((r, i))
 
 
@@ -150,10 +154,12 @@ def count(cells, diag, wrap, cross_crown=True):
     return n, sizes
 
 n_all = len(cells)
-print(f"duplicate cells: {n_all} (all in the body; the old patterned crown had {sum(r.count(chr(49)) for r in crown_dup)} more, now dropped); share of the body {n_all / (PAIRS * BODY):.1%}")
-for label, kw in [("spec rules: diagonals and wrap", dict(diag=True, wrap=True)),
+body_n = sum(1 for r, _ in cells if r <= 75)
+print(f"duplicate cells: {n_all} (body {body_n}, crown {n_all - body_n}); body share {body_n / (PAIRS * BODY):.1%}")
+for label, kw in [("spec rules: diagonals, wrap, body+crown joined", dict(diag=True, wrap=True)),
                   ("side-by-side only, wrap", dict(diag=False, wrap=True)),
-                  ("diagonals, no wrap", dict(diag=True, wrap=False))]:
+                  ("diagonals, no wrap", dict(diag=True, wrap=False)),
+                  ("diagonals, wrap, body and crown separate", dict(diag=True, wrap=True, cross_crown=False))]:
     n, sizes = count(cells, **kw)
     print(f"patches [{label}]: {n}  (smallest {min(sizes)}, largest {max(sizes)})")
 

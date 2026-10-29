@@ -28,6 +28,18 @@ test("draw, fill and undo change the chart and the checks", async ({ page }) => 
   await expect(page.getByText("Colour B: 100% of the outside")).toBeVisible();
 });
 
+test("you can draw in the crown, are warned, and can fade it out", async ({ page }) => {
+  await startDrawing(page);
+  await expect(page.getByText("Colour in the crown.")).toHaveCount(0);
+  // Some of these squares are pairs a decrease has taken away, so draw along a stretch of the round
+  for (let col = 0; col < 30; col++) await clickCell(page, col, 12);
+  await expect(page.getByText("Colour in the crown.")).toBeVisible();
+  await expect(page.getByText(/more complicated/).first()).toBeVisible();
+  await page.getByText("Colours, duplicate stitch and crown").click();
+  await page.getByRole("button", { name: "Fade the print out of the crown" }).click();
+  await expect(page.getByText("Colour in the crown.")).toHaveCount(0);
+});
+
 test("the drawing is saved and the hat reopens in the editor", async ({ page }) => {
   await startDrawing(page);
   await page.getByRole("button", { name: "Fill", exact: true }).click();
@@ -44,7 +56,7 @@ test("the drawing is saved and the hat reopens in the editor", async ({ page }) 
 
 test("a duplicate stitch colour can be added and drawn", async ({ page }) => {
   await startDrawing(page);
-  await page.getByText("Colours and duplicate stitch").click();
+  await page.getByText("Colours, duplicate stitch and crown").click();
   await page.getByRole("button", { name: "Add a duplicate stitch colour" }).click();
   await expect(page.getByRole("button", { name: "Duplicate: Duplicate colour" })).toHaveAttribute("aria-pressed", "true");
   await clickCell(page, 30, 40);
@@ -73,8 +85,8 @@ test("the leopard review warns about the amount of duplicate stitch", async ({ p
   await page.getByRole("link", { name: "More" }).click();
   await page.getByRole("link", { name: "Review the chart" }).click();
   await expect(page.getByRole("heading", { name: "Review your chart" })).toBeVisible();
-  await expect(page.getByText(/Duplicate stitch covers 21% of the hat/)).toBeVisible();
-  await expect(page.getByText(/31 patches, 1758 squares/)).toBeVisible();
+  await expect(page.getByText(/Duplicate stitch covers 19% of the hat/)).toBeVisible();
+  await expect(page.getByText(/33 patches, 1842 squares/)).toBeVisible();
   // Not started yet, so it can be edited, or copied
   await page.getByRole("button", { name: "Make an editable copy" }).click();
   await expect(page.getByRole("heading", { name: "Draw your chart" })).toBeVisible();

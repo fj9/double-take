@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { analyse, applyOrientation, buildChart, compareRoutes, extractPalette, FABRIC_ASPECT, makeRoles, outsideAt, planPairs, shrinkPixels, validateChart } from "../src";
+import { analyse, applyOrientation, buildChart, compareRoutes, crownPrint, extractPalette, FABRIC_ASPECT, makeRoles, outsideAt, planPairs, shrinkPixels, validateChart } from "../src";
 import type { Pixels } from "../src";
 
 type Rgb = [number, number, number];
@@ -157,14 +157,18 @@ describe("charts", () => {
     expect(swapped.yarns[0]?.name).toBe("colour 2");
   });
 
-  it("the crown is not part of the chart: it is the same for every hat", () => {
-    const chart = buildChart(makeRoles(spots(RED, CREAM), { colours: 2 }), { kind: "two" });
-    expect("crown" in chart).toBe(false);
-    expect(chart.duplicate).toEqual([]);
-    for (let r = 76; r <= 95; r++) for (let p = 1; p <= 112; p++) expect([null, "A"]).toContain(outsideAt(chart, r, p));
+  it("the print fades out over the crown and is one colour from round 85", () => {
+    const roles = makeRoles(spots(RED, CREAM), { colours: 2 });
+    const chart = buildChart(roles, { kind: "two" });
+    expect(validateChart(chart).ok).toBe(true);
+    expect(crownPrint(chart)?.lastRound ?? 0).toBeLessThan(85);
+    for (let r = 85; r <= 95; r++) for (let p = 1; p <= 112; p++) expect([null, "A"]).toContain(outsideAt(chart, r, p));
+    // the fade only ever removes print, so the rounds next to the body are as printed as the body's top rounds
+    const printedIn = (r: number) => Array.from({ length: 112 }, (_, p) => outsideAt(chart, r, p + 1)).filter((v) => v !== null && v !== "A").length;
+    expect(printedIn(76)).toBeGreaterThanOrEqual(printedIn(82));
   });
 
-  it("a duplicate stitch chart has no duplicate stitch in the crown", () => {
+  it("a duplicate stitch chart has no duplicate stitch from round 85", () => {
     const img = image(640, 316, (x, y) => {
       const cx = (x % 80) - 40;
       const cy = (y % 80) - 40;
@@ -173,8 +177,7 @@ describe("charts", () => {
     });
     const chart = buildChart(makeRoles(img, { colours: 3 }), { kind: "duplicate" });
     expect(validateChart(chart).ok).toBe(true);
-    expect(chart.duplicate[0]?.body).toHaveLength(75);
-    expect(chart.duplicate[0]).not.toHaveProperty("crown");
+    for (const layer of chart.duplicate) for (let i = 85 - 76; i < 20; i++) expect(layer.crown[i]).not.toContain("1");
   });
 
   it("refuses a two-colour chart from three colours", () => {
@@ -207,7 +210,7 @@ describe("more than three colours", () => {
     expect(chart.mode).toBe("stripes");
     expect(chart.round_pairs).toHaveLength(75);
     expect(chart.yarns.every((y) => y.role === "stripe")).toBe(true);
-    expect(outsideAt(chart, 80, 5)).toBe(chart.round_pairs![74]![0]);
+    expect(crownPrint(chart)).toBeNull();
   });
 
   it("small scattered accents suit duplicate stitch (route A)", () => {
