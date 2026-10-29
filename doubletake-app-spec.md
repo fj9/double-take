@@ -336,11 +336,10 @@ Changes to the skill for Doubletake:
 
 ## 13. Export and print
 
-- Chart file (`.doubletake.json`) for backup and sharing.
-- Chart pages as an A4 PDF, in house style, that match the chart pages in the pattern.
-- PNG and SVG of the outside, the inside and each duplicate stitch layer.
-- CSVs in knitting order (round 1 first, pair 1 first): the chart, each duplicate stitch layer (with the duplicate colour per cell), the crown, the stripe sequence (round, yarn A, yarn B) and a stats file. Copies for the app have no footer row; shared copies carry the copyright and Ravelry footer.
-- Shopping list as text.
+On the More tab of every hat, under **Print and export**:
+- **Chart pages (PDF):** A4 pages in house style, one chart to a page, like the pattern: how to read the charts (with the yarn key, the stripe table for a striped chart, and the yardage note), then body Chart A and B, duplicate stitch A and B for each duplicate colour, then the crown A and B (with the pairs left at the end of each round, and the decrease key), then the crown duplicate stitch if any. Every cell carries its yarn letter as well as its colour, and every page has the Freya’d Knot footer with Ravelry, Instagram and Ko-fi links, and the personal use line for the leopard example. The page is made with the browser’s print, so the knitter chooses “Save as PDF”; a test checks that the print gives one A4 page per sheet.
+- **Download everything (zip):** the chart file; PNG and SVG pictures of the whole hat, outside and inside; `chart.csv` (round 1 first, pair 1 first, blank where a decrease has removed a pair, a slash on each decrease); one CSV for each duplicate stitch layer; `stripes.csv` for a striped chart; `yarns.csv`; and `shopping-list.txt`. Files are compressed where the browser can.
+- **Save the chart file** and **Back up this hat** (as before).
 
 ## 14. Accessibility and quality
 

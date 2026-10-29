@@ -1,6 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
 import type { Project, Progress, Backup } from "../lib/model";
-import { download, slug } from "../lib/files";
+import { download, downloadBytes, slug } from "../lib/files";
+import { exportAll } from "../lib/exports";
 import {
   highContrast,
   keepAwake,
@@ -92,6 +93,32 @@ export function MoreScreen({ project, progress }: { project: Project; progress: 
           </button>
         </div>
         <p class="small muted">A backup has your chart and where you are. The chart file has the chart only, so you can share it.</p>
+      </section>
+
+      <section class="card" aria-labelledby="export">
+        <h2 id="export">Print and export</h2>
+        <div class="row" style="flex-wrap:wrap">
+          <a class="btn" href={`#/p/${project.id}/print`}>
+            Chart pages (PDF)
+          </a>
+          <button
+            class="btn"
+            onClick={async () => {
+              try {
+                const { filename, data } = await exportAll(project.chart, project.name);
+                downloadBytes(filename, data, "application/zip");
+                toast.value = { message: "Saved. The zip has pictures, vector pictures, spreadsheets and a shopping list." };
+              } catch (e) {
+                toast.value = { message: e instanceof Error ? e.message : "Couldn’t make the zip." };
+              }
+            }}
+          >
+            Download everything (zip)
+          </button>
+        </div>
+        <p class="small muted" style="margin:8px 0 0">
+          The chart pages are A4, one chart to a page, like the pattern. The zip has the chart file, PNG and SVG pictures of the outside and inside, spreadsheets (CSV) in knitting order, and a shopping list.
+        </p>
       </section>
 
       <section class="card" aria-labelledby="remove">

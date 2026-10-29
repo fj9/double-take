@@ -5,6 +5,7 @@ import { DrawScreen } from "./screens/DrawScreen";
 import { DuplicateScreen } from "./screens/DuplicateScreen";
 import { HomeScreen } from "./screens/HomeScreen";
 import { MakeScreen } from "./screens/MakeScreen";
+import { PrintScreen } from "./screens/PrintScreen";
 import { MoreScreen } from "./screens/MoreScreen";
 import { ReviewScreen } from "./screens/ReviewScreen";
 import { RoundScreen } from "./screens/RoundScreen";
@@ -88,9 +89,9 @@ function Toast() {
   );
 }
 
-type Tab = "round" | "steps" | "duplicate" | "more" | "draw" | "review";
-const KNIT_TABS: Tab[] = ["round", "steps", "duplicate", "more", "review"];
-const DESIGN_TABS: Tab[] = ["draw", "review", "more"];
+type Tab = "round" | "steps" | "duplicate" | "more" | "draw" | "review" | "print";
+const KNIT_TABS: Tab[] = ["round", "steps", "duplicate", "more", "review", "print"];
+const DESIGN_TABS: Tab[] = ["draw", "review", "more", "print"];
 
 export function App() {
   const route = useHash();
@@ -129,6 +130,9 @@ export function App() {
     } else if (tab === "draw") {
       body = <DrawScreen project={project} />;
       tool = true;
+    } else if (tab === "print") {
+      body = <PrintScreen project={project} />;
+      tool = true;
     } else if (tab === "review") body = <ReviewScreen project={project} progress={progress} />;
     else if (tab === "steps") body = <StepsScreen chart={project.chart} progress={progress} />;
     else if (tab === "duplicate") body = <DuplicateScreen chart={project.chart} progress={progress} />;
@@ -141,7 +145,7 @@ export function App() {
     body = ready.value ? <HomeScreen /> : <p>Loading…</p>;
   }
 
-  const showTabs = inProject && !!project;
+  const showTabs = inProject && !!project && tab !== "print";
   const tabLink = (id: Tab, label: string, d: string) => (
     <a href={`#/p/${projectId}/${id}`} aria-current={tab === id ? "page" : undefined}>
       <Icon d={d} />
