@@ -39,7 +39,7 @@ async function screens(page: Page, scheme: "light" | "dark") {
   await page.getByRole("button", { name: "Use this chart" }).first().click();
   await expect(page.getByText("Round 1 of 95")).toBeVisible();
   await check(page, `${scheme}: round`);
-  for (const [link, heading] of [["Steps", "Steps"], ["Stitch", "Duplicate stitch"], ["More", "More"]] as const) {
+  for (const [link, heading] of [["Steps", "Steps"], ["Stitch", "Duplicate stitch"], ["Hat", "Hat"]] as const) {
     await page.getByRole("link", { name: link, exact: true }).click();
     await expect(page.getByRole("heading", { name: heading, exact: true })).toBeVisible();
     await check(page, `${scheme}: ${link}`);

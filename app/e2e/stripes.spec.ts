@@ -35,7 +35,7 @@ test("the cast on step uses the colours of round 1", async ({ page }) => {
 
 test("the stripes appear on the printed pages and in the zip's stripes sheet", async ({ page }) => {
   await importStripes(page);
-  await page.getByRole("link", { name: "More" }).click();
+  await page.getByRole("link", { name: "Hat" }).click();
   await page.getByRole("link", { name: "Chart pages (PDF)" }).click();
   await expect(page.getByRole("heading", { name: "stripes" })).toBeVisible();
   await expect(page.locator(".ptable tbody tr")).toHaveCount(3);
@@ -80,9 +80,9 @@ test("a plan is not part of the chart file, or a shared chart", async ({ page })
   await page.getByRole("button", { name: "Use this chart" }).first().click();
   await page.getByRole("link", { name: "Steps" }).click();
   await page.getByRole("button", { name: "Make a plan" }).click();
-  await page.getByRole("link", { name: "More" }).click();
+  await page.getByRole("link", { name: "Hat" }).click();
   const download = page.waitForEvent("download");
-  await page.getByRole("button", { name: "Save the chart file" }).click();
+  await page.getByRole("button", { name: "Share the chart (no progress)" }).click();
   const file = await (await download).path();
   const text = (await import("node:fs")).readFileSync(file, "utf-8");
   expect(text).not.toContain("pace");

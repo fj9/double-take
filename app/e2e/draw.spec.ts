@@ -82,7 +82,7 @@ test("the leopard review warns about the amount of duplicate stitch", async ({ p
   await page.goto("/");
   await page.getByRole("button", { name: "Use this chart" }).first().click();
   await expect(page.getByText("Round 1 of 95")).toBeVisible();
-  await page.getByRole("link", { name: "More" }).click();
+  await page.getByRole("link", { name: "Hat" }).click();
   await page.getByRole("link", { name: "Review the chart" }).click();
   await expect(page.getByRole("heading", { name: "Review your chart" })).toBeVisible();
   await expect(page.getByText(/Duplicate stitch covers 19% of the hat/)).toBeVisible();
@@ -96,7 +96,7 @@ test("a chart that is already being knitted can’t be edited in place", async (
   await page.goto("/");
   await page.getByRole("button", { name: "Use this chart" }).first().click();
   await page.getByRole("button", { name: /done, next$/ }).click();
-  await page.getByRole("link", { name: "More" }).click();
+  await page.getByRole("link", { name: "Hat" }).click();
   await page.getByRole("link", { name: "Review the chart" }).click();
   await expect(page.getByText(/its chart is locked/)).toBeVisible();
   await expect(page.getByRole("button", { name: "Edit this chart" })).toHaveCount(0);

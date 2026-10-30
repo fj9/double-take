@@ -87,9 +87,9 @@ test("a backup restores a hat with its progress", async ({ page }) => {
   await startLeopard(page);
   await nextRound(page);
   await nextRound(page);
-  await page.getByRole("link", { name: "More" }).click();
+  await page.getByRole("link", { name: "Hat" }).click();
   const download = page.waitForEvent("download");
-  await page.getByRole("button", { name: "Back up this hat" }).click();
+  await page.getByRole("button", { name: "Back up my progress" }).click();
   const file = await (await download).path();
   await page.goto("/#/");
   await page.locator("#import-file").setInputFiles(file);
@@ -174,8 +174,8 @@ test("nothing is sent to any other site", async ({ page }) => {
   });
   await startLeopard(page);
   await page.getByRole("link", { name: "Stitch" }).click();
-  await page.getByRole("link", { name: "More" }).click();
-  await page.locator("#main").getByRole("link", { name: "About Doubletake" }).click();
+  await page.getByRole("link", { name: "Settings" }).click();
+  await page.locator("#main").getByRole("link", { name: /^About Doubletake/ }).click();
   await expect(page.getByRole("heading", { name: "About Doubletake" })).toBeVisible();
   expect(external).toEqual([]);
 });
@@ -186,4 +186,38 @@ test("stays usable at 200% text size in dark mode", async ({ page }) => {
   await page.evaluate(() => (document.documentElement.style.fontSize = "200%"));
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
   expect(overflow).toBe(false);
+});
+
+test("the Hat tab renames the hat and holds only things about it", async ({ page }) => {
+  await startLeopard(page);
+  await page.getByRole("link", { name: "Hat", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Hat", exact: true })).toBeVisible();
+  const name = page.getByLabel("Hat name");
+  await name.fill("Spotty beanie");
+  await name.blur();
+  await page.goto("/#/");
+  await expect(page.getByRole("heading", { name: "Spotty beanie" })).toBeVisible();
+  await page.getByRole("link", { name: "Settings" }).click();
+  await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Back up all hats" })).toBeEnabled();
+});
+
+test("Home offers to continue the hat you were knitting", async ({ page }) => {
+  await startLeopard(page);
+  await nextRound(page);
+  await page.goto("/#/");
+  const card = page.getByRole("region", { name: "Continue" });
+  await expect(card).toContainText("Round 2/95");
+  await card.getByRole("button", { name: /^Continue/ }).click();
+  await expect(page.getByText("Round 2 of 95").first()).toBeVisible();
+});
+
+test("the side rail shows the hat and a way back to the round", async ({ page }) => {
+  await page.setViewportSize({ width: 1100, height: 800 });
+  await startLeopard(page);
+  await page.getByRole("link", { name: "Steps" }).click();
+  const rail = page.getByRole("navigation", { name: "Sections" });
+  await expect(rail).toContainText("Round 1/95");
+  await rail.getByRole("link", { name: "Back to round" }).click();
+  await expect(page.locator("#main").getByText("Round 1 of 95")).toBeVisible();
 });

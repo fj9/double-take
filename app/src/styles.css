@@ -326,3 +326,25 @@ label.field { display: block; margin-bottom: 12px; }
 .sample canvas { margin-bottom: 4px; }
 .sample strong { font: 700 15px var(--font-display); color: var(--ink); }
 .sample:hover { border-color: var(--ink); }
+
+/* Settings gear, hat name, and the extra block in the side rail */
+.hat-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
+.gear { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin: -8px -8px -8px 0; color: var(--muted); }
+.gear[aria-current="page"] { color: var(--ink); }
+.gear svg { width: 24px; height: 24px; }
+.rail-info { display: none; }
+@media (min-width: 768px) and (min-height: 501px) {
+  .rail-info { display: flex; flex-direction: column; gap: 6px; margin-top: auto; padding: 12px 10px; border-top: 1px solid var(--line); font-size: 13px; overflow-wrap: anywhere; }
+  .rail-info progress { width: 100%; }
+}
+.card.continue { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+.continue-pic { width: 220px; max-width: 100%; }
+
+/* One colour in the list: swatch, name, share, merge. The columns line up from row to row */
+.colour-row { display: grid; grid-template-columns: auto minmax(0, 1fr) 7.5em 10em; align-items: center; gap: 8px 12px; }
+.colour-row .share { text-align: right; white-space: nowrap; }
+.colour-row .select { width: 100%; }
+@media (max-width: 639px) {
+  .colour-row { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .colour-row .select { grid-column: 1 / -1; }
+}

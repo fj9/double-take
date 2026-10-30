@@ -186,6 +186,9 @@ test("colours can be merged, and the merge undone", async ({ page }) => {
   await expect(names).toHaveCount(6, { timeout: 20_000 });
   await page.getByLabel("Merge colour 5 into another colour").selectOption({ label: "colour 3" });
   await expect(names).toHaveCount(5);
+  const chips = await page.locator("input.colour-input").evaluateAll((els) => els.map((e) => (e as HTMLInputElement).value));
+  expect(new Set(chips).size).toBeGreaterThan(1);
+  expect(chips).not.toContain("#000000");
   await page.getByLabel("Merge colour 4 into another colour").selectOption({ label: "colour 3" });
   await expect(names).toHaveCount(4);
   await expect(page.getByText("2 merges made")).toBeVisible();

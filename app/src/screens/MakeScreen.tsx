@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { analyse, applyTidy, buildChart, mergeRoles, BuildError, compareRoutes, rgbToLab, tilePixels, TILE_ACROSS } from "@doubletake/core";
 import type { Chart, Choice, PaletteCheck, Pixels, RoleResult, RoleTidy } from "@doubletake/core";
-import { ChartCanvas } from "../components/ChartCanvas";
+import { Flat } from "../components/Flat";
 import { DuplicateAmount, smallest } from "../components/DuplicateAmount";
 import type { DupRow } from "../components/DuplicateAmount";
 import { FrameEditor } from "../components/FrameEditor";
@@ -10,11 +10,8 @@ import { DEFAULT_CROP, cropBox } from "../lib/crop";
 import type { CropSettings } from "../lib/crop";
 import { decodePicture } from "../lib/decode";
 import { Generator } from "../lib/generator";
-import type { ChartView } from "../lib/render";
 import { SAMPLES, drawSample, sampleSource, sampleUrl } from "../lib/samples";
 import type { Sample } from "../lib/samples";
-import { isDark } from "../lib/settings";
-import { useWidth } from "../lib/useWidth";
 import { createProject } from "../store";
 
 const hexOf = (c: number[]) => `#${c.map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0")).join("")}`;
@@ -29,22 +26,6 @@ function Swatch({ hex, name, share }: { hex: string; name?: string; share?: numb
         {share !== undefined ? <span class="muted">{pct(share)}</span> : <span class="muted">{hex}</span>}
       </span>
     </span>
-  );
-}
-
-/** A chart laid flat, sized to fit its box. `picture` shows it as it will look knitted; `bodyOnly` leaves out the crown. */
-function Flat({ chart, inside, wrap, label, picture, bodyOnly }: { chart: Chart; inside?: boolean; wrap?: boolean; label: string; picture?: boolean; bodyOnly?: boolean }) {
-  const box = useRef<HTMLDivElement>(null);
-  const width = useWidth(box);
-  const once = Array.from({ length: 112 }, (_, i) => (inside ? i + 1 : 112 - i));
-  const cols = wrap ? [...once, ...once] : once;
-  const cellW = Math.max(1.2, (width - 40) / cols.length);
-  const last = bodyOnly ? 75 : 95;
-  const view: ChartView = { chart, cols, rows: Array.from({ length: last }, (_, i) => last - i), cellW, showDuplicate: true, inside: !!inside, highContrast: false, dark: isDark(), picture };
-  return (
-    <div ref={box} class="chart-box" style="margin:0;min-width:0;max-width:100%">
-      <ChartCanvas view={view} label={label} />
-    </div>
   );
 }
 
@@ -226,8 +207,8 @@ export function MakeScreen() {
     if (!roles) return;
     const { order } = mergeRoles(roles, from, into);
     // Names and colours chosen follow their colour to its new number
-    setNames(order.map((old) => names[old] ?? ""));
-    setHexes(order.map((old) => hexes[old] ?? ""));
+    setNames(order.map((old) => names[old] as string));
+    setHexes(order.map((old) => hexes[old] as string));
     setMerges([...merges, { from, into }]);
     setDupRole(null);
     setSwap(false);
@@ -541,14 +522,13 @@ export function MakeScreen() {
               {roles ? (
                 <div class="stack" style="margin-top:12px">
                   {roles.centres.map((c, r) => (
-                    <div key={r} class="row" style="flex-wrap:wrap">
-                      <input type="color" class="colour-input" aria-label={`Colour for ${yarnName(r)}`} value={hexes[r] ?? hexOf(c)} onInput={(e) => setHex(r, (e.currentTarget as HTMLInputElement).value)} />
-                      <input class="input" style="flex:1;min-width:140px" aria-label={`Name of colour ${r + 1}`} value={names[r] ?? ""} placeholder={`colour ${r + 1}`} onInput={(e) => setName(r, (e.currentTarget as HTMLInputElement).value)} />
-                      <span class="small muted num">{pct(roles.shares[r] as number)} of the hat</span>
+                    <div key={r} class="colour-row">
+                      <input type="color" class="colour-input" aria-label={`Colour for ${yarnName(r)}`} value={hexes[r] || hexOf(c)} onInput={(e) => setHex(r, (e.currentTarget as HTMLInputElement).value)} />
+                      <input class="input" aria-label={`Name of colour ${r + 1}`} value={names[r] ?? ""} placeholder={`colour ${r + 1}`} onInput={(e) => setName(r, (e.currentTarget as HTMLInputElement).value)} />
+                      <span class="small muted num share">{pct(roles.shares[r] as number)} of the hat</span>
                       {k > 2 && (
                         <select
                           class="select"
-                          style="width:auto"
                           aria-label={`Merge ${yarnName(r)} into another colour`}
                           value=""
                           onChange={(e) => {
