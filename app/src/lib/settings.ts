@@ -22,7 +22,15 @@ function save(key: string, value: unknown): void {
 export const theme = signal<Theme>(load("theme", "system"));
 export const highContrast = signal<boolean>(load("highContrast", false));
 export const keepAwake = signal<boolean>(load("keepAwake", true));
-export const showDuplicate = signal<boolean>(load("showDuplicate", true));
+/** Duplicate stitch dots on the round view. Off by default: the embroidery is done after blocking. */
+export const showDuplicate = signal<boolean>(load("showDuplicate", false));
+export type Marks = "none" | "letters";
+/** Whether each cell shows its yarn letter. Decrease marks are always drawn, whatever this says. */
+export const marks = signal<Marks>(load("marks", "letters"));
+/** Whether the round view shows the colour blocks and the Next block button. */
+export const colourBlocks = signal<boolean>(load("colourBlocks", true));
+/** The colour-blocks explanation opens by itself until it has been seen once. */
+export const blocksHelpSeen = signal<boolean>(load("blocksHelpSeen", false));
 /** Cell width in CSS pixels in the round view. */
 export const zoom = signal<number>(load("zoom", 14));
 
@@ -48,6 +56,18 @@ export function setKeepAwake(value: boolean): void {
 export function setShowDuplicate(value: boolean): void {
   showDuplicate.value = value;
   save("showDuplicate", value);
+}
+export function setMarks(value: Marks): void {
+  marks.value = value;
+  save("marks", value);
+}
+export function setColourBlocks(value: boolean): void {
+  colourBlocks.value = value;
+  save("colourBlocks", value);
+}
+export function setBlocksHelpSeen(): void {
+  blocksHelpSeen.value = true;
+  save("blocksHelpSeen", true);
 }
 export function setZoom(value: number): void {
   const nearest = ZOOM_LEVELS.reduce((a, b) => (Math.abs(b - value) < Math.abs(a - value) ? b : a));

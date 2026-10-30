@@ -116,3 +116,60 @@ export function rankByShare(g: Grid, k: number): { grid: Grid; order: number[] }
   for (let i = 0; i < g.data.length; i++) out.data[i] = remap[g.data[i] as number] as number;
   return { grid: out, order };
 }
+
+/** What to do with one colour's patches: remove those smaller than `min` squares, or (`leave`) remove the colour altogether. */
+export interface RoleTidy {
+  min: number;
+  leave?: boolean;
+}
+
+/** What a tidy left and took away for one colour. */
+export interface TidyStat {
+  keptPatches: number;
+  keptCells: number;
+  /** Size of the smallest patch kept, or null if none is left. */
+  smallest: number | null;
+  removedPatches: number;
+  removedCells: number;
+}
+
+/**
+ * Tidy the patches of chosen colours, each with its own setting. A removed patch takes the colour that most
+ * surrounds it, ignoring the other colours being tidied (they are the ones that may be removed), so detail in the
+ * colours that are not being tidied is never touched. `settings` is indexed by colour role; a role with no entry is left alone.
+ */
+export function tidyRoles(g: Grid, k: number, settings: (RoleTidy | undefined)[], wrapX = true): { grid: Grid; stats: (TidyStat | undefined)[] } {
+  const out = makeGrid(g.width, g.height);
+  out.data.set(g.data);
+  const tidied = (r: number) => settings[r] !== undefined;
+  const fallback = [...Array(k).keys()].find((r) => !tidied(r)) ?? 0;
+  const stats: (TidyStat | undefined)[] = Array.from({ length: k }, () => undefined);
+  for (let r = 0; r < k; r++) {
+    const rule = settings[r];
+    if (!rule) continue;
+    const mask = new Uint8Array(g.data.length);
+    for (let i = 0; i < g.data.length; i++) mask[i] = g.data[i] === r ? 1 : 0;
+    const { labels, count } = components(mask, g.width, g.height, wrapX);
+    const size = new Int32Array(count + 1);
+    for (const l of labels) size[l] = (size[l] as number) + 1;
+    const stat: TidyStat = { keptPatches: 0, keptCells: 0, smallest: null, removedPatches: 0, removedCells: 0 };
+    for (let label = 1; label <= count; label++) {
+      const n = size[label] as number;
+      if (!rule.leave && n >= rule.min) {
+        stat.keptPatches++;
+        stat.keptCells += n;
+        stat.smallest = stat.smallest === null ? n : Math.min(stat.smallest, n);
+        continue;
+      }
+      stat.removedPatches++;
+      stat.removedCells += n;
+      const around = ring(labels, label, g.width, g.height, wrapX)
+        .map((q) => g.data[q] as number)
+        .filter((v) => !tidied(v));
+      const into = mostCommon(around, k, fallback);
+      for (let p = 0; p < labels.length; p++) if (labels[p] === label) out.data[p] = into;
+    }
+    stats[r] = stat;
+  }
+  return { grid: out, stats };
+}

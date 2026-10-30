@@ -63,7 +63,7 @@ function Toast() {
   const update = pendingUpdate.value;
   useEffect(() => {
     if (!t || update) return;
-    const id = setTimeout(() => (toast.value = null), 4000);
+    const id = setTimeout(() => (toast.value = null), t.duration ?? 4000);
     return () => clearTimeout(id);
   }, [t, update]);
   if (update) {
@@ -78,10 +78,17 @@ function Toast() {
   }
   if (!t) return null;
   return (
-    <div class="toast" role="status">
+    <div class={`toast ${t.lift ? "lift" : ""}`} role="status">
       <span>{t.message}</span>
       {t.actionLabel && (
-        <button class="btn" onClick={t.onAction}>
+        <button
+          class="btn"
+          aria-label={t.actionName}
+          onClick={() => {
+            t.onAction?.();
+            toast.value = null;
+          }}
+        >
           {t.actionLabel}
         </button>
       )}
@@ -159,7 +166,7 @@ export function App() {
         <Wordmark />
         {project && <span class="small muted" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{project.name}</span>}
       </header>
-      <main class={`page ${showTabs ? "" : "no-tabs"}`} id="main">
+      <main class={`page ${showTabs ? "" : "no-tabs"} ${(tab === "round" || route === "make") && body ? "wide" : ""}`} id="main">
         {body}
         {!tool && <Footer />}
       </main>

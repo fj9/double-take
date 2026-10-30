@@ -112,7 +112,7 @@ test("everything can be reached and used with the keyboard", async ({ page }) =>
   await page.getByRole("button", { name: /done, next$/ }).focus();
   await page.keyboard.press("Enter");
   await expect(page.getByText("Round 2 of 95")).toBeVisible();
-  await page.getByRole("button", { name: "Undo" }).focus();
+  await page.getByRole("button", { name: "Undo", exact: true }).focus();
   await page.keyboard.press("Space");
   await expect(page.getByText("Round 1 of 95")).toBeVisible();
 });

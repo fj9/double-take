@@ -22,6 +22,8 @@ export interface Note {
   title: string;
   body: string;
   help?: keyof typeof HELP;
+  /** A short warning that stays visible even when the note is collapsed. */
+  caveat?: string;
 }
 
 const yarnName = (chart: Chart, id: string) => chart.yarns.find((y) => y.id === id)?.name ?? id;
@@ -50,7 +52,8 @@ export function stripeNotes(chart: Chart, round: number): Note[] {
     notes.push({
       id: "stripe-jogless",
       title: "Jogless step (second round of the stripe)",
-      body: "Before you work the first stitch pair, lift the old-colour stitch from the round below, on the knit face, and knit it together with the first knit stitch. Do the same on the purl face: lift the stitch below, on the purl face, and purl it together with the first purl stitch. Then work the rest of the round as normal. Tighten the first few stitches a little. Your stitch count does not change. This method is a draft that is still to be test-knit.",
+      body: "Before you work the first stitch pair, lift the old-colour stitch from the round below, on the knit face, and knit it together with the first knit stitch. Do the same on the purl face: lift the stitch below, on the purl face, and purl it together with the first purl stitch. Then work the rest of the round as normal. Tighten the first few stitches a little. Your stitch count does not change.",
+      caveat: "A draft method that is still to be test-knit.",
       help: "jogless",
     });
   }
@@ -105,3 +108,10 @@ export const DUPLICATE_INTRO =
 export const APP_VERSION = "0.1.0";
 export const CHANGELOG = [{ version: "0.1.0", date: "29 October 2026", notes: "First version. Knit the leopard example or your own chart round by round, with a duplicate stitch tracker and stripes. Make a chart from a picture, by drawing (with a picture to trace over), or with the Claude skill. Review it, print the chart pages, and export pictures and spreadsheets. Works offline, and everything stays on your device." }];
 export const HASHTAG: string | null = "#doubletakehat";
+
+/** Places to find a picture. These open in a new tab; nothing is sent from the app. */
+export const PICTURE_SOURCES = [
+  { name: "Seamless patterns", url: "https://pixabay.com/images/search/seamless%20pattern/" },
+  { name: "Animal prints", url: "https://pixabay.com/images/search/animal%20print/" },
+  { name: "Fabric patterns", url: "https://pixabay.com/images/search/fabric%20pattern/" },
+];

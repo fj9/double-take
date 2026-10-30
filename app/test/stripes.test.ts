@@ -36,7 +36,7 @@ describe("notes for a striped hat", () => {
     const n = stripeNotes(bands, 40)[0];
     expect(n?.body).toContain("knit face");
     expect(n?.body).toContain("purl face");
-    expect(n?.body).toContain("draft");
+    expect(n?.caveat).toContain("draft");
   });
 
   it("has no stripe notes in the crown, or for a hat that isn't striped", () => {
