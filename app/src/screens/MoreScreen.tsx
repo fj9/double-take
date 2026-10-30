@@ -7,12 +7,8 @@ import {
   keepAwake,
   setHighContrast,
   setKeepAwake,
-  setShowDuplicate,
   setTheme,
-  showDuplicate,
   theme,
-  zoom,
-  zoomBy,
   type Theme,
 } from "../lib/settings";
 import { removeProject, toast } from "../store";
@@ -36,6 +32,7 @@ export function MoreScreen({ project, progress }: { project: Project; progress: 
 
       <section class="card" aria-labelledby="look">
         <h2 id="look">Look and feel</h2>
+        <p class="small muted" style="margin:0 0 8px">Chart size, letters and duplicate stitch dots are in the View button on the round screen.</p>
         <div class="stack">
           <div>
             <div id="theme-label" class="small muted">
@@ -54,25 +51,9 @@ export function MoreScreen({ project, progress }: { project: Project; progress: 
             High-contrast charts
           </label>
           <label class="check">
-            <input type="checkbox" checked={showDuplicate.value} onChange={(e) => setShowDuplicate((e.currentTarget as HTMLInputElement).checked)} />
-            Show duplicate stitch dots on the round view
-          </label>
-          <label class="check">
             <input type="checkbox" checked={keepAwake.value} onChange={(e) => setKeepAwake((e.currentTarget as HTMLInputElement).checked)} />
             Keep the screen awake while I knit
           </label>
-          <div class="row">
-            <span>Chart size</span>
-            <div class="seg" role="group" aria-label="Chart size">
-              <button aria-label="Smaller charts" onClick={() => zoomBy(-1)}>
-                −
-              </button>
-              <button aria-label="Larger charts" onClick={() => zoomBy(1)}>
-                +
-              </button>
-            </div>
-            <span class="muted small num">{zoom.value} px a square</span>
-          </div>
         </div>
       </section>
 

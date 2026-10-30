@@ -10,7 +10,8 @@ export const projects = signal<Project[]>([]);
 export const progressById = signal<Record<string, Progress>>({});
 export const ready = signal(false);
 
-export const toast = signal<{ message: string; actionLabel?: string; onAction?: () => void } | null>(null);
+/** `duration` is in milliseconds (4000 if left out). `lift` raises it above the round view's control bar. */
+export const toast = signal<{ message: string; actionLabel?: string; actionName?: string; onAction?: () => void; duration?: number; lift?: boolean } | null>(null);
 /** Set when a new version of the app has been downloaded and is waiting. It is never applied automatically. */
 export const pendingUpdate = signal<(() => void) | null>(null);
 

@@ -7,3 +7,4 @@ export * from "./roles";
 export * from "./routes";
 export * from "./build";
 export * from "./crop";
+export * from "./tile";

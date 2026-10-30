@@ -23,6 +23,8 @@ export interface BuildOptions {
   /** Colours to use instead of the ones found in the picture (for example the real yarn colours), by colour role. */
   yarnHex?: string[];
   created?: string;
+  /** Extra settings to record in the chart file, so the chart can be reproduced (for example how much duplicate stitch was kept). */
+  settings?: Record<string, unknown>;
 }
 
 /** The choice can't be made into a chart. The message says why, for the knitter. */
@@ -178,7 +180,7 @@ export function buildChart(roles: RoleResult, choice: Choice, opts: BuildOptions
     round_pairs: stripes ? (pairs as Pair[]).map(([a, b]) => [LETTERS[a] as string, LETTERS[b] as string]) : null,
     duplicate: layers,
     crown: { rounds: Array.from({ length: CROWN_ROUNDS }, (_, i) => rowString(FIRST_CROWN_ROUND + i)) },
-    source: { kind: "image", settings: { colours: k, seam: roles.seam, choice } },
+    source: { kind: "image", settings: { colours: k, seam: roles.seam, choice, ...(opts.settings ?? {}) } },
   };
   const result = validateChart(chart);
   if (!result.ok) throw new BuildError(`The chart didn't come out right: ${result.errors[0]?.message ?? "unknown problem"}`);

@@ -22,6 +22,8 @@ export interface Progress {
   patches: Record<string, PatchTick>;
   /** An optional plan to spread the rounds over some days. It stays on this device and is never part of the chart. */
   pace?: Pace;
+  /** Ids of round notes the knitter has opened, so unread ones can be marked. A setting: Undo leaves it alone. */
+  notesSeen?: string[];
   /** What the last few changes replaced, newest last, so Undo can put things back. */
   history: Undo[];
   updatedAt: number;
@@ -145,4 +147,10 @@ export interface Backup {
 export function setPace(p: Progress, pace: Pace | undefined, now = Date.now()): Progress {
   const { pace: _old, ...rest } = p;
   return pace ? { ...rest, pace, updatedAt: now } : { ...rest, updatedAt: now };
+}
+
+/** Remember that a round note has been opened. This is a setting, not a step, so Undo leaves it alone. */
+export function markNoteSeen(p: Progress, id: string): Progress {
+  if (p.notesSeen?.includes(id)) return p;
+  return { ...p, notesSeen: [...(p.notesSeen ?? []), id] };
 }

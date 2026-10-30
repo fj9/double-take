@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { analyse, applyOrientation, buildChart, compareRoutes, crownPrint, extractPalette, FABRIC_ASPECT, makeRoles, outsideAt, planPairs, shrinkPixels, validateChart } from "../src";
+import { analyse, applyOrientation, buildChart, compareRoutes, crownPrint, extractPalette, FABRIC_ASPECT, makeGrid, makeRoles, mergeRoles, outsideAt, planPairs, shrinkPixels, tidyRoles, tilePixels, TILE_WIDTH, validateChart } from "../src";
 import type { Pixels } from "../src";
 
 type Rgb = [number, number, number];
@@ -283,5 +283,85 @@ describe("turning a sideways photo the right way up", () => {
     expect(reds(eight)).toEqual([3, 6, 2, 5, 1, 4]);
     expect(reds(applyOrientation(small(), 5))).toEqual([1, 4, 2, 5, 3, 6]); // transpose
     expect(reds(applyOrientation(small(), 7))).toEqual([6, 3, 5, 2, 4, 1]); // transverse
+  });
+});
+
+describe("tidying patches colour by colour", () => {
+  const grid = (rows: string[]) => {
+    const g = makeGrid(rows[0]!.length, rows.length);
+    rows.forEach((r, y) => [...r].forEach((c, x) => (g.data[y * g.width + x] = Number(c))));
+    return g;
+  };
+  const rows = ["0000000000", "0100000220", "0000000220", "0000000000", "0300000000"];
+
+  it("removes only the small patches of the chosen colour, and leaves the others alone", () => {
+    const g = grid(rows);
+    const { grid: out, stats } = tidyRoles(g, 4, [undefined, { min: 2 }, undefined, undefined], false);
+    expect(out.data[1 * 10 + 1]).toBe(0); // the single 1 is gone
+    expect(out.data[1 * 10 + 7]).toBe(2); // the 2×2 patch of colour 2 is untouched
+    expect(out.data[4 * 10 + 1]).toBe(3); // a single 3 is not being tidied, so it stays
+    expect(stats[1]).toEqual({ keptPatches: 0, keptCells: 0, smallest: null, removedPatches: 1, removedCells: 1 });
+  });
+
+  it("can leave a colour out altogether, and reports how much each colour kept", () => {
+    const g = grid(rows);
+    const { grid: out, stats } = tidyRoles(g, 4, [undefined, undefined, { min: 1, leave: true }, undefined], false);
+    expect([...out.data].includes(2)).toBe(false);
+    expect(stats[2]?.removedCells).toBe(4);
+    const kept = tidyRoles(g, 4, [undefined, undefined, { min: 4 }, undefined], false).stats[2];
+    expect(kept).toMatchObject({ keptPatches: 1, keptCells: 4, smallest: 4, removedPatches: 0 });
+  });
+
+  it("never gives more duplicate stitch as the smallest patch grows", () => {
+    const g = makeGrid(40, 20);
+    let seed = 1;
+    for (let i = 0; i < g.data.length; i++) {
+      seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+      g.data[i] = seed % 7 === 0 ? 1 : 0;
+    }
+    let last = Infinity;
+    for (let min = 1; min <= 12; min++) {
+      const cells = tidyRoles(g, 2, [undefined, { min }], true).stats[1]!.keptCells;
+      expect(cells).toBeLessThanOrEqual(last);
+      last = cells;
+    }
+  });
+});
+
+describe("tiling a picture across the hat", () => {
+  const picture = (w: number, h: number): Pixels => {
+    const data = new Uint8ClampedArray(w * h * 4);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) data.set([(x * 255) / w, (y * 255) / h, (x * y) % 255, 255], (y * w + x) * 4);
+    return { width: w, height: h, data };
+  };
+
+  it("makes a picture the shape of the fabric", () => {
+    const out = tilePixels(picture(40, 30), { across: 4, mirror: true });
+    expect(out.width).toBe(TILE_WIDTH);
+    expect(out.width / out.height).toBeCloseTo(FABRIC_ASPECT, 1);
+  });
+
+  it("joins up round the hat when the copies are mirrored", () => {
+    for (const across of [2, 4, 8, 14]) {
+      const out = tilePixels(picture(40, 30), { across, mirror: true });
+      for (let y = 0; y < out.height; y += 7) {
+        const left = [...out.data.slice(y * out.width * 4, y * out.width * 4 + 4)];
+        const right = [...out.data.slice((y * out.width + out.width - 1) * 4, (y * out.width + out.width) * 4)];
+        expect(right).toEqual(left);
+      }
+    }
+  });
+});
+
+describe("mergeRoles", () => {
+  it("joins one colour into another and drops it", () => {
+    const grid = makeGrid(4, 1);
+    grid.data.set([0, 0, 1, 2]);
+    const roles = { grid, centres: [[0, 0, 0], [255, 0, 0], [0, 255, 0]] as [number, number, number][], shares: [0.5, 0.25, 0.25], seam: "accept" as const };
+    const { roles: out, order } = mergeRoles(roles, 2, 1);
+    expect(out.centres).toHaveLength(2);
+    expect(out.centres[1]).toEqual([255, 0, 0]);
+    expect(Array.from(out.grid.data)).toEqual([0, 0, 1, 1]);
+    expect(order).toEqual([0, 1]);
   });
 });

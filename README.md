@@ -71,6 +71,6 @@ The app is static and uses a hash for its pages, so it works from any folder on 
 
 ## Licence, credits and copyright
 
-The code is [MIT licensed](LICENSE). The leopard charts, the pattern text, and the Doubletake and Freya'd Knot names and branding are **not** covered by that licence: the leopard charts and the pattern are © Freya'd Knot, for personal use only (see [`fixtures/leopard/NOTICE.md`](fixtures/leopard/NOTICE.md)). The hat's construction follows the free Chrysanthemum hat by mirielgw.
+The code is [MIT licensed](LICENSE). The leopard charts, the pattern text, and the Doubletake and Freya'd Knot names and branding are **not** covered by that licence: the leopard charts and the pattern are © Freya'd Knot, for personal use only (see [`fixtures/leopard/NOTICE.md`](fixtures/leopard/NOTICE.md)). The sample pictures in `app/public/samples` are small copies of free Pixabay pictures, used under the Pixabay Content Licence and not covered by the MIT licence (see [`app/public/samples/NOTICE.md`](app/public/samples/NOTICE.md)). The hat's construction follows the free Chrysanthemum hat by mirielgw.
 
 Share your finished hat with **#doubletakehat**.

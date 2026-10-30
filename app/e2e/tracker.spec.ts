@@ -15,7 +15,7 @@ const nextRound = (page: Page) => page.getByRole("button", { name: /done, next$/
 
 test("the leopard example starts on round 1", async ({ page }) => {
   await startLeopard(page);
-  await expect(page.getByRole("heading", { name: "Chart A, pairs 1–56" })).toBeVisible();
+  await expect(page.getByRole("img", { name: /Round \d+ with the rounds around it/ })).toBeVisible();
   await expect(page.getByText("112 pairs · 224 stitches")).toBeVisible();
 });
 
@@ -32,7 +32,7 @@ test("undo puts the round back", async ({ page }) => {
   await startLeopard(page);
   await nextRound(page);
   await expect(page.getByText("Round 2 of 95")).toBeVisible();
-  await page.getByRole("button", { name: "Undo" }).click();
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
   await expect(page.getByText("Round 1 of 95")).toBeVisible();
 });
 
@@ -51,7 +51,7 @@ test("works offline after the first load, on the same round", async ({ page, con
   await context.setOffline(true);
   await page.reload();
   await expect(page.getByText("Round 4 of 95")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Chart A, pairs 1–56" })).toBeVisible();
+  await expect(page.getByRole("img", { name: /Round \d+ with the rounds around it/ })).toBeVisible();
   await context.setOffline(false);
 });
 
@@ -96,12 +96,60 @@ test("a backup restores a hat with its progress", async ({ page }) => {
   await expect(page.getByText("Round 3 of 95")).toBeVisible();
 });
 
+test("Next block moves your place along the colour blocks, and Undo puts it back", async ({ page }) => {
+  await startLeopard(page);
+  const now = page.locator(".now");
+  await expect(now).toContainText("purple");
+  const first = (await now.innerText()).match(/purple\s*×(\d+)/)?.[1];
+  await page.getByRole("button", { name: "Next block" }).click();
+  await expect(page.getByText(new RegExp(`You’re at pair ${first} of 112`))).toBeVisible();
+  await expect(now).toContainText("pink");
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect(page.getByText("Put the work down mid-round?")).toBeVisible();
+});
+
+test("finishing a round offers an undo for a few seconds", async ({ page }) => {
+  await startLeopard(page);
+  await nextRound(page);
+  await expect(page.getByText("Round 2 of 95")).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "Round 1 done" })).toBeVisible();
+  await page.getByRole("button", { name: "Undo round 1" }).click();
+  await expect(page.getByText("Round 1 of 95")).toBeVisible();
+});
+
+test("colour blocks can be switched off in the View panel", async ({ page }) => {
+  await startLeopard(page);
+  await expect(page.getByRole("button", { name: "Next block" })).toBeVisible();
+  await page.getByRole("button", { name: "View", exact: true }).click();
+  await page.getByLabel("Colour blocks and the Next block button").uncheck();
+  await expect(page.getByRole("button", { name: "Next block" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /done, next$/ })).toBeVisible();
+});
+
+test("you can go straight to a pair", async ({ page }) => {
+  await startLeopard(page);
+  await page.locator("#goto-pair").fill("40");
+  await page.getByRole("button", { name: "Go", exact: true }).click();
+  await expect(page.getByText(/You’re at pair 40 of 112/)).toBeVisible();
+  await page.locator("#goto-pair").fill("200");
+  await page.getByRole("button", { name: "Go", exact: true }).click();
+  await expect(page.getByText("Enter a pair from 1 to 112.")).toBeVisible();
+});
+
+test("round notes are one-line banners that open on tap", async ({ page }) => {
+  await startLeopard(page);
+  await expect(page.getByRole("heading", { name: "Before you join" })).toBeVisible();
+  await expect(page.getByText(/aren’t twisted/)).toBeHidden();
+  await page.getByRole("heading", { name: "Before you join" }).click();
+  await expect(page.getByText(/aren’t twisted/)).toBeVisible();
+});
+
 test("the crown shows its note and decrease key at round 76", async ({ page }) => {
   await startLeopard(page);
   for (let i = 0; i < 75; i++) await nextRound(page);
   await expect(page.getByText("Round 76 of 95")).toBeVisible();
   await expect(page.getByRole("heading", { name: "The crown starts" })).toBeVisible();
-  await expect(page.getByText("right-leaning decrease").first()).toBeVisible();
+  await expect(page.locator(".legend").getByText("right-leaning decrease")).toBeVisible();
   await expect(page.getByText("Ends with 104 pairs (208 stitches)")).toBeVisible();
 });
 

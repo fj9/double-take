@@ -23,6 +23,14 @@ export interface ChartView {
   stripes?: boolean;
   /** Extra drawing on top, such as symmetry lines in the editor. */
   decorate?: (ctx: CanvasRenderingContext2D, g: Geometry) => void;
+  /** Show the yarn letter in each cell (default true). Decrease marks are drawn whatever this says. */
+  letters?: boolean;
+  /** The round numbers and stripe strip are drawn on a separate canvas (`drawGutter`), so they can stay in view while the chart scrolls. */
+  gutter?: boolean;
+  /** Show the hat as it will look knitted: duplicate stitch cells in their solid colour, no letters, no cell lines. Decrease marks still show. */
+  picture?: boolean;
+  /** Label the join between pair 56 and pair 57 as "Chart A | Chart B", for people following the PDF. */
+  divider?: boolean;
 }
 
 export const cellKey = (round: number, pair: number) => `${round}:${pair}`;
@@ -49,17 +57,27 @@ export interface Geometry {
   bottom: number;
   width: number;
   height: number;
+  /** Height of the band above the pair numbers that holds the Chart A | Chart B labels (0 without them). */
+  band: number;
 }
 
-export function geometry(view: Pick<ChartView, "cols" | "rows" | "cellW"> & { stripes?: boolean }): Geometry {
+type GeometryView = Pick<ChartView, "cols" | "rows" | "cellW"> & { stripes?: boolean; gutter?: boolean; divider?: boolean };
+
+/** Width of the separate gutter canvas: round numbers, then the stripe strip for a striped chart. */
+export function gutterWidth(view: Pick<GeometryView, "cellW" | "stripes">): number {
+  return Math.max(28, view.cellW * 3) + (view.stripes ? stripeWidth(view.cellW) : 0);
+}
+
+export function geometry(view: GeometryView): Geometry {
   const cellW = view.cellW;
   const cellH = cellW / CELL_ASPECT;
   const strip = Math.max(14, cellH * 1.5);
+  const band = view.divider ? 14 : 0;
   const left = 6;
-  const top = strip;
+  const top = strip + band;
   const bottom = strip;
   const numbers = Math.max(28, cellW * 3);
-  const right = numbers + (view.stripes ? stripeWidth(cellW) : 0);
+  const right = view.gutter ? 4 : numbers + (view.stripes ? stripeWidth(cellW) : 0);
   return {
     cellW,
     cellH,
@@ -69,6 +87,7 @@ export function geometry(view: Pick<ChartView, "cols" | "rows" | "cellW"> & { st
     bottom,
     width: left + view.cols.length * cellW + right,
     height: top + view.rows.length * cellH + bottom,
+    band,
   };
 }
 
@@ -110,7 +129,7 @@ export function draw(canvas: HTMLCanvasElement, view: ChartView): void {
   const coral = "#f26b5b";
   // Letters only where a cell is big enough to hold one; on small overviews the colours do the work.
   const fontSize = Math.min(g.cellH * 0.72, g.cellW * 0.58);
-  const showLetters = fontSize >= 7.5;
+  const showLetters = fontSize >= 7.5 && view.letters !== false && !view.picture;
   // Grid lines shrink with the cells, and disappear when cells are too small for them to help
   const lineScale = Math.min(1, g.cellW / 10);
   const showLines = g.cellW >= 4;
@@ -134,7 +153,7 @@ export function draw(canvas: HTMLCanvasElement, view: ChartView): void {
       ctx.globalAlpha = faded ? 0.4 : view.highlight && !picked ? 0.35 : 1;
       ctx.fillStyle = hex;
       ctx.fillRect(x, y, g.cellW, g.cellH);
-      if (g.cellW >= 6) {
+      if (g.cellW >= 6 && !view.picture) {
         ctx.strokeStyle = thin;
         ctx.lineWidth = 0.5;
         ctx.strokeRect(x + 0.25, y + 0.25, g.cellW - 0.5, g.cellH - 0.5);
@@ -158,6 +177,11 @@ export function draw(canvas: HTMLCanvasElement, view: ChartView): void {
           if (!hasDuplicate(chart, li, round, pair)) return;
           const yarn = chart.yarns.find((y) => y.id === layer.yarn);
           if (!yarn) return;
+          if (view.picture) {
+            ctx.fillStyle = yarn.hex;
+            ctx.fillRect(g.left + ci * g.cellW, g.top + ri * g.cellH, g.cellW, g.cellH);
+            return;
+          }
           const picked = view.highlight ? view.highlight.has(cellKey(round, pair)) : true;
           const cx = g.left + ci * g.cellW + g.cellW / 2;
           const cy = g.top + ri * g.cellH + g.cellH / 2;
@@ -271,54 +295,119 @@ export function draw(canvas: HTMLCanvasElement, view: ChartView): void {
     const show = every === 1 || pair % every === 0 || (pair === 1 && every <= 10);
     if (!show) return;
     const x = g.left + ci * g.cellW + g.cellW / 2;
-    ctx.fillText(String(pair), x, g.top / 2);
+    ctx.fillText(String(pair), x, g.band + (g.top - g.band) / 2);
     ctx.fillText(String(pair), x, bodyBottom + g.bottom / 2);
   });
+  if (!view.gutter) {
+    const x = g.left + cols.length * g.cellW;
+    drawRoundNumbers(ctx, g, view, x + 6, text, labelSize);
+    drawStripeStrip(ctx, g, view, x + Math.max(28, g.cellW * 3));
+  }
+  if (view.divider) drawDivider(ctx, g, view, ink, text);
+  view.decorate?.(ctx, g);
+}
+
+/** Round numbers down the right-hand side, the current round in bold. `x` is where the digits start. */
+function drawRoundNumbers(ctx: CanvasRenderingContext2D, g: Geometry, view: ChartView, x: number, text: string, labelSize: number): void {
+  const hc = view.highContrast;
   ctx.textAlign = "left";
-  rows.forEach((round, ri) => {
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = text;
+  view.rows.forEach((round, ri) => {
     const every = g.cellH >= 11 ? 1 : ([5, 10, 20].find((n) => n * g.cellH >= 12) ?? 20);
     if (round % every !== 0 && round !== view.current) return;
     const y = g.top + ri * g.cellH + g.cellH / 2;
     ctx.font = `${round === view.current ? 700 : hc ? 700 : 400} ${labelSize}px system-ui, sans-serif`;
-    ctx.fillText(String(round), g.left + cols.length * g.cellW + 6, y);
+    ctx.fillText(String(round), x, y);
   });
-  // Striped charts: the two yarns in each round, and a line where the stripe changes
-  if (view.stripes && chart.mode === "stripes") {
-    const sw = stripeWidth(g.cellW);
-    const x0 = g.left + cols.length * g.cellW + Math.max(28, g.cellW * 3);
-    const half = (sw - 4) / 2;
-    ctx.textAlign = "center";
-    rows.forEach((round, ri) => {
-      const y = g.top + ri * g.cellH;
-      const pair = yarnsInRound(chart, round);
-      const faded = view.current !== undefined && view.current !== round;
-      ctx.globalAlpha = faded ? 0.5 : 1;
-      pair.forEach((id, k) => {
-        const yarn = chart.yarns.find((yy) => yy.id === id);
-        const hex = yarn?.hex ?? "#cccccc";
-        const x = x0 + 2 + k * half;
-        ctx.fillStyle = hex;
-        ctx.fillRect(x, y + 0.5, half - 1, Math.max(1, g.cellH - 1));
-        if (g.cellH >= 9) {
-          ctx.fillStyle = textOn(hex);
-          ctx.font = `700 ${Math.min(g.cellH * 0.7, 12)}px system-ui, sans-serif`;
-          ctx.fillText(id, x + (half - 1) / 2, y + g.cellH / 2 + 0.5);
-        }
-      });
-      ctx.globalAlpha = 1;
-      const before = round > 1 ? yarnsInRound(chart, round - 1) : null;
-      if (before && (before[0] !== pair[0] || before[1] !== pair[1])) {
-        ctx.strokeStyle = coral;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(x0, y);
-        ctx.lineTo(x0 + sw, y);
-        ctx.stroke();
+}
+
+/** For a striped chart: the two yarns in each round, and a line where the stripe changes. `x0` is the strip's left edge. */
+function drawStripeStrip(ctx: CanvasRenderingContext2D, g: Geometry, view: ChartView, x0: number): void {
+  const { chart, rows } = view;
+  if (!view.stripes || chart.mode !== "stripes") return;
+  const sw = stripeWidth(g.cellW);
+  const half = (sw - 4) / 2;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  rows.forEach((round, ri) => {
+    const y = g.top + ri * g.cellH;
+    const pair = yarnsInRound(chart, round);
+    const faded = view.current !== undefined && view.current !== round;
+    ctx.globalAlpha = faded ? 0.5 : 1;
+    pair.forEach((id, k) => {
+      const yarn = chart.yarns.find((yy) => yy.id === id);
+      const hex = yarn?.hex ?? "#cccccc";
+      const x = x0 + 2 + k * half;
+      ctx.fillStyle = hex;
+      ctx.fillRect(x, y + 0.5, half - 1, Math.max(1, g.cellH - 1));
+      if (g.cellH >= 9) {
+        ctx.fillStyle = textOn(hex);
+        ctx.font = `700 ${Math.min(g.cellH * 0.7, 12)}px system-ui, sans-serif`;
+        ctx.fillText(id, x + (half - 1) / 2, y + g.cellH / 2 + 0.5);
       }
     });
+    ctx.globalAlpha = 1;
+    const before = round > 1 ? yarnsInRound(chart, round - 1) : null;
+    if (before && (before[0] !== pair[0] || before[1] !== pair[1])) {
+      ctx.strokeStyle = "#f26b5b";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x0, y);
+      ctx.lineTo(x0 + sw, y);
+      ctx.stroke();
+    }
+  });
+  ctx.textAlign = "left";
+}
+
+/** A dashed line at the join between pair 56 and pair 57, labelled with the PDF's chart names. It is a reference only: the fabric has no break here. */
+function drawDivider(ctx: CanvasRenderingContext2D, g: Geometry, view: ChartView, ink: string, text: string): void {
+  const { cols } = view;
+  for (let ci = 0; ci < cols.length - 1; ci++) {
+    const a = cols[ci] as number;
+    const b = cols[ci + 1] as number;
+    if (!((a === 57 && b === 56) || (a === 56 && b === 57))) continue;
+    const x = g.left + (ci + 1) * g.cellW;
+    const bottom = g.top + view.rows.length * g.cellH;
+    ctx.save();
+    ctx.setLineDash([4, 3]);
+    ctx.strokeStyle = ink;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x, g.band * 0.3);
+    ctx.lineTo(x, bottom);
+    ctx.stroke();
+    ctx.restore();
+    ctx.fillStyle = text;
+    ctx.font = "500 11px system-ui, sans-serif";
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "right";
+    ctx.fillText(a >= 57 ? "Chart B" : "Chart A", x - 5, g.band / 2);
     ctx.textAlign = "left";
+    ctx.fillText(a >= 57 ? "Chart A" : "Chart B", x + 5, g.band / 2);
+    return;
   }
-  view.decorate?.(ctx, g);
+}
+
+/** The round numbers (and stripe strip) on a canvas of their own, lined up with the chart's rows. */
+export function drawGutter(canvas: HTMLCanvasElement, view: ChartView): void {
+  const g = geometry({ ...view, gutter: false });
+  const own = geometry({ ...view, gutter: true });
+  const width = gutterWidth(view);
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = Math.ceil(width * dpr);
+  canvas.height = Math.ceil(own.height * dpr);
+  canvas.style.width = `${width}px`;
+  canvas.style.height = `${own.height}px`;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, width, own.height);
+  const text = view.dark ? "#f2f4f8" : "#111111";
+  const labelSize = Math.max(9, Math.min(own.cellH * 0.8, 13));
+  drawRoundNumbers(ctx, { ...g, top: own.top, cellH: own.cellH }, view, 6, text, labelSize);
+  drawStripeStrip(ctx, { ...g, top: own.top, cellH: own.cellH }, view, Math.max(28, view.cellW * 3));
 }
 
 /** Overview of the whole hat laid flat (rounds 1-95 by pairs 1-112, stitch 1 at the right), for duplicate stitch patches. */
