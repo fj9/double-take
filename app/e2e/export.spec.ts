@@ -2,16 +2,16 @@ import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { execFileSync } from "node:child_process";
 
-async function leopardMore(page: Page) {
+async function leopardHat(page: Page) {
   await page.goto("/");
   await page.getByRole("button", { name: "Use this chart" }).first().click();
   await expect(page.getByText("Round 1 of 95")).toBeVisible();
-  await page.getByRole("link", { name: "More" }).click();
+  await page.getByRole("link", { name: "Hat" }).click();
   await expect(page.getByRole("heading", { name: "Print and export" })).toBeVisible();
 }
 
 test("the chart pages are one sheet to a page and print to a PDF with the same number of pages", async ({ page }) => {
-  await leopardMore(page);
+  await leopardHat(page);
   await page.getByRole("link", { name: "Chart pages (PDF)" }).click();
   await expect(page.getByRole("heading", { name: "Chart pages" })).toBeVisible();
   const sheets = page.locator(".sheet");
@@ -46,7 +46,7 @@ test("the chart pages are one sheet to a page and print to a PDF with the same n
 });
 
 test("the footer on the chart pages has the Freya'd Knot links and the personal use line for the example", async ({ page }) => {
-  await leopardMore(page);
+  await leopardHat(page);
   await page.getByRole("link", { name: "Chart pages (PDF)" }).click();
   const footer = page.locator(".sheet footer").first();
   await expect(footer.getByRole("link", { name: /Ravelry/ })).toHaveAttribute("href", "https://www.ravelry.com/people/freyadknot");
@@ -56,7 +56,7 @@ test("the footer on the chart pages has the Freya'd Knot links and the personal 
 });
 
 test("everything downloads as one zip with pictures, spreadsheets and a shopping list", async ({ page }) => {
-  await leopardMore(page);
+  await leopardHat(page);
   const download = page.waitForEvent("download");
   await page.getByRole("button", { name: "Download everything (zip)" }).click();
   const d = await download;

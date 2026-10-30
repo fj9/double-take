@@ -1,5 +1,6 @@
 import { useRef, useState } from "preact/hooks";
 import type { ChartError } from "@doubletake/core";
+import { Flat } from "../components/Flat";
 import { currentRound, percentComplete, TOTAL_ROUNDS } from "../lib/model";
 import { readFile } from "../lib/files";
 import { EXAMPLES, createDrawProject, createProject, importText, progressById, projects, ready } from "../store";
@@ -54,6 +55,11 @@ export function HomeScreen() {
   const [errors, setErrors] = useState<ChartError[] | null>(null);
   const input = useRef<HTMLInputElement>(null);
 
+  // The knit-stage hat worked on most recently
+  const knitting = projects.value.filter((p) => p.stage !== "design" && progressById.value[p.id]);
+  const continuing = knitting.reduce<(typeof knitting)[number] | null>((a, b) => (!a || (progressById.value[b.id]?.updatedAt ?? 0) > (progressById.value[a.id]?.updatedAt ?? 0) ? b : a), null);
+  const continuingProgress = continuing ? progressById.value[continuing.id] : undefined;
+
   const open = (id: string) => {
     location.hash = `#/p/${id}/${projects.value.find((p) => p.id === id)?.stage === "design" ? "draw" : "round"}`;
   };
@@ -78,6 +84,26 @@ export function HomeScreen() {
 
       {errors && <ImportErrors errors={errors} onClose={() => setErrors(null)} />}
 
+      {continuing && (
+        <section class="card continue" aria-labelledby="continue">
+          <div class="continue-pic">
+            <Flat chart={continuing.chart} bodyOnly picture label="" />
+          </div>
+          <div>
+            <h2 id="continue" style="margin:0">Continue</h2>
+            <p style="margin:4px 0 0">
+              <strong>{continuing.name}</strong>
+            </p>
+            <p class="small muted num" style="margin:0 0 12px">
+              Round {currentRound(continuingProgress as NonNullable<typeof continuingProgress>)}/{TOTAL_ROUNDS} · {percentComplete(continuingProgress as NonNullable<typeof continuingProgress>)}%
+            </p>
+            <button class="btn primary" onClick={() => open(continuing.id)}>
+              Continue {continuing.name}
+            </button>
+          </div>
+        </section>
+      )}
+
       {ready.value && projects.value.length > 0 && (
         <section aria-labelledby="your-hats">
           <h2 id="your-hats">Your hats</h2>
@@ -88,6 +114,7 @@ export function HomeScreen() {
                 <div class="row between">
                   <div>
                     <h3 style="margin:0">{p.name}</h3>
+                    {projects.value.filter((o) => o.name === p.name).length > 1 && <p class="small muted" style="margin:2px 0 0">Started {new Date(p.createdAt).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}</p>}
                     <p class="small muted num" style="margin:4px 0 0">
                       {p.stage === "design" ? "Being designed" : pr ? (pr.completed >= TOTAL_ROUNDS ? "All rounds done" : `Round ${currentRound(pr)} of ${TOTAL_ROUNDS}`) : ""}
                       {p.stage !== "design" && pr ? ` · ${percentComplete(pr)}%` : ""}
@@ -105,6 +132,7 @@ export function HomeScreen() {
 
       <section aria-labelledby="start-new">
         <h2 id="start-new">Start a new hat</h2>
+        <h3 style="margin:0 0 8px">Try an example</h3>
         {EXAMPLES.map((ex) => (
           <div class="card" key={ex.id}>
             <h3>{ex.title}</h3>
@@ -121,28 +149,24 @@ export function HomeScreen() {
           </div>
         ))}
         <div class="card">
-          <h3>Import a chart file</h3>
-          <p class="small">Choose a Doubletake chart (.doubletake.json) or a backup you saved earlier. It stays on this device.</p>
-          <input ref={input} id="import-file" class="sr-only" aria-label="Choose a chart file" type="file" accept=".json,application/json" onChange={(e) => onFile((e.currentTarget as HTMLInputElement).files?.[0])} />
-          <label class="btn block" for="import-file">
-            Choose a file
-          </label>
-        </div>
-        <div class="card">
           <h3>Make a chart from a picture</h3>
           <p class="small">Choose a print or a picture. Doubletake finds the colours and turns it into a chart for the hat. The picture never leaves this device.</p>
           <a class="btn primary block" href="#/make">
             Choose a picture
           </a>
         </div>
-        <div class="card">
-          <h3>Make a chart with Claude</h3>
-          <p class="small">Download a skill that lets Claude take you through the choices, then bring the chart file back here.</p>
-          <a class="btn block" href="#/skill">
-            Get the Claude skill
-          </a>
-        </div>
         <DrawCard />
+        <div class="card">
+          <h3>I have a chart file</h3>
+          <p class="small">Choose a Doubletake chart (.doubletake.json) or a backup you saved earlier. It stays on this device.</p>
+          <input ref={input} id="import-file" class="sr-only" aria-label="Choose a chart file" type="file" accept=".json,application/json" onChange={(e) => onFile((e.currentTarget as HTMLInputElement).files?.[0])} />
+          <label class="btn block" for="import-file">
+            Choose a file
+          </label>
+        </div>
+        <p class="small muted" style="margin:8px 0 0">
+          Want help from Claude? <a href="#/skill">Get the Claude skill</a>, which takes you through the choices and gives you a chart file to bring back here.
+        </p>
       </section>
     </div>
   );

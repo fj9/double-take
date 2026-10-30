@@ -111,6 +111,19 @@ export async function importText(text: string): Promise<ImportResult> {
   } catch {
     return parseChartJson(text) as ImportResult;
   }
+  if (typeof raw === "object" && raw !== null && (raw as { kind?: unknown }).kind === "doubletake-backup-all/1") {
+    const hats = (raw as { hats?: unknown }).hats;
+    if (!Array.isArray(hats) || hats.length === 0) {
+      return { ok: false, errors: [{ code: "backup", path: "hats", message: "That backup file has no hats in it." }] };
+    }
+    let first: Project | null = null;
+    for (const hat of hats) {
+      const result = await importText(JSON.stringify(hat));
+      if (!result.ok) return result;
+      first ??= result.project;
+    }
+    return { ok: true, project: first as Project };
+  }
   if (typeof raw === "object" && raw !== null && (raw as { kind?: unknown }).kind === "doubletake-backup/1") {
     const backup = raw as Partial<Backup>;
     const result = validateChart(backup.project?.chart);
@@ -146,6 +159,12 @@ export async function saveProject(project: Project): Promise<void> {
   } catch {
     toast.value = { message: "Couldn’t save your chart. Free up some space on this device and try again." };
   }
+}
+
+export function renameProject(id: string, name: string): Promise<void> {
+  const project = projects.value.find((p) => p.id === id);
+  const next = name.trim();
+  return project && next ? saveProject({ ...project, name: next, chart: { ...project.chart, name: next } }) : Promise.resolve();
 }
 
 export function setStage(id: string, stage: "design" | "knit"): Promise<void> {
