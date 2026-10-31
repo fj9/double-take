@@ -1,5 +1,6 @@
 import { CELL_ASPECT, LAST_ROUND, insideAt, outsideAt, crownLayout, BODY_ROUNDS, FIRST_CROWN_ROUND, yarnsInRound } from "@doubletake/core";
 import type { Chart } from "@doubletake/core";
+import { CLOSE_COLOURS, colourDistance } from "./marks";
 
 export interface ChartView {
   chart: Chart;
@@ -29,6 +30,8 @@ export interface ChartView {
   gutter?: boolean;
   /** Show the hat as it will look knitted: duplicate stitch cells in their solid colour, no letters, no cell lines. Decrease marks still show. */
   picture?: boolean;
+  /** Duplicate stitch as a filled square in its colour (with a dot and letter where it would be hard to tell from the colour underneath). Default: always a dot. */
+  solidDuplicate?: boolean;
   /** Label the join between pair 56 and pair 57 as "Chart A | Chart B", for people following the PDF. */
   divider?: boolean;
 }
@@ -181,6 +184,21 @@ export function draw(canvas: HTMLCanvasElement, view: ChartView): void {
             ctx.fillStyle = yarn.hex;
             ctx.fillRect(g.left + ci * g.cellW, g.top + ri * g.cellH, g.cellW, g.cellH);
             return;
+          }
+          if (view.solidDuplicate) {
+            const base = view.inside ? insideAt(chart, round, pair) : outsideAt(chart, round, pair);
+            const baseHex = chart.yarns.find((y) => y.id === base)?.hex;
+            if (!baseHex || colourDistance(yarn.hex, baseHex) >= CLOSE_COLOURS) {
+              const inset = g.cellW >= 6 ? 1 : 0;
+              ctx.fillStyle = yarn.hex;
+              ctx.fillRect(g.left + ci * g.cellW + inset, g.top + ri * g.cellH + inset, g.cellW - inset * 2, g.cellH - inset * 2);
+              if (Math.min(g.cellW, g.cellH) >= 9 && view.letters !== false) {
+                ctx.fillStyle = textOn(yarn.hex);
+                ctx.font = `700 ${Math.min(g.cellH * 0.65, fontSize)}px system-ui, sans-serif`;
+                ctx.fillText(yarn.id, g.left + ci * g.cellW + g.cellW / 2, g.top + ri * g.cellH + g.cellH / 2 + 0.5);
+              }
+              return;
+            }
           }
           const picked = view.highlight ? view.highlight.has(cellKey(round, pair)) : true;
           const cx = g.left + ci * g.cellW + g.cellW / 2;

@@ -5,24 +5,35 @@ import {
   NO_SYMMETRY,
   REPEATS,
   addDuplicateLayer,
+  addStripeYarn,
   analyse,
   crownPrint,
   fadeCrown,
+  fillStripes,
   floodFill,
   hasDuplicate,
   outsideAt,
   paintCell,
+  paintStripeCell,
   removeDuplicateLayer,
+  removeSmallPatches,
+  setLayerFaces,
+  setRoundPairs,
+  smallPatches,
   setYarnLook,
   symmetricCells,
+  visibleYarnAt,
 } from "@doubletake/core";
 import type { Chart, EditLayer, Symmetry } from "@doubletake/core";
+import { DrawStatus } from "../components/DrawStatus";
 import { EditorCanvas } from "../components/EditorCanvas";
+import { StripePlanner } from "../components/StripePlanner";
 import type { Geometry } from "../lib/render";
 import type { ChartView } from "../lib/render";
 import type { Project } from "../lib/model";
 import { tileDraws } from "../lib/crop";
 import * as db from "../lib/db";
+import { download, slug } from "../lib/files";
 import { decodePicture } from "../lib/decode";
 import { editorZoom, editorZoomBy, highContrast, isDark } from "../lib/settings";
 import { blobToCanvas, canvasToBlob, newUnderlay, pixelsToCanvas } from "../lib/underlay";
@@ -56,6 +67,10 @@ export function DrawScreen({ project }: { project: Project }) {
   const [mode, setMode] = useState<"draw" | "move">("draw");
   const [hidden, setHidden] = useState<Set<number>>(new Set());
   const [checks, setChecks] = useState(() => analyse(work.current));
+  const [look, setLook] = useState<"chart" | "picture">("chart");
+  const [showSingles, setShowSingles] = useState(false);
+  const [tidyMin, setTidyMin] = useState(2);
+  const [tidyLayer, setTidyLayer] = useState<number | null>(null);
 
   useEffect(() => () => void flushChartSave(), []);
 
@@ -114,11 +129,13 @@ export function DrawScreen({ project }: { project: Project }) {
   };
 
   const chart = work.current;
+  const striped = chart.mode === "stripes";
   const dupLayerIndex = layer.kind === "duplicate" ? layer.index : -1;
   // If the layer being drawn on was removed, fall back to the colours.
   if (layer.kind === "duplicate" && !chart.duplicate[layer.index]) setLayer({ kind: "main" });
 
   const paintValue = () => (layer.kind === "main" ? colour : adding ? "1" : "0");
+  const paintAt = (round: number, pair: number) => (striped ? paintStripeCell(work.current, round, pair, colour) : paintCell(work.current, layer, round, pair, paintValue()));
 
   const commit = () => {
     saveChartSoon(project.id, work.current, name);
@@ -138,7 +155,7 @@ export function DrawScreen({ project }: { project: Project }) {
 
   const applyCell = (round: number, pair: number): boolean => {
     let changed = false;
-    for (const c of symmetricCells(round, pair, sym)) if (paintCell(work.current, layer, c.round, c.pair, paintValue())) changed = true;
+    for (const c of symmetricCells(round, pair, sym)) if (paintAt(c.round, c.pair)) changed = true;
     return changed;
   };
 
@@ -146,7 +163,7 @@ export function DrawScreen({ project }: { project: Project }) {
     stroke.current = { began: false, changed: false, picking: tool === "pick" };
     if (tool === "pick") {
       if (layer.kind === "main") {
-        const id = outsideAt(work.current, round, pair);
+        const id = striped ? visibleYarnAt(work.current, round, pair) : outsideAt(work.current, round, pair);
         if (id) setColour(id);
       } else {
         const l = work.current.duplicate[layer.index];
@@ -158,7 +175,8 @@ export function DrawScreen({ project }: { project: Project }) {
     stroke.current.began = true;
     if (tool === "fill") {
       for (const c of symmetricCells(round, pair, sym)) {
-        if (floodFill(work.current, layer, c.round, c.pair, paintValue()).length > 0) stroke.current.changed = true;
+        const filled = striped ? fillStripes(work.current, c.round, c.pair, colour) : floodFill(work.current, layer, c.round, c.pair, paintValue());
+        if (filled.length > 0) stroke.current.changed = true;
       }
     } else if (applyCell(round, pair)) stroke.current.changed = true;
     redraw();
@@ -232,6 +250,15 @@ export function DrawScreen({ project }: { project: Project }) {
       ctx.restore();
     }
     const gridW = COLS.length * g.cellW;
+    if (showSingles) {
+      ctx.save();
+      ctx.strokeStyle = "#f26b5b";
+      ctx.lineWidth = 2;
+      for (const patch of smallPatches(work.current, null, 2)) {
+        for (const c of patch.cells) ctx.strokeRect(g.left + (112 - c.pair) * g.cellW - 1, g.top + (LAST_ROUND - c.round) * g.cellH - 1, g.cellW + 2, g.cellH + 2);
+      }
+      ctx.restore();
+    }
     // Where the crown starts
     const crownY = g.top + 20 * g.cellH;
     ctx.beginPath();
@@ -283,9 +310,14 @@ export function DrawScreen({ project }: { project: Project }) {
     highContrast: highContrast.value,
     dark: isDark(),
     decorate,
+    picture: look === "picture",
+    solidDuplicate: true,
   };
 
-  const mains = chart.yarns.filter((y) => y.role === "main");
+  const mains = chart.yarns.filter((y) => y.role === "main" || y.role === "stripe");
+  const singles = smallPatches(chart, null, 2).length;
+  const tidyCount = smallPatches(chart, tidyLayer, tidyMin);
+  const tidyCells = tidyCount.reduce((n, p) => n + p.cells.length, 0);
   const select = (label: string, value: string, onChange: (v: string) => void, options: [string, string][]) => (
     <label class="field">
       <span class="small muted">{label}</span>
@@ -319,6 +351,16 @@ export function DrawScreen({ project }: { project: Project }) {
         />
       </label>
 
+      <p class="card note small phone-only" style="margin:0 0 12px">
+        Drawing is easier on a tablet or computer. Make the chart there and bring it to your phone.{" "}
+        <button class="btn small" onClick={() => download(`${slug(name)}.doubletake.json`, JSON.stringify(work.current, null, 1))}>
+          Save the chart file
+        </button>{" "}
+        <a href="#/">Import it on Home</a>
+      </p>
+
+      <div class="draw-layout">
+      <div class="draw-side">
       <section class="card editor-tools" aria-label="Drawing tools">
         <div class="stack">
           <div class="seg" role="group" aria-label="Tool">
@@ -329,6 +371,7 @@ export function DrawScreen({ project }: { project: Project }) {
             ))}
           </div>
 
+          {!striped && (
           <div class="seg" role="group" aria-label="What to draw on" style="flex-wrap:wrap">
             <button aria-pressed={layer.kind === "main"} onClick={() => setLayer({ kind: "main" })}>
               Colours
@@ -342,6 +385,7 @@ export function DrawScreen({ project }: { project: Project }) {
               );
             })}
           </div>
+          )}
 
           {layer.kind === "main" ? (
             <div class="row" style="flex-wrap:wrap" role="group" aria-label="Colour to draw with">
@@ -383,6 +427,14 @@ export function DrawScreen({ project }: { project: Project }) {
                 Move around
               </button>
             </div>
+            <div class="seg" role="group" aria-label="How to show it">
+              <button aria-pressed={look === "chart"} onClick={() => setLook("chart")}>
+                Chart
+              </button>
+              <button aria-pressed={look === "picture"} onClick={() => setLook("picture")}>
+                Picture
+              </button>
+            </div>
             <div class="seg" role="group" aria-label="Zoom">
               <button aria-label="Zoom out" onClick={() => editorZoomBy(-1)}>
                 −
@@ -401,6 +453,133 @@ export function DrawScreen({ project }: { project: Project }) {
         </div>
       </section>
 
+      {striped && (
+        <section class="card" aria-labelledby="stripes-card">
+          <h2 id="stripes-card">Stripes</h2>
+          <StripePlanner chart={chart} total={75} onPairs={(pairs) => change(() => void setRoundPairs(work.current, pairs))} />
+        </section>
+      )}
+
+      <section class="card" aria-labelledby="colours-card">
+        <h2 id="colours-card">Colours and layers</h2>
+        <div class="stack">
+          {chart.yarns.map((y) => {
+            const i = chart.duplicate.findIndex((l) => l.yarn === y.id);
+            const layer = chart.duplicate[i];
+            return (
+              <div key={y.id} class="stack" style="gap:6px">
+                <div class="row" style="flex-wrap:wrap">
+                  <input type="color" class="colour-input" aria-label={`Colour for ${y.name}`} value={y.hex} onInput={(e) => change(() => setYarnLook(work.current, y.id, { hex: (e.currentTarget as HTMLInputElement).value }))} />
+                  <input class="input" style="flex:1;min-width:120px" aria-label={`Name of yarn ${y.id}`} value={y.name} onChange={(e) => change(() => setYarnLook(work.current, y.id, { name: (e.currentTarget as HTMLInputElement).value }))} />
+                  <span class="small muted">{y.id}, {y.role === "main" ? "main colour" : y.role === "stripe" ? "stripe colour" : "duplicate stitch"}</span>
+                </div>
+                {layer && !striped && (
+                  <div class="row" style="flex-wrap:wrap;margin-left:4px">
+                    <label class="check small">
+                      <input
+                        type="checkbox"
+                        checked={!hidden.has(i)}
+                        onChange={(e) => {
+                          const next = new Set(hidden);
+                          if ((e.currentTarget as HTMLInputElement).checked) next.delete(i);
+                          else next.add(i);
+                          setHidden(next);
+                        }}
+                      />
+                      Show
+                    </label>
+                    <label class="small row" style="gap:6px">
+                      Worked on
+                      <select class="select" style="width:auto" aria-label={`Faces for ${y.name}`} value={layer.faces} onChange={(e) => change(() => setLayerFaces(work.current, i, (e.currentTarget as HTMLSelectElement).value as "both" | "outside"))}>
+                        <option value="both">both faces</option>
+                        <option value="outside">outside only</option>
+                      </select>
+                    </label>
+                    <button class="btn small danger" onClick={() => change(() => removeDuplicateLayer(work.current, i))}>
+                      Remove
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {striped ? (
+            <button class="btn small" disabled={chart.yarns.length >= 6} onClick={() => change(() => void addStripeYarn(work.current, { name: `Colour ${String.fromCharCode(64 + chart.yarns.length + 1)}`, hex: "#2a5fd0" }))}>
+              Add a colour
+            </button>
+          ) : (
+          <button
+            class="btn small"
+            disabled={chart.duplicate.length >= MAX_DUPLICATE_LAYERS}
+            onClick={() => {
+              change(() => {
+                const i = addDuplicateLayer(work.current, { name: "Duplicate colour", hex: "#2a5fd0" });
+                if (i !== null) {
+                  setLayer({ kind: "duplicate", index: i });
+                  setAdding(true);
+                }
+              });
+            }}
+          >
+            Add a duplicate stitch colour
+          </button>
+          )}
+          <p class="small muted" style="margin:0">
+            {striped
+              ? "Every round is worked in two of these colours. Draw a third colour in a round and it is added on top with duplicate stitch."
+              : `Two colours are knitted. Duplicate stitch is worked on top, after blocking, for small details in more colours (up to ${MAX_DUPLICATE_LAYERS} more).`}
+          </p>
+        </div>
+      </section>
+
+      {chart.duplicate.length > 0 && (
+        <section class="card" aria-labelledby="tidy-card">
+          <h2 id="tidy-card">Tidy duplicate stitch</h2>
+          <div class="stack">
+            <label class="check">
+              <input type="checkbox" checked={showSingles} onChange={(e) => setShowSingles((e.currentTarget as HTMLInputElement).checked)} />
+              Show single squares ({singles})
+            </label>
+            <button class="btn small" disabled={singles === 0} onClick={() => change(() => removeSmallPatches(work.current, null, 2))}>
+              Remove single squares
+            </button>
+            <div class="row" style="flex-wrap:wrap">
+              <label class="small row" style="gap:6px">
+                Patches smaller than
+                <select class="select" style="width:auto" aria-label="Smaller than this many squares" value={tidyMin} onChange={(e) => setTidyMin(Number((e.currentTarget as HTMLSelectElement).value))}>
+                  {Array.from({ length: 11 }, (_, i) => i + 2).map((n) => (
+                    <option key={n} value={n}>
+                      {n} squares
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label class="small row" style="gap:6px">
+                in
+                <select class="select" style="width:auto" aria-label="Which colours to tidy" value={tidyLayer === null ? "all" : String(tidyLayer)} onChange={(e) => setTidyLayer((e.currentTarget as HTMLSelectElement).value === "all" ? null : Number((e.currentTarget as HTMLSelectElement).value))}>
+                  <option value="all">all colours</option>
+                  {chart.duplicate.map((l, i) => (
+                    <option key={l.yarn} value={i}>
+                      {chart.yarns.find((y) => y.id === l.yarn)?.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <p class="small muted" style="margin:0">
+              {tidyCount.length === 0 ? "Nothing that small." : `Would remove ${tidyCount.length} ${tidyCount.length === 1 ? "patch" : "patches"} (${tidyCells} ${tidyCells === 1 ? "square" : "squares"}).`}
+            </p>
+            <button class="btn small" disabled={tidyCount.length === 0} onClick={() => change(() => removeSmallPatches(work.current, tidyLayer, tidyMin))}>
+              Remove them
+            </button>
+            <p class="small muted" style="margin:0">Undo brings them back.</p>
+          </div>
+        </section>
+      )}
+      </div>
+
+      <div class="draw-main">
+      <DrawStatus chart={chart} checks={checks} />
       <section class="chart-box" aria-label="Drawing grid">
         <EditorCanvas
           view={view}
@@ -474,63 +653,8 @@ export function DrawScreen({ project }: { project: Project }) {
       </details>
 
       <details class="card">
-        <summary class="summary">Colours, duplicate stitch and crown</summary>
+        <summary class="summary">Crown</summary>
         <div class="stack" style="margin-top:12px">
-          {chart.yarns.map((y) => (
-            <div key={y.id} class="row" style="flex-wrap:wrap">
-              <input
-                type="color"
-                class="colour-input"
-                aria-label={`Colour for ${y.name}`}
-                value={y.hex}
-                onInput={(e) => change(() => setYarnLook(work.current, y.id, { hex: (e.currentTarget as HTMLInputElement).value }))}
-              />
-              <input class="input" style="flex:1;min-width:140px" aria-label={`Name of yarn ${y.id}`} value={y.name} onChange={(e) => change(() => setYarnLook(work.current, y.id, { name: (e.currentTarget as HTMLInputElement).value }))} />
-              <span class="small muted">
-                {y.id}, {y.role === "main" ? "main colour" : "duplicate stitch"}
-              </span>
-              {y.role === "duplicate" && (
-                <>
-                  <label class="check small">
-                    <input
-                      type="checkbox"
-                      checked={!hidden.has(chart.duplicate.findIndex((l) => l.yarn === y.id))}
-                      onChange={(e) => {
-                        const i = chart.duplicate.findIndex((l) => l.yarn === y.id);
-                        const next = new Set(hidden);
-                        if ((e.currentTarget as HTMLInputElement).checked) next.delete(i);
-                        else next.add(i);
-                        setHidden(next);
-                      }}
-                    />
-                    Show
-                  </label>
-                  <button class="btn small danger" onClick={() => change(() => removeDuplicateLayer(work.current, chart.duplicate.findIndex((l) => l.yarn === y.id)))}>
-                    Remove
-                  </button>
-                </>
-              )}
-            </div>
-          ))}
-          <button
-            class="btn small"
-            disabled={chart.duplicate.length >= MAX_DUPLICATE_LAYERS}
-            onClick={() => {
-              change(() => {
-                const i = addDuplicateLayer(work.current, { name: "Duplicate colour", hex: "#2a5fd0" });
-                if (i !== null) {
-                  setLayer({ kind: "duplicate", index: i });
-                  setAdding(true);
-                }
-              });
-            }}
-          >
-            Add a duplicate stitch colour
-          </button>
-          <p class="small muted" style="margin:0">
-            Duplicate stitch is worked on top of the knitting, after blocking, on both faces. Use it for small details in a third colour (up to {MAX_DUPLICATE_LAYERS}).
-          </p>
-
           <p class="small muted" style="margin:0">
             The crown is part of the grid, so you can draw all the way to the top. Colour changes in the crown make the knitting more complicated, because the rounds are short and the decreases move, but it can be done.
           </p>
@@ -568,6 +692,8 @@ export function DrawScreen({ project }: { project: Project }) {
       <a class="btn primary block" href={`#/p/${project.id}/review`}>
         Review and start knitting
       </a>
+      </div>
+      </div>
     </div>
   );
 }

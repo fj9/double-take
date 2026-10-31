@@ -55,10 +55,12 @@ async function screens(page: Page, scheme: "light" | "dark") {
 
   // Drawing
   await page.goto("/");
+  await page.getByRole("group", { name: "How many colours?" }).getByRole("button", { name: "3" }).click();
   await page.getByRole("button", { name: "Start drawing" }).click();
   await expect(page.getByRole("heading", { name: "Draw your chart" })).toBeVisible();
   await page.getByText("Trace over a picture").click();
-  await page.getByText("Colours, duplicate stitch and crown").click();
+  await page.getByText("Crown", { exact: true }).click();
+  await page.getByRole("button", { name: /^Duplicate stitch 0%/ }).click();
   await check(page, `${scheme}: draw`);
 }
 

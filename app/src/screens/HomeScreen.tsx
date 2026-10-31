@@ -24,24 +24,42 @@ export function ImportErrors({ errors, onClose }: { errors: ChartError[]; onClos
 }
 
 function DrawCard() {
-  const [a, setA] = useState({ name: "Colour A", hex: "#6b2d9e" });
-  const [b, setB] = useState({ name: "Colour B", hex: "#f07eb5" });
-  const field = (label: string, v: { name: string; hex: string }, set: (v: { name: string; hex: string }) => void) => (
-    <div class="row" style="flex-wrap:wrap;margin-bottom:12px">
-      <input type="color" class="colour-input" aria-label={`${label} colour`} value={v.hex} onInput={(e) => set({ ...v, hex: (e.currentTarget as HTMLInputElement).value })} />
-      <input class="input" style="flex:1;min-width:140px" aria-label={`${label} name`} value={v.name} onInput={(e) => set({ ...v, name: (e.currentTarget as HTMLInputElement).value })} />
-    </div>
-  );
+  const [colours, setColours] = useState(2);
+  const [striped, setStriped] = useState(false);
   return (
     <div class="card">
       <h3>Draw your own chart</h3>
-      <p class="small">Pick your two main yarn colours, then draw on the grid. The outside shows one colour and the inside shows the other.</p>
-      {field("First yarn", a, setA)}
-      {field("Second yarn", b, setB)}
+      <p class="small">Draw on the grid. The outside shows one main colour and the inside shows the other. You choose the yarn colours when you start drawing.</p>
+      <h4 id="draw-colours" style="margin:0 0 6px">
+        How many colours?
+      </h4>
+      <div class="seg" role="group" aria-labelledby="draw-colours">
+        {[2, 3, 4, 5, 6].map((n) => (
+          <button key={n} aria-pressed={colours === n} onClick={() => setColours(n)}>
+            {n}
+          </button>
+        ))}
+      </div>
+      <h4 id="draw-how" style="margin:12px 0 6px">
+        How is it knitted?
+      </h4>
+      <div class="seg" role="group" aria-labelledby="draw-how">
+        <button aria-pressed={!striped} onClick={() => setStriped(false)}>
+          A print
+        </button>
+        <button aria-pressed={striped} onClick={() => setStriped(true)}>
+          Stripes
+        </button>
+      </div>
+      <p class="small muted" style="margin:6px 0 12px">
+        {striped
+          ? "Every round is worked in two of your colours, and you choose which two as you go up the hat. A third colour in a round is added with duplicate stitch."
+          : "Two colours are knitted. Any more are added afterwards with duplicate stitch."}
+      </p>
       <button
         class="btn primary block"
         onClick={async () => {
-          const project = await createDrawProject({ name: a.name.trim() || "Colour A", hex: a.hex }, { name: b.name.trim() || "Colour B", hex: b.hex });
+          const project = await createDrawProject({ name: "Colour A", hex: "#6b2d9e" }, { name: "Colour B", hex: "#f07eb5" }, "My hat", colours, striped);
           location.hash = `#/p/${project.id}/draw`;
         }}
       >

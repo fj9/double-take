@@ -35,7 +35,7 @@ test("you can draw in the crown, are warned, and can fade it out", async ({ page
   for (let col = 0; col < 30; col++) await clickCell(page, col, 12);
   await expect(page.getByText("Colour in the crown.")).toBeVisible();
   await expect(page.getByText(/more complicated/).first()).toBeVisible();
-  await page.getByText("Colours, duplicate stitch and crown").click();
+  await page.getByText("Crown", { exact: true }).click();
   await page.getByRole("button", { name: "Fade the print out of the crown" }).click();
   await expect(page.getByText("Colour in the crown.")).toHaveCount(0);
 });
@@ -56,7 +56,6 @@ test("the drawing is saved and the hat reopens in the editor", async ({ page }) 
 
 test("a duplicate stitch colour can be added and drawn", async ({ page }) => {
   await startDrawing(page);
-  await page.getByText("Colours, duplicate stitch and crown").click();
   await page.getByRole("button", { name: "Add a duplicate stitch colour" }).click();
   await expect(page.getByRole("button", { name: "Duplicate: Duplicate colour" })).toHaveAttribute("aria-pressed", "true");
   await clickCell(page, 30, 40);
@@ -205,4 +204,128 @@ test("zooming the picture out repeats it to fill the whole body", async ({ page 
   await page.getByText("Trace over a picture").click();
   await expect(page.getByLabel("Flip every other copy so the edges match")).toBeChecked();
   await expect(page.getByLabel("Zoom the picture")).toHaveValue("0.3");
+});
+
+test("starting with four colours makes two duplicate stitch layers, ready to draw", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("group", { name: "How many colours?" }).getByRole("button", { name: "4" }).click();
+  await page.getByRole("button", { name: "Start drawing" }).click();
+  await expect(page.getByRole("heading", { name: "Draw your chart" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Duplicate: Colour C" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Duplicate: Colour D" })).toBeVisible();
+  // The colours and layers are on show, not folded away
+  await expect(page.getByRole("heading", { name: "Colours and layers" })).toBeVisible();
+  await expect(page.getByLabel("Name of yarn C")).toBeVisible();
+});
+
+test("the status chip shows the amount of duplicate stitch and opens the gauge", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("group", { name: "How many colours?" }).getByRole("button", { name: "3" }).click();
+  await page.getByRole("button", { name: "Start drawing" }).click();
+  await page.getByRole("button", { name: "Duplicate: Colour C" }).click();
+  await page.getByRole("button", { name: "Fill", exact: true }).click();
+  await clickCell(page, 20, 40); // fills the whole layer: far too much
+  const chip = page.getByRole("button", { name: /^Duplicate stitch .*% · 3 colours/ });
+  await expect(chip).toBeVisible();
+  await chip.click();
+  await expect(page.getByText(/Too much to do well/)).toBeVisible();
+  await expect(page.getByText(/Stripes suit big areas/)).toBeVisible();
+});
+
+test("single squares can be shown, counted and removed, and Undo brings them back", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("group", { name: "How many colours?" }).getByRole("button", { name: "3" }).click();
+  await page.getByRole("button", { name: "Start drawing" }).click();
+  await page.getByRole("button", { name: "Duplicate: Colour C" }).click();
+  await clickCell(page, 30, 40);
+  await clickCell(page, 50, 50);
+  await expect(page.getByText("Show single squares (2)")).toBeVisible();
+  await page.getByRole("button", { name: "Remove single squares" }).click();
+  await expect(page.getByText("Show single squares (0)")).toBeVisible();
+  await page.getByRole("button", { name: "Undo" }).first().click();
+  await expect(page.getByText("Show single squares (2)")).toBeVisible();
+});
+
+test("patches under a size can be tidied for one colour", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("group", { name: "How many colours?" }).getByRole("button", { name: "3" }).click();
+  await page.getByRole("button", { name: "Start drawing" }).click();
+  await page.getByRole("button", { name: "Duplicate: Colour C" }).click();
+  await clickCell(page, 30, 40);
+  await clickCell(page, 31, 40);
+  await clickCell(page, 50, 50);
+  await page.getByLabel("Smaller than this many squares").selectOption("3");
+  await expect(page.getByText("Would remove 2 patches (3 squares).")).toBeVisible();
+  await page.getByRole("button", { name: "Remove them" }).click();
+  await expect(page.getByText("Nothing that small.")).toBeVisible();
+});
+
+test("a duplicate layer can be worked on the outside only", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("group", { name: "How many colours?" }).getByRole("button", { name: "3" }).click();
+  await page.getByRole("button", { name: "Start drawing" }).click();
+  await page.getByLabel("Faces for Colour C").selectOption("outside");
+  await expect(page.getByLabel("Faces for Colour C")).toHaveValue("outside");
+});
+
+test("on a phone, Draw says it is easier on a tablet or computer", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Start drawing" }).click();
+  await expect(page.getByText(/Drawing is easier on a tablet or computer/)).toBeVisible();
+  await page.setViewportSize({ width: 1100, height: 800 });
+  await expect(page.getByText(/Drawing is easier on a tablet or computer/)).toBeHidden();
+});
+
+test("the grid can show the picture, with duplicate stitch in solid colour", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("group", { name: "How many colours?" }).getByRole("button", { name: "3" }).click();
+  await page.getByRole("button", { name: "Start drawing" }).click();
+  await page.getByRole("button", { name: "Duplicate: Colour C" }).click();
+  await page.getByRole("group", { name: "How to show it" }).getByRole("button", { name: "Picture" }).click();
+  await expect(page.getByRole("group", { name: "How to show it" }).getByRole("button", { name: "Picture" })).toHaveAttribute("aria-pressed", "true");
+  await clickCell(page, 30, 40);
+  await expect(page.getByText(/Colour C duplicate stitch: 1 patch/)).toBeVisible();
+});
+
+async function startStripes(page: Page, colours: string) {
+  await page.goto("/");
+  await page.getByRole("group", { name: "How many colours?" }).getByRole("button", { name: colours }).click();
+  await page.getByRole("group", { name: "How is it knitted?" }).getByRole("button", { name: "Stripes" }).click();
+  await page.getByRole("button", { name: "Start drawing" }).click();
+  await expect(page.getByRole("heading", { name: "Draw your chart" })).toBeVisible();
+}
+
+test("a striped chart can be drawn: stripes, colours, and a third colour in a round", async ({ page }) => {
+  await startStripes(page, "3");
+  await expect(page.getByRole("heading", { name: "Stripes", exact: true })).toBeVisible();
+  await expect(page.getByText(/^Rounds 1 to/)).toBeVisible();
+  await expect(page.getByLabel("Stripe 1, colour 1")).toHaveValue("A");
+  // The layer picker is for prints only
+  await expect(page.getByRole("button", { name: /^Duplicate:/ })).toHaveCount(0);
+  // Colour C is not in the first stripe's pair, so drawing it there is duplicate stitch
+  await page.getByRole("button", { name: /Colour C \(C\)/ }).click();
+  await clickCell(page, 30, 70);
+  await expect(page.getByText(/Colour C duplicate stitch: 1 patch/)).toBeVisible();
+  // Move where the stripes change, and the drawing keeps its colours
+  await page.getByLabel("Last round of stripe 1").fill("20");
+  await page.getByLabel("Last round of stripe 1").blur();
+  await expect(page.getByText(/Rounds 21 to 75/)).toBeVisible();
+  await page.getByRole("link", { name: "Review and start knitting" }).click();
+  await expect(page.getByRole("heading", { name: "Review your chart" })).toBeVisible();
+  await expect(page.getByRole("alert")).toHaveCount(0);
+});
+
+test("a stripe can be added and removed", async ({ page }) => {
+  await startStripes(page, "3");
+  await page.getByRole("button", { name: "Add a stripe" }).click();
+  await expect(page.getByLabel("Stripe 3, colour 1")).toBeVisible();
+  await page.getByRole("button", { name: "Remove stripe 3" }).click();
+  await expect(page.getByLabel("Stripe 3, colour 1")).toHaveCount(0);
+});
+
+test("a striped chart can be started knitting", async ({ page }) => {
+  await startStripes(page, "2");
+  await page.getByRole("link", { name: "Review and start knitting" }).click();
+  await page.getByRole("button", { name: /start knitting/i }).click();
+  await expect(page.locator("#main").getByText(/Round 1 of 95/)).toBeVisible();
 });

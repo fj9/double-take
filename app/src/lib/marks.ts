@@ -9,7 +9,8 @@ const rgb = (hex: string): [number, number, number] => {
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 };
 
-function distance(a: string, b: string): number {
+/** How different two #rrggbb colours look (CIE76 distance). */
+export function colourDistance(a: string, b: string): number {
   const x = rgbToLab(...rgb(a));
   const y = rgbToLab(...rgb(b));
   return Math.hypot(x[0] - y[0], x[1] - y[1], x[2] - y[2]);
@@ -29,7 +30,7 @@ export function closestPair(chart: Chart): number | null {
     const ya = chart.yarns.find((y) => y.id === a);
     const yb = chart.yarns.find((y) => y.id === b);
     if (!ya || !yb) continue;
-    const d = distance(ya.hex, yb.hex);
+    const d = colourDistance(ya.hex, yb.hex);
     if (best === null || d < best) best = d;
   }
   return best;

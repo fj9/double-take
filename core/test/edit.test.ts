@@ -9,6 +9,14 @@ import {
   newBlankChart,
   outsideAt,
   paintCell,
+  paintStripeCell,
+  fillStripes,
+  newBlankStripesChart,
+  setRoundPairs,
+  visibleYarnAt,
+  removeSmallPatches,
+  setLayerFaces,
+  smallPatches,
   removeDuplicateLayer,
   setDuplicate,
   setOutside,
@@ -236,5 +244,82 @@ describe("analysis", () => {
     const a = analyse(loadLeopard());
     const total = Object.values(a.outsideShare).reduce((x, y) => x + y, 0);
     expect(total).toBeCloseTo(1, 6);
+  });
+});
+
+describe("tidying duplicate stitch", () => {
+  const withDots = () => {
+    const chart = newBlankChart("t");
+    addDuplicateLayer(chart, { name: "Dots", hex: "#ff0000" });
+    setDuplicate(chart, 0, 10, 10, true); // a single square
+    setDuplicate(chart, 0, 30, 30, true); // a patch of three
+    setDuplicate(chart, 0, 30, 31, true);
+    setDuplicate(chart, 0, 31, 30, true);
+    return chart;
+  };
+
+  it("finds patches smaller than a size, without changing the chart", () => {
+    const chart = withDots();
+    expect(smallPatches(chart, null, 2)).toHaveLength(1);
+    expect(smallPatches(chart, 0, 4)).toHaveLength(2);
+    expect(analyse(chart).duplicate[0]?.cells).toBe(4);
+  });
+
+  it("removes them, and leaves a chart that is still valid", () => {
+    const chart = withDots();
+    expect(removeSmallPatches(chart, null, 2)).toEqual({ patches: 1, cells: 1 });
+    expect(analyse(chart).duplicate[0]?.cells).toBe(3);
+    expect(valid(chart)).toEqual([]);
+  });
+
+  it("sets which faces a layer is worked on", () => {
+    const chart = withDots();
+    expect(setLayerFaces(chart, 0, "outside")).toBe(true);
+    expect(chart.duplicate[0]?.faces).toBe("outside");
+    expect(setLayerFaces(chart, 0, "outside")).toBe(false);
+    expect(valid(chart)).toEqual([]);
+  });
+});
+
+describe("drawing stripes", () => {
+  const stripes = () => newBlankStripesChart("s", [{ name: "red", hex: "#cc0000" }, { name: "white", hex: "#ffffff" }, { name: "blue", hex: "#0000cc" }]);
+
+  it("starts as a valid chart in bands, each in a neighbouring pair", () => {
+    const chart = stripes();
+    expect(valid(chart)).toEqual([]);
+    expect(chart.round_pairs?.[0]).toEqual(["A", "B"]);
+    expect(chart.round_pairs?.[74]).toEqual(["B", "C"]);
+  });
+
+  it("paints a yarn of the round's pair as knitting and any other yarn as duplicate stitch", () => {
+    const chart = stripes();
+    expect(paintStripeCell(chart, 5, 10, "B")).toBe(true);
+    expect(outsideAt(chart, 5, 10)).toBe("B");
+    expect(chart.duplicate).toHaveLength(0);
+    expect(paintStripeCell(chart, 5, 11, "C")).toBe(true);
+    expect(chart.duplicate).toHaveLength(1);
+    expect(visibleYarnAt(chart, 5, 11)).toBe("C");
+    expect(outsideAt(chart, 5, 11)).toBe("A");
+    expect(paintStripeCell(chart, 5, 11, "B")).toBe(true);
+    expect(visibleYarnAt(chart, 5, 11)).toBe("B");
+    expect(valid(chart)).toEqual([]);
+  });
+
+  it("keeps the colours of what is drawn when the stripe plan changes", () => {
+    const chart = stripes();
+    paintStripeCell(chart, 5, 10, "B");
+    const pairs = chart.round_pairs?.map(() => ["B", "C"] as [string, string]) as [string, string][];
+    const { moved } = setRoundPairs(chart, pairs);
+    expect(visibleYarnAt(chart, 5, 10)).toBe("B");
+    expect(visibleYarnAt(chart, 5, 12)).toBe("A"); // A is no longer worked in this round: it is embroidered
+    expect(moved).toBeGreaterThan(0);
+    expect(valid(chart)).toEqual([]);
+  });
+
+  it("fills an area", () => {
+    const chart = stripes();
+    expect(fillStripes(chart, 5, 10, "B").length).toBeGreaterThan(1000);
+    expect(visibleYarnAt(chart, 5, 10)).toBe("B");
+    expect(valid(chart)).toEqual([]);
   });
 });

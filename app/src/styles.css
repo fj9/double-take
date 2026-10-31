@@ -348,3 +348,17 @@ label.field { display: block; margin-bottom: 12px; }
   .colour-row { grid-template-columns: auto minmax(0, 1fr) auto; }
   .colour-row .select { grid-column: 1 / -1; }
 }
+
+/* Drawing: tools beside the grid on wide screens */
+.phone-only { display: block; }
+.draw-layout { display: block; }
+.draw-status { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 4px 0; }
+.status-chip { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; padding: 0 14px; border: 1.5px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); font: 700 14px var(--font-display); text-align: left; cursor: pointer; }
+.status-chip.warn { background: color-mix(in srgb, #e8a933 22%, var(--card)); border-color: #b9780b; }
+.status-chip.stop { background: color-mix(in srgb, var(--error) 16%, var(--card)); border-color: var(--error); }
+@media (min-width: 768px) {
+  .phone-only { display: none; }
+  .draw-layout { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 16px; align-items: start; }
+  .draw-side { position: sticky; top: 8px; max-height: calc(100dvh - 16px); overflow-y: auto; }
+}
+.stripe-block { display: flex; flex-direction: column; gap: 6px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; }

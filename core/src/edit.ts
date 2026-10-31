@@ -4,7 +4,9 @@
  * and a cell is in at most one duplicate layer.
  */
 import { outsideAt, yarnsInRound } from "./chart";
-import type { Chart, DuplicateLayer } from "./chart";
+import type { Chart, DuplicateLayer, YarnId } from "./chart";
+import { findPatches } from "./patches";
+import type { Patch } from "./patches";
 import { BODY_ROUNDS, FIRST_CROWN_ROUND, LAST_ROUND, PAIRS, crownLayout } from "./hat";
 
 export interface CellRef {
@@ -172,4 +174,165 @@ export function setYarnLook(chart: Chart, id: string, look: { name?: string; hex
   if (look.name !== undefined && look.name.trim() !== "") yarn.name = look.name.trim();
   if (look.hex !== undefined && /^#[0-9a-fA-F]{6}$/.test(look.hex)) yarn.hex = look.hex;
   return true;
+}
+
+/** Duplicate stitch patches smaller than `min` squares, in one layer or (with null) in all of them. */
+export function smallPatches(chart: Chart, layerIndex: number | null, min: number): Patch[] {
+  const layers = layerIndex === null ? chart.duplicate : chart.duplicate.slice(layerIndex, layerIndex + 1);
+  return layers.flatMap((layer) => findPatches(layer).filter((p) => p.cells.length < min));
+}
+
+/** Take out the patches smaller than `min` squares. Returns how many patches and squares went. */
+export function removeSmallPatches(chart: Chart, layerIndex: number | null, min: number): { patches: number; cells: number } {
+  const layers = layerIndex === null ? chart.duplicate : chart.duplicate.slice(layerIndex, layerIndex + 1);
+  let patches = 0;
+  let cells = 0;
+  for (const layer of layers) {
+    for (const patch of findPatches(layer).filter((p) => p.cells.length < min)) {
+      patches++;
+      for (const c of patch.cells) {
+        writeLayer(layer, c.round, c.pair, "0");
+        cells++;
+      }
+    }
+  }
+  return { patches, cells };
+}
+
+/** Work a duplicate layer on both faces, or on the outside only. */
+export function setLayerFaces(chart: Chart, index: number, faces: "both" | "outside"): boolean {
+  const layer = chart.duplicate[index];
+  if (!layer || layer.faces === faces) return false;
+  layer.faces = faces;
+  return true;
+}
+
+// ---- Stripes ----
+// In a striped chart the yarns of a round are its pair. A cell is knitted in one of them (the outside), and a cell
+// whose colour is a third yarn is that yarn worked over the knitting in duplicate stitch, on the outside only.
+
+/** The colour seen on the outside of a cell: its duplicate stitch yarn if it has one, else the knitted yarn. */
+export function visibleYarnAt(chart: Chart, round: number, pair: number): YarnId | null {
+  for (const layer of chart.duplicate) if (isPresent(round, pair) && hasDuplicate(layer, round, pair)) return layer.yarn;
+  return outsideAt(chart, round, pair);
+}
+
+function blankLayer(chart: Chart, yarn: YarnId): DuplicateLayer {
+  return {
+    yarn,
+    faces: "outside",
+    body: chart.body.map((r) => "0".repeat(r.length)),
+    crown: chart.crown.rounds.map((r) => [...r].map((ch) => (ch === "." ? "." : "0")).join("")),
+  };
+}
+
+/** The duplicate layer for a stripe yarn, made if it isn't there yet. Null when all four layers are taken by other yarns. */
+function stripeLayerFor(chart: Chart, yarn: YarnId): number | null {
+  const found = chart.duplicate.findIndex((l) => l.yarn === yarn);
+  if (found >= 0) return found;
+  if (chart.duplicate.length >= MAX_DUPLICATE_LAYERS) return null;
+  chart.duplicate.push(blankLayer(chart, yarn));
+  return chart.duplicate.length - 1;
+}
+
+/** Paint a cell of a striped chart in any of the chart's yarns. Returns true if it changed. */
+export function paintStripeCell(chart: Chart, round: number, pair: number, yarn: YarnId): boolean {
+  if (chart.mode !== "stripes" || !isPresent(round, pair) || !chart.yarns.some((y) => y.id === yarn)) return false;
+  if (visibleYarnAt(chart, round, pair) === yarn) return false;
+  const inPair = yarnsInRound(chart, round).includes(yarn);
+  const layer = inPair ? null : stripeLayerFor(chart, yarn);
+  if (!inPair && layer === null) return false;
+  for (const l of chart.duplicate) if (hasDuplicate(l, round, pair)) writeLayer(l, round, pair, "0");
+  if (inPair) setOutside(chart, round, pair, yarn);
+  else writeLayer(chart.duplicate[layer as number] as DuplicateLayer, round, pair, "1");
+  return true;
+}
+
+/** Fill the connected area of one colour with another, in a striped chart. */
+export function fillStripes(chart: Chart, round: number, pair: number, yarn: YarnId): CellRef[] {
+  const target = visibleYarnAt(chart, round, pair);
+  if (target === null || target === yarn) return [];
+  const key = (r: number, p: number) => r * 256 + p;
+  const seen = new Set<number>([key(round, pair)]);
+  const stack: CellRef[] = [{ round, pair }];
+  const found: CellRef[] = [];
+  while (stack.length > 0) {
+    const c = stack.pop() as CellRef;
+    found.push(c);
+    for (const [dr, dp] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+      const r = c.round + dr;
+      const p = wrapPair(c.pair + dp);
+      if (!isPresent(r, p) || seen.has(key(r, p)) || visibleYarnAt(chart, r, p) !== target) continue;
+      seen.add(key(r, p));
+      stack.push({ round: r, pair: p });
+    }
+  }
+  return found.filter((c) => paintStripeCell(chart, c.round, c.pair, yarn));
+}
+
+const rgbOf = (hex: string): [number, number, number] => {
+  const n = parseInt(hex.slice(1), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+};
+
+/**
+ * Change which two yarns each body round is worked in (the crown follows round 75). What is drawn keeps its colour:
+ * where the colour is still in the round's pair it is knitted, and where it isn't it becomes duplicate stitch over the
+ * nearest yarn of the pair. If all four duplicate layers are taken, that cell takes the nearest yarn instead.
+ */
+export function setRoundPairs(chart: Chart, pairs: [YarnId, YarnId][]): { moved: number; lost: number } {
+  if (chart.mode !== "stripes" || pairs.length !== BODY_ROUNDS) return { moved: 0, lost: 0 };
+  const hex = (id: YarnId) => rgbOf(chart.yarns.find((y) => y.id === id)?.hex ?? "#000000");
+  const far = (a: YarnId, b: YarnId) => {
+    const x = hex(a);
+    const y = hex(b);
+    return (x[0] - y[0]) ** 2 + (x[1] - y[1]) ** 2 + (x[2] - y[2]) ** 2;
+  };
+  // What each cell looks like now, before anything changes
+  const before = new Map<number, YarnId>();
+  for (let round = 1; round <= LAST_ROUND; round++) {
+    for (let p = 1; p <= PAIRS; p++) {
+      const v = visibleYarnAt(chart, round, p);
+      if (v !== null) before.set(round * 256 + p, v);
+    }
+  }
+  chart.round_pairs = pairs.map(([a, b]) => [a, b]);
+  for (const l of chart.duplicate) {
+    l.body = l.body.map((r) => "0".repeat(r.length));
+    l.crown = l.crown.map((r) => [...r].map((ch) => (ch === "." ? "." : "0")).join(""));
+  }
+  let moved = 0;
+  let lost = 0;
+  for (let round = 1; round <= LAST_ROUND; round++) {
+    const [a, b] = pairs[Math.min(round, BODY_ROUNDS) - 1] as [YarnId, YarnId];
+    for (let p = 1; p <= PAIRS; p++) {
+      const v = before.get(round * 256 + p);
+      if (v === undefined) continue;
+      if (v === a || v === b) {
+        setOutside(chart, round, p, v);
+        continue;
+      }
+      const under = far(v, a) <= far(v, b) ? a : b;
+      if (round <= BODY_ROUNDS) chart.body[round - 1] = setChar(chart.body[round - 1] as string, p - 1, under);
+      else chart.crown.rounds[round - FIRST_CROWN_ROUND] = setChar(chart.crown.rounds[round - FIRST_CROWN_ROUND] as string, p - 1, under);
+      const layer = stripeLayerFor(chart, v);
+      if (layer === null) lost++;
+      else {
+        writeLayer(chart.duplicate[layer] as DuplicateLayer, round, p, "1");
+        moved++;
+      }
+    }
+  }
+  // A layer with nothing in it only takes up one of the four
+  chart.duplicate = chart.duplicate.filter((l) => [...l.body, ...l.crown].some((r) => r.includes("1")));
+  return { moved, lost };
+}
+
+/** Add another stripe yarn (up to six). Returns its id, or null if there is no room. */
+export function addStripeYarn(chart: Chart, look: { name: string; hex: string }): YarnId | null {
+  if (chart.mode !== "stripes") return null;
+  const id = ["A", "B", "C", "D", "E", "F"].find((c) => !chart.yarns.some((y) => y.id === c));
+  if (!id) return null;
+  chart.yarns.push({ id, name: look.name, hex: look.hex, role: "stripe" });
+  return id;
 }
