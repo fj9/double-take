@@ -47,6 +47,9 @@ test("the pace planner spreads the rounds over the days and shows how you are do
   await page.getByRole("button", { name: "Use this chart" }).first().click();
   await expect(page.getByText("Round 1 of 95")).toBeVisible();
   await page.getByRole("link", { name: "Steps" }).click();
+  await expect(page.getByText("Plan your pace")).toHaveCount(0);
+  await page.getByRole("button", { name: "Mark as done" }).first().click();
+  await page.getByText("Plan your pace (optional)").click();
   const d = new Date();
   const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   await page.getByLabel("Start date").fill(iso);
@@ -70,6 +73,7 @@ test("the pace planner spreads the rounds over the days and shows how you are do
   await expect(page.getByText("aim for round 10: on track")).toBeVisible();
   await page.getByRole("link", { name: "Steps" }).click();
   await page.getByRole("button", { name: "Remove the plan" }).click();
+  await page.getByText("Plan your pace (optional)").click();
   await expect(page.getByRole("button", { name: "Make a plan" })).toBeVisible();
   await page.getByRole("link", { name: "Round", exact: true }).click();
   await expect(page.getByText("Your plan:")).toHaveCount(0);
@@ -79,6 +83,8 @@ test("a plan is not part of the chart file, or a shared chart", async ({ page })
   await page.goto("/");
   await page.getByRole("button", { name: "Use this chart" }).first().click();
   await page.getByRole("link", { name: "Steps" }).click();
+  await page.getByRole("button", { name: "Mark as done" }).first().click();
+  await page.getByText("Plan your pace (optional)").click();
   await page.getByRole("button", { name: "Make a plan" }).click();
   await page.getByRole("link", { name: "Hat" }).click();
   const download = page.waitForEvent("download");

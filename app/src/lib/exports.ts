@@ -2,6 +2,7 @@ import { CELL_ASPECT, FIRST_CROWN_ROUND, LAST_ROUND, PAIRS, analyse, crownLayout
 import type { Chart } from "@doubletake/core";
 import { chartSvg } from "./svg";
 import { slug } from "./files";
+import { textOn } from "./render";
 
 const csvCell = (v: string) => (/[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
 const csvRow = (cells: string[]) => cells.map(csvCell).join(",");
@@ -59,14 +60,14 @@ export function shoppingList(chart: Chart, name: string): string {
 }
 
 /** The whole hat laid flat as an SVG (vector, so it prints and scales cleanly). Round 1 at the bottom, crown at the top. */
-export function flatSvg(chart: Chart, inside: boolean): string {
+export function flatSvg(chart: Chart, inside: boolean, letters = false): string {
   const rows = Array.from({ length: LAST_ROUND }, (_, i) => LAST_ROUND - i);
   const cols = Array.from({ length: PAIRS }, (_, i) => (inside ? i + 1 : PAIRS - i));
-  return chartSvg({ chart, cols, rows, inside, label: `The hat laid flat, ${inside ? "inside" : "outside"} view` });
+  return chartSvg({ chart, cols, rows, inside, letters, label: `The hat laid flat, ${inside ? "inside" : "outside"} view` });
 }
 
 /** The whole hat laid flat as a PNG. */
-export async function flatPng(chart: Chart, inside: boolean, cellW = 8): Promise<Uint8Array> {
+export async function flatPng(chart: Chart, inside: boolean, cellW = 8, letters = false): Promise<Uint8Array> {
   const cellH = Math.max(2, Math.round(cellW / CELL_ASPECT));
   const canvas = document.createElement("canvas");
   canvas.width = PAIRS * cellW;
@@ -76,6 +77,11 @@ export async function flatPng(chart: Chart, inside: boolean, cellW = 8): Promise
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   const hex = new Map(chart.yarns.map((y) => [y.id, y.hex] as const));
+  if (letters) {
+    ctx.font = `700 ${Math.round(cellH * 0.7)}px sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+  }
   for (let r = 1; r <= LAST_ROUND; r++) {
     const y = (LAST_ROUND - r) * cellH;
     for (let col = 0; col < PAIRS; col++) {
@@ -84,6 +90,10 @@ export async function flatPng(chart: Chart, inside: boolean, cellW = 8): Promise
       if (id === null) continue;
       ctx.fillStyle = hex.get(id) ?? "#cccccc";
       ctx.fillRect(col * cellW, y, cellW, cellH);
+      if (letters) {
+        ctx.fillStyle = textOn(hex.get(id) ?? "#cccccc");
+        ctx.fillText(id, col * cellW + cellW / 2, y + cellH / 2);
+      }
       for (const layer of chart.duplicate) {
         if (inside && layer.faces === "outside") continue;
         if (!hasDuplicate(layer, r, pair)) continue;
@@ -161,16 +171,16 @@ export function makeZip(files: ZipFile[], when = new Date()): Uint8Array {
 }
 
 /** Everything in one zip: the chart file, pictures, vector pictures, spreadsheets and the shopping list. */
-export async function exportAll(chart: Chart, name: string): Promise<{ filename: string; data: Uint8Array }> {
+export async function exportAll(chart: Chart, name: string, symbols = false): Promise<{ filename: string; data: Uint8Array }> {
   const enc = new TextEncoder();
   const text = (n: string, s: string): ZipFile => ({ name: n, data: enc.encode(s) });
   const base = slug(name);
   const files: ZipFile[] = [
     text(`${base}.doubletake.json`, JSON.stringify(chart, null, 1)),
-    { name: "outside.png", data: await flatPng(chart, false) },
-    { name: "inside.png", data: await flatPng(chart, true) },
-    text("outside.svg", flatSvg(chart, false)),
-    text("inside.svg", flatSvg(chart, true)),
+    { name: "outside.png", data: await flatPng(chart, false, symbols ? 12 : 8, symbols) },
+    { name: "inside.png", data: await flatPng(chart, true, symbols ? 12 : 8, symbols) },
+    text("outside.svg", flatSvg(chart, false, symbols)),
+    text("inside.svg", flatSvg(chart, true, symbols)),
     text("chart.csv", chartCsv(chart)),
     text("yarns.csv", yarnsCsv(chart)),
     text("shopping-list.txt", shoppingList(chart, name)),

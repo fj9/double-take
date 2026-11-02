@@ -18,14 +18,14 @@ export function ReviewScreen({ project, progress }: { project: Project; progress
   const stop = a.warnings.some((w) => w.level === "stop");
   const [ack, setAck] = useState(false);
   const [face, setFace] = useState<"outside" | "inside">("outside");
-  const [dots, setDots] = useState(true);
+  const [marks, setMarks] = useState(false);
   const box = useRef<HTMLDivElement>(null);
   const width = useWidth(box);
 
   const cellW = Math.max(2.5, (width - 40) / 112);
   const rows = Array.from({ length: 95 }, (_, i) => 95 - i);
   const cols = Array.from({ length: 112 }, (_, i) => (face === "outside" ? 112 - i : i + 1));
-  const view: ChartView = { chart, cols, rows, cellW, showDuplicate: dots, inside: face === "inside", highContrast: false, dark: isDark() };
+  const view: ChartView = { chart, cols, rows, cellW, showDuplicate: true, solidDuplicate: true, picture: !marks, inside: face === "inside", highContrast: false, dark: isDark() };
 
   const start = async () => {
     await flushChartSave();
@@ -47,8 +47,14 @@ export function ReviewScreen({ project, progress }: { project: Project; progress
 
   return (
     <div>
-      <h1>Review your chart</h1>
-      <p class="muted">Check everything before you cast on. The chart is {project.name}.</p>
+      {designing ? (
+        <>
+          <h1>Review your chart</h1>
+          <p class="muted">Check everything before you cast on. The chart is {project.name}.</p>
+        </>
+      ) : (
+        <h1>The chart for {project.name}</h1>
+      )}
 
       {!valid.ok && (
         <div class="card" role="alert" style="border-color:var(--error)">
@@ -79,12 +85,10 @@ export function ReviewScreen({ project, progress }: { project: Project; progress
               Inside view
             </button>
           </div>
-          {chart.duplicate.length > 0 && (
-            <label class="check small">
-              <input type="checkbox" checked={dots} onChange={(e) => setDots((e.currentTarget as HTMLInputElement).checked)} />
-              Show duplicate stitch dots
-            </label>
-          )}
+          <label class="check small">
+            <input type="checkbox" checked={marks} onChange={(e) => setMarks((e.currentTarget as HTMLInputElement).checked)} />
+            Show marks
+          </label>
         </div>
         <div ref={box} class="chart-box" style="margin:0">
           <ChartCanvas view={view} label={`The whole hat laid flat, ${face} view, round 1 at the bottom and the crown at the top.`} />

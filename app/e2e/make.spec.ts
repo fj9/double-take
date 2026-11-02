@@ -92,6 +92,16 @@ test("a picture becomes a three-colour chart with duplicate stitch", async ({ pa
   await expect(page.getByRole("link", { name: "Draw", exact: true })).toBeVisible();
 });
 
+test("on a wide screen the side rail is an index of the sections on the page", async ({ page }) => {
+  await page.setViewportSize({ width: 1100, height: 800 });
+  await openMake(page);
+  await pickSpots(page);
+  const index = page.getByRole("navigation", { name: "On this page" });
+  await expect(index.getByRole("link")).toHaveText(["Frame", "Colours", "Seam", "Duplicate stitch", "Result"], { timeout: 20_000 });
+  await index.getByRole("link", { name: "Seam" }).click();
+  await expect(page.getByRole("heading", { name: /Joining up round the hat/ })).toBeInViewport();
+});
+
 test("two colours gives a plain two-colour chart", async ({ page }) => {
   await openMake(page);
   await pickSpots(page);

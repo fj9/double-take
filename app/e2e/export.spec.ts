@@ -78,3 +78,12 @@ test("everything downloads as one zip with pictures, spreadsheets and a shopping
   const json = execFileSync("unzip", ["-p", path, "leopard/leopard.doubletake.json"], { encoding: "utf-8" });
   expect(JSON.parse(json).schema).toBe("doubletake-chart/1");
 });
+
+test("the chart pages have an Include symbols option that takes the letters out", async ({ page }) => {
+  await leopardHat(page);
+  await page.getByRole("link", { name: "Chart pages (PDF)" }).click();
+  const letters = () => page.locator(".sheet svg text").evaluateAll((t) => t.filter((x) => /^[A-C]$/.test(x.textContent ?? "")).length);
+  expect(await letters()).toBeGreaterThan(100);
+  await page.getByLabel(/Include symbols/).uncheck();
+  expect(await letters()).toBe(0);
+});

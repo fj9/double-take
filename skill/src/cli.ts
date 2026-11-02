@@ -1,7 +1,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { analyse, buildChart, BuildError, compareRoutes, cropBox, extractPalette, makeRoles, rgbToLab, validateChart } from "@doubletake/core";
-import type { Chart, Choice, CropSettings, RoleResult } from "@doubletake/core";
+import { analyse, applyTidy, buildChart, BuildError, compareRoutes, cropBox, extractPalette, makeRoles, mergeRoles, rgbToLab, tilePixels, TILE_ACROSS, validateChart } from "@doubletake/core";
+import type { Chart, Choice, CropSettings, RoleResult, RoleTidy } from "@doubletake/core";
 import { loadPicture } from "./decode";
 import { renderChart, stack, usedRegion, writePng } from "./preview";
 
@@ -18,8 +18,11 @@ Shared options
   --zoom Z --cx X --cy Y     which part of the picture to use (zoom 1 to 4; cx, cy 0 to 1)
   --colours N                2 to 6 (default: what the picture has)
   --seam fade|accept         blend the join round the hat, or leave it
-  --min-patch N              remove patches smaller than N squares
+  --min-patch N              remove patches smaller than N squares (when the colours are first found)
+  --tile N [--mirror]        repeat the picture N times across the hat (2, 4, 7, 8, 14, 16, 28 or 56), flipping every other copy with --mirror
+  --merge 4:3,5:3            fold colour 4 into 3, then 5 into 3 (colour numbers as they stand after each step, 0 = most used)
 build options
+  --dup-min N                the smallest duplicate stitch patch to keep, in squares (smaller ones take the colour under them)
   --name "Hat name"   --names a,b,c   --hex "#112233,#445566"   (by colour number, 0 = most used)
   --mode two|duplicate|stripes   --dup-roles 2,3   --outside-role R
 `;
@@ -67,13 +70,25 @@ function suggested(palette: ReturnType<typeof extractPalette>): number {
 }
 
 function makeRolesFrom(path: string, f: Flags) {
-  const pixels = loadPicture(path);
-  const box = cropFrom(f, pixels.width, pixels.height);
+  let pixels = loadPicture(path);
+  const across = num(f, "tile");
+  if (across !== undefined) {
+    if (!(TILE_ACROSS as readonly number[]).includes(across)) throw new Error(`--tile is one of ${TILE_ACROSS.join(", ")}.`);
+    pixels = tilePixels(pixels, { across, mirror: f.mirror === true || f.mirror === "true" });
+  }
+  const box = across !== undefined ? cropBox(pixels.width, pixels.height, { zoom: 1, cx: 0.5, cy: 0.5 }) : cropFrom(f, pixels.width, pixels.height);
   const colours = num(f, "colours") ?? suggested(extractPalette(pixels, { cap: 6, crop: box }));
   const seam = (f.seam as "fade" | "accept" | undefined) ?? (colours <= 3 ? "fade" : "accept");
   if (seam !== "fade" && seam !== "accept") throw new Error("--seam is fade or accept.");
-  const roles = makeRoles(pixels, { colours, seam, minPatch: num(f, "min-patch") ?? (colours <= 3 ? 3 : 5), crop: box });
-  return { pixels, box, roles, colours };
+  let roles = makeRoles(pixels, { colours, seam, minPatch: num(f, "min-patch") ?? (colours <= 3 ? 3 : 5), crop: box });
+  for (const step of list(f, "merge") ?? []) {
+    const [from, into] = step.split(":").map(Number) as [number, number];
+    const k = roles.centres.length;
+    if (!Number.isInteger(from) || !Number.isInteger(into) || from === into || from < 0 || into < 0 || from >= k || into >= k) throw new Error(`--merge ${step}: colours are numbered 0 to ${k - 1}, and the two must differ.`);
+    if (k <= 2) throw new Error("--merge: two colours are left, and a hat needs at least two.");
+    roles = mergeRoles(roles, from, into).roles;
+  }
+  return { pixels, box, roles: roles, colours: roles.centres.length };
 }
 
 function describeRoles(roles: RoleResult) {
@@ -89,6 +104,17 @@ function choiceFrom(f: Flags, roles: RoleResult): Choice {
   const dupRoles = list(f, "dup-roles")?.map(Number);
   const outsideRole = num(f, "outside-role");
   return { kind: "duplicate", ...(dupRoles ? { dupRoles } : {}), ...(outsideRole !== undefined ? { outsideRole } : {}) };
+}
+
+/** Remove duplicate stitch patches smaller than --dup-min, as the app's duplicate amount control does. */
+function tidyDuplicates(roles: RoleResult, choice: Choice, f: Flags): RoleResult {
+  const min = num(f, "dup-min");
+  if (min === undefined || choice.kind === "two") return roles;
+  const k = roles.centres.length;
+  const settings: (RoleTidy | undefined)[] = Array.from({ length: k }, () => undefined);
+  if (choice.kind === "stripes") for (let r = 1; r < k; r++) settings[r] = { min };
+  else for (const r of choice.dupRoles ?? (k === 3 ? [2] : Array.from({ length: k - 2 }, (_, i) => i + 2))) settings[r] = { min };
+  return applyTidy(roles, settings).roles;
 }
 
 function optionsFrom(f: Flags) {
@@ -172,7 +198,7 @@ function command(cmd: string, positional: string[], f: Flags): unknown {
   if (cmd === "build") {
     const { pixels, box, roles } = makeRolesFrom(picture, f);
     const choice = choiceFrom(f, roles);
-    const chart = buildChart(roles, choice, optionsFrom(f));
+    const chart = buildChart(tidyDuplicates(roles, choice, f), choice, optionsFrom(f));
     const valid = validateChart(chart);
     if (!valid.ok) throw new Error(valid.errors[0]?.message ?? "The chart isn't valid.");
     const base = slug(chart.name);

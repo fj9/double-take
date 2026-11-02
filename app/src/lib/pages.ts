@@ -24,7 +24,7 @@ function anyDuplicate(rows: string[]): boolean {
 }
 
 /** The chart pages, as in the pattern: body A and B, duplicate stitch A and B, then the crown the same way. */
-export function chartPages(chart: Chart): PrintPage[] {
+export function chartPages(chart: Chart, letters = true): PrintPage[] {
   const pages: PrintPage[] = [];
   const read = "Read every round from right to left, starting at round 1 at the bottom. Heavy lines mark every 5th stitch and round.";
   const mainKey = ys(chart).map((y) => ({ hex: y.hex, letter: y.id, text: `${y.name}: knit ${y.name}, purl the other` }));
@@ -45,7 +45,7 @@ export function chartPages(chart: Chart): PrintPage[] {
       title: `chart ${part}`,
       meta: `Rounds 1–${BODY_ROUNDS}, stitches ${lo}–${hi}. ${read}${part === "B" ? " Work after Chart A." : ""}`,
       legend: key,
-      svg: chartSvg({ chart, cols, rows: BODY_ROWS, label: `Chart ${part}, rounds 1 to ${BODY_ROUNDS}, stitches ${lo} to ${hi}` }),
+      svg: chartSvg({ chart, letters, cols, rows: BODY_ROWS, label: `Chart ${part}, rounds 1 to ${BODY_ROUNDS}, stitches ${lo} to ${hi}` }),
     } satisfies PrintPage;
   };
   pages.push(body("A"), body("B"));
@@ -60,7 +60,7 @@ export function chartPages(chart: Chart): PrintPage[] {
         title: `duplicate stitch ${part}`,
         meta: `${name}, rounds 1–${BODY_ROUNDS}, stitches ${part === "A" ? "1–56" : "57–112"}. Cover each coloured square ${layer.faces === "outside" ? "on the outside" : "on both faces"}.`,
         legend: dupKey(li),
-        svg: chartSvg({ chart, cols, rows: BODY_ROWS, onlyLayer: li, label: `Duplicate stitch in ${name}, chart ${part}` }),
+        svg: chartSvg({ chart, letters, cols, rows: BODY_ROWS, onlyLayer: li, label: `Duplicate stitch in ${name}, chart ${part}` }),
       });
     }
   });
@@ -73,7 +73,7 @@ export function chartPages(chart: Chart): PrintPage[] {
       title: `crown ${part}`,
       meta: crownMeta(part),
       legend: crownKey,
-      svg: chartSvg({ chart, cols: part === "A" ? A_COLS : B_COLS, rows: CROWN_ROWS, counts: true, label: `Crown, chart ${part}, rounds ${FIRST_CROWN_ROUND} to ${LAST_ROUND}` }),
+      svg: chartSvg({ chart, letters, cols: part === "A" ? A_COLS : B_COLS, rows: CROWN_ROWS, counts: true, label: `Crown, chart ${part}, rounds ${FIRST_CROWN_ROUND} to ${LAST_ROUND}` }),
     });
   }
   chart.duplicate.forEach((layer, li) => {
@@ -85,11 +85,11 @@ export function chartPages(chart: Chart): PrintPage[] {
         title: `crown duplicate stitch ${part}`,
         meta: `${name}, rounds ${FIRST_CROWN_ROUND}–${LAST_ROUND}, stitches ${part === "A" ? "1–56" : "57–112"}.`,
         legend: dupKey(li),
-        svg: chartSvg({ chart, cols: part === "A" ? A_COLS : B_COLS, rows: CROWN_ROWS, onlyLayer: li, counts: true, label: `Crown duplicate stitch in ${name}, chart ${part}` }),
+        svg: chartSvg({ chart, letters, cols: part === "A" ? A_COLS : B_COLS, rows: CROWN_ROWS, onlyLayer: li, counts: true, label: `Crown duplicate stitch in ${name}, chart ${part}` }),
       });
     }
   });
-  return pages;
+  return letters ? pages : pages.map((p) => ({ ...p, legend: p.legend.map((k) => ({ ...k, letter: undefined })) }));
 }
 
 /** For a striped chart: which two yarns are used in which rounds. */

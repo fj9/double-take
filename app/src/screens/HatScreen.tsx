@@ -10,6 +10,7 @@ import { removeProject, renameProject, toast } from "../store";
 export function HatScreen({ project, progress }: { project: Project; progress: Progress }) {
   const [confirming, setConfirming] = useState(false);
   const [name, setName] = useState(project.name);
+  const [symbols, setSymbols] = useState(false);
   const [saved, setSaved] = useState(lastBackup(project.id));
   const last = backupDate(saved);
 
@@ -61,7 +62,7 @@ export function HatScreen({ project, progress }: { project: Project; progress: P
             class="btn"
             onClick={async () => {
               try {
-                const { filename, data } = await exportAll(project.chart, project.name);
+                const { filename, data } = await exportAll(project.chart, project.name, symbols);
                 downloadBytes(filename, data, "application/zip");
                 toast.value = { message: "Saved. The zip has pictures, vector pictures, spreadsheets and a shopping list." };
               } catch (e) {
@@ -72,6 +73,10 @@ export function HatScreen({ project, progress }: { project: Project; progress: P
             Download everything (zip)
           </button>
         </div>
+        <label class="check" style="margin-top:8px">
+          <input type="checkbox" checked={symbols} onChange={(e) => setSymbols((e.currentTarget as HTMLInputElement).checked)} />
+          Include symbols in the pictures in the zip
+        </label>
         <p class="small muted" style="margin:8px 0 0">
           The chart pages are A4, one chart to a page, like the pattern. The zip has the chart file, PNG and SVG pictures of the outside and inside, spreadsheets (CSV) in knitting order, and a shopping list.
         </p>

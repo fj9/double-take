@@ -10,7 +10,7 @@ Status on 29 October 2026. Everything marked **Done** is built and tested. The r
 - [x] **Safe updates:** a new version waits until you choose to update, and never reloads mid-round.
 - [x] **No lost taps:** progress and unsaved drawings are saved at once, so a quick reload or closing the app can't lose the last change (tested).
 - [x] **Accessibility (WCAG 2.2 AA):** automated checks on every screen in light and dark mode; every control reachable by keyboard with a visible focus ring; touch targets at least 44 px; reduced motion removes all animation; 200% text size with no sideways scrolling; charts have a text version.
-- [x] **Brand and voice:** Josefin Sans bundled (no font CDN), midnight and coral, sentence case, the Freya'd Knot footer on every screen but the tools.
+- [x] **Brand and voice:** Josefin Sans bundled (no font CDN), midnight and coral, sentence case, the Freya'd Knot footer on Home, About, Settings and the Hat tab.
 - [x] **Print:** A4 chart pages print one chart to a page (tested by printing to PDF).
 - [x] **Claude skill:** builds into one script, works from a fresh unzip, and matches the app cell for cell.
 - [x] **Decisions:** name Doubletake; hashtag #doubletakehat; repository `double-take`; code under MIT; leopard charts and pattern stay personal use.
@@ -50,9 +50,17 @@ I can't do these from here. Please try them on an iPhone (Safari) and an Android
 12. Add a picture to trace over and zoom it out to repeat it.
 
 **Print and share**
-13. Open **More**, then **Chart pages (PDF)**, then **Print or save as PDF**. Can you save a PDF, and does each chart fit one page?
+13. Open the **Hat** tab, then **Chart pages (PDF)**, then **Print or save as PDF**. Can you save a PDF, and does each chart fit one page?
 14. **Download everything (zip)**. Can you open the zip on the phone?
 15. Switch the phone to dark mode and to a larger text size. Is everything still readable?
+
+**Added in this version**
+16. Knit three rounds on a phone in portrait with **Next block**, then one round in landscape.
+17. Drag the picture frame on a real phone with the hat preview visible.
+18. Use the duplicate stitch sliders with three duplicate colours on a phone.
+19. Check the **Hat** tab and the **Settings** gear on a phone and a tablet.
+20. Open **Draw** on a phone: you should see the note about tablets and computers, and be able to save the chart file.
+21. Reach cast on done, round 75 and round 95: each should offer a backup once.
 
 Write down anything that felt wrong, with the model of phone.
 

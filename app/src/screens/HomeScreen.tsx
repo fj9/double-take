@@ -1,9 +1,11 @@
 import { useRef, useState } from "preact/hooks";
 import type { ChartError } from "@doubletake/core";
 import { Flat } from "../components/Flat";
-import { currentRound, percentComplete, TOTAL_ROUNDS } from "../lib/model";
+import { currentRound, newProgress, percentComplete, TOTAL_ROUNDS } from "../lib/model";
+import type { Progress, Project } from "../lib/model";
+import { backupHat } from "../lib/backups";
 import { readFile } from "../lib/files";
-import { EXAMPLES, createDrawProject, createProject, importText, progressById, projects, ready } from "../store";
+import { EXAMPLES, createDrawProject, createProject, importText, progressById, projects, ready, removeProject, renameProject, toast } from "../store";
 
 export function ImportErrors({ errors, onClose }: { errors: ChartError[]; onClose: () => void }) {
   return (
@@ -69,6 +71,104 @@ function DrawCard() {
   );
 }
 
+const dateOf = (t: number) => new Date(t).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+
+function HatRow({ project: p, progress: pr, samename, onOpen }: { project: Project; progress: Progress | undefined; samename: boolean; onOpen: () => void }) {
+  const [menu, setMenu] = useState(false);
+  const [renaming, setRenaming] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [name, setName] = useState(p.name);
+  const status = p.stage === "design" ? "Being designed" : pr ? (pr.completed >= TOTAL_ROUNDS ? "All rounds done" : `Round ${currentRound(pr)} of ${TOTAL_ROUNDS} · ${percentComplete(pr)}%`) : "";
+  return (
+    <div class="card hat-row">
+      <div class="hat-thumb">
+        <Flat chart={p.chart} bodyOnly picture label="" />
+      </div>
+      <div class="hat-info">
+        <div class="row between" style="align-items:flex-start">
+          <div>
+            <h3 style="margin:0">{p.name}</h3>
+            {samename && <p class="small muted" style="margin:2px 0 0">Started {dateOf(p.createdAt)}</p>}
+            <p class="small muted num" style="margin:4px 0 0">{status}</p>
+            <p class="small muted" style="margin:0">Last opened {dateOf(pr?.updatedAt ?? p.updatedAt)}</p>
+          </div>
+          <div class="row">
+            <button class="btn primary" onClick={onOpen} aria-label={`Open ${p.name}`}>
+              Open
+            </button>
+            <button class="btn" aria-expanded={menu} aria-label={`Options for ${p.name}`} onClick={() => setMenu(!menu)}>
+              ⋯
+            </button>
+          </div>
+        </div>
+        {menu && !renaming && !confirming && (
+          <div class="row" style="flex-wrap:wrap;margin-top:8px">
+            <button class="btn small" onClick={() => setRenaming(true)}>
+              Rename
+            </button>
+            <button
+              class="btn small"
+              onClick={async () => {
+                await createProject(structuredClone(p.chart), `${p.name} (copy)`, p.stage);
+                setMenu(false);
+              }}
+            >
+              Make a copy
+            </button>
+            <button
+              class="btn small"
+              onClick={() => {
+                backupHat(p, pr ?? newProgress(p.id));
+                setMenu(false);
+                toast.value = { message: "Backup saved. Keep the file somewhere safe." };
+              }}
+            >
+              Back up
+            </button>
+            <button class="btn small danger" onClick={() => setConfirming(true)}>
+              Remove…
+            </button>
+          </div>
+        )}
+        {renaming && (
+          <div class="row" style="margin-top:8px">
+            <input class="input" aria-label={`New name for ${p.name}`} value={name} onInput={(e) => setName((e.currentTarget as HTMLInputElement).value)} />
+            <button
+              class="btn small primary"
+              disabled={!name.trim()}
+              onClick={async () => {
+                await renameProject(p.id, name);
+                setRenaming(false);
+                setMenu(false);
+              }}
+            >
+              Save the name
+            </button>
+            <button class="btn small" onClick={() => setRenaming(false)}>
+              Cancel
+            </button>
+          </div>
+        )}
+        {confirming && (
+          <div role="alertdialog" aria-label={`Remove ${p.name}`} style="margin-top:8px">
+            <p class="small" style="margin:0 0 8px">
+              This removes <strong>{p.name}</strong>{pr ? ` and your progress (${pr.completed} of ${TOTAL_ROUNDS} rounds done)` : ""} from this device. If you haven’t backed it up, it can’t be brought back.
+            </p>
+            <div class="row" style="flex-wrap:wrap">
+              <button class="btn small danger" onClick={() => removeProject(p.id)}>
+                Remove it
+              </button>
+              <button class="btn small" onClick={() => setConfirming(false)}>
+                Keep it
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function HomeScreen() {
   const [errors, setErrors] = useState<ChartError[] | null>(null);
   const input = useRef<HTMLInputElement>(null);
@@ -125,26 +225,9 @@ export function HomeScreen() {
       {ready.value && projects.value.length > 0 && (
         <section aria-labelledby="your-hats">
           <h2 id="your-hats">Your hats</h2>
-          {projects.value.map((p) => {
-            const pr = progressById.value[p.id];
-            return (
-              <div class="card" key={p.id}>
-                <div class="row between">
-                  <div>
-                    <h3 style="margin:0">{p.name}</h3>
-                    {projects.value.filter((o) => o.name === p.name).length > 1 && <p class="small muted" style="margin:2px 0 0">Started {new Date(p.createdAt).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}</p>}
-                    <p class="small muted num" style="margin:4px 0 0">
-                      {p.stage === "design" ? "Being designed" : pr ? (pr.completed >= TOTAL_ROUNDS ? "All rounds done" : `Round ${currentRound(pr)} of ${TOTAL_ROUNDS}`) : ""}
-                      {p.stage !== "design" && pr ? ` · ${percentComplete(pr)}%` : ""}
-                    </p>
-                  </div>
-                  <button class="btn primary" onClick={() => open(p.id)} aria-label={`Open ${p.name}`}>
-                    Open
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+          {projects.value.map((p) => (
+            <HatRow key={p.id} project={p} progress={progressById.value[p.id]} samename={projects.value.filter((o) => o.name === p.name).length > 1} onOpen={() => open(p.id)} />
+          ))}
         </section>
       )}
 

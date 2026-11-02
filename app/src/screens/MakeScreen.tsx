@@ -1,3 +1,5 @@
+import { refreshSections, sectionIndex } from "../lib/sections";
+import { Hint } from "../components/Hint";
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { analyse, applyTidy, buildChart, mergeRoles, BuildError, compareRoutes, rgbToLab, tilePixels, TILE_ACROSS } from "@doubletake/core";
 import type { Chart, Choice, PaletteCheck, Pixels, RoleResult, RoleTidy } from "@doubletake/core";
@@ -46,6 +48,13 @@ export function MakeScreen() {
   const gen = useRef<Generator | null>(null);
   const getGen = () => (gen.current ??= new Generator());
   useEffect(() => () => gen.current?.stop(), []);
+  useEffect(refreshSections);
+  useEffect(
+    () => () => {
+      sectionIndex.value = [];
+    },
+    [],
+  );
 
   const [pic, setPic] = useState<{ pixels: Pixels; name: string } | null>(null);
   const [loadedKey, setLoadedKey] = useState("off"); // which version of the picture (whole, or repeated like so) the worker holds
@@ -431,7 +440,7 @@ export function MakeScreen() {
               )}
             </section>
 
-            <div class="card">
+            <div class="card" id="sec-frame">
               <h2>Frame</h2>
               <p class="small">The hat is about twice as wide as it is tall. Choose the part of your picture to use.</p>
               <FrameEditor pixels={source} crop={crop} onCrop={setCrop} framed={!tile.on} />
@@ -494,7 +503,7 @@ export function MakeScreen() {
               ))}
             </div>
 
-            <div class="card">
+            <div class="card" id="sec-colours">
               <h2>How many colours?</h2>
               <div class="seg" role="group" aria-label="Number of colours">
                 {[2, 3, 4, 5, 6].map((n) => (
@@ -563,8 +572,11 @@ export function MakeScreen() {
               )}
             </div>
 
-            <div class="card">
-              <h2>Joining up round the hat</h2>
+            <div class="card" id="sec-seam">
+              <h2>
+                Joining up round the hat{" "}
+                <Hint label="What is the seam?">The hat is knitted in the round, so the picture’s left and right edges meet at one vertical line, the seam.</Hint>
+              </h2>
               <div class="seg" role="group" aria-label="Seam">
                 <button aria-pressed={seam === "fade"} onClick={() => setSeam("fade")}>
                   Blend the join
@@ -583,7 +595,7 @@ export function MakeScreen() {
             </div>
 
             {showAmount && built?.analysis && (
-              <div class="card" aria-labelledby="dup-amount">
+              <div class="card" id="sec-duplicate" aria-labelledby="dup-amount">
                 <h2 id="dup-amount">Duplicate stitch</h2>
                 <p class="small">Worked on top after blocking. Fewer, bigger patches are easier to embroider.</p>
                 <DuplicateAmount
@@ -678,7 +690,7 @@ export function MakeScreen() {
             )}
 
             {built?.chart && built.analysis && (
-              <div class="card">
+              <div class="card" id="sec-result">
                 <h2>Your chart</h2>
                 <p class="small muted">Outside, then inside (the inside is the same print in the other colours).</p>
                 <label class="check">

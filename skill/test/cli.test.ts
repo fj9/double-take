@@ -176,4 +176,28 @@ describe("phone photos", () => {
     const p = json(["palette", sidewaysJpeg()]);
     expect(p.picture).toEqual({ width: 40, height: 80 }); // it was 80 × 40, stored sideways
   });
+
+  it("folds one colour into another with --merge, and repeats the picture with --tile", () => {
+    const pic = spots("merge.png");
+    const four = json(["roles", pic, "--colours", "4"]);
+    expect(four.roles).toHaveLength(4);
+    const merged = json(["roles", pic, "--colours", "4", "--merge", "3:0"]);
+    expect(merged.roles).toHaveLength(3);
+    const bad = run(["roles", pic, "--colours", "3", "--merge", "5:0"]);
+    expect(bad.code).toBe(1);
+    expect(JSON.parse(bad.err).error).toMatch(/numbered 0 to 2/);
+
+    const tiled = json(["roles", pic, "--colours", "3", "--tile", "4", "--mirror"]);
+    expect(tiled.roles).toHaveLength(3);
+    const wrong = run(["roles", pic, "--tile", "5"]);
+    expect(wrong.code).toBe(1);
+    expect(JSON.parse(wrong.err).error).toMatch(/--tile is one of/);
+  });
+
+  it("keeps fewer, bigger duplicate stitch patches with --dup-min", () => {
+    const pic = spots("dupmin.png");
+    const base = json(["build", pic, "--out", join(dir, "dm0"), "--colours", "3", "--min-patch", "1"]);
+    const big = json(["build", pic, "--out", join(dir, "dm1"), "--colours", "3", "--min-patch", "1", "--dup-min", "400"]);
+    expect(big.duplicateShare).toBeLessThanOrEqual(base.duplicateShare);
+  });
 });

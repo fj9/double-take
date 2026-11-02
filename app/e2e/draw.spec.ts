@@ -83,7 +83,7 @@ test("the leopard review warns about the amount of duplicate stitch", async ({ p
   await expect(page.getByText("Round 1 of 95")).toBeVisible();
   await page.getByRole("link", { name: "Hat" }).click();
   await page.getByRole("link", { name: "Review the chart" }).click();
-  await expect(page.getByRole("heading", { name: "Review your chart" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /^(Review your chart|The chart for )/ })).toBeVisible();
   await expect(page.getByText(/Duplicate stitch covers 19% of the hat/)).toBeVisible();
   await expect(page.getByText(/33 patches, 1842 squares/)).toBeVisible();
   // Not started yet, so it can be edited, or copied

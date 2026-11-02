@@ -8,6 +8,8 @@ import { MakeScreen } from "./screens/MakeScreen";
 import { PrintScreen } from "./screens/PrintScreen";
 import { HatScreen } from "./screens/HatScreen";
 import { ReviewScreen } from "./screens/ReviewScreen";
+import { scrollToSection, sectionIndex } from "./lib/sections";
+import { BackupNudge } from "./components/BackupNudge";
 import { RoundScreen } from "./screens/RoundScreen";
 import { SettingsScreen } from "./screens/SettingsScreen";
 import { SkillScreen } from "./screens/SkillScreen";
@@ -167,17 +169,29 @@ export function App() {
       body = <PrintScreen project={project} />;
       tool = true;
     } else if (tab === "review") body = <ReviewScreen project={project} progress={progress} />;
-    else if (tab === "steps") body = <StepsScreen chart={project.chart} progress={progress} />;
+    else if (tab === "steps")
+      body = (
+        <>
+          <BackupNudge project={project} progress={progress} />
+          <StepsScreen chart={project.chart} progress={progress} />
+        </>
+      );
     else if (tab === "duplicate") body = <DuplicateScreen chart={project.chart} progress={progress} />;
     else if (tab === "hat") body = <HatScreen project={project} progress={progress} />;
     else {
-      body = <RoundScreen chart={project.chart} progress={progress} />;
+      body = (
+        <>
+          <BackupNudge project={project} progress={progress} />
+          <RoundScreen chart={project.chart} progress={progress} />
+        </>
+      );
       tool = true;
     }
   } else {
     body = ready.value ? <HomeScreen /> : <p>Loading…</p>;
   }
 
+  const rail = route === "make" && sectionIndex.value.length > 1;
   const showTabs = inProject && !!project && tab !== "print";
   const tabLink = (id: Tab, label: string, d: string) => (
     <a href={`#/p/${projectId}/${id}`} aria-current={tab === id ? "page" : undefined}>
@@ -187,7 +201,7 @@ export function App() {
   );
 
   return (
-    <div class={`shell ${showTabs ? "has-tabs" : ""}`}>
+    <div class={`shell ${showTabs || rail ? "has-tabs" : ""}`}>
       <header class="topbar">
         <Wordmark />
         {project && <span class="small muted hat-name">{project.name}</span>}
@@ -197,8 +211,24 @@ export function App() {
       </header>
       <main class={`page ${showTabs ? "" : "no-tabs"} ${(tab === "round" || tab === "draw" || tab === "review" || tab === "duplicate" || route === "make") && body ? "wide" : ""}`} id="main">
         {body}
-        {!tool && <Footer />}
+        {(route === "" || route === "about" || route === "settings" || tab === "hat") && <Footer />}
       </main>
+      {rail && (
+        <nav class="tabs section-index" aria-label="On this page">
+          {sectionIndex.value.map((x) => (
+            <a
+              key={x.id}
+              href={`#/make`}
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToSection(x.id);
+              }}
+            >
+              {x.label}
+            </a>
+          ))}
+        </nav>
+      )}
       {showTabs && (
         <nav class="tabs" aria-label="Sections">
           <RailInfo project={project} progress={progress} designing={designing} tab={tab} />

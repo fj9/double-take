@@ -1,3 +1,4 @@
+import { Hint } from "../components/Hint";
 import { useState } from "preact/hooks";
 import type { Chart } from "@doubletake/core";
 import { findAllPatches } from "@doubletake/core";
@@ -139,7 +140,6 @@ export function StepsScreen({ chart, progress }: { chart: Chart; progress: Progr
       <div class="progress" style="margin-bottom:16px">
         <div style={`width:${percentComplete(progress)}%`} />
       </div>
-      <PacePlanner progress={progress} />
       {steps.map((s, i) => (
         <section class="card" key={s.id} aria-labelledby={`step-${s.id}`} style={s.state === "now" ? "border-color:var(--coral);border-width:2px" : ""}>
           <div class="row between">
@@ -148,7 +148,15 @@ export function StepsScreen({ chart, progress }: { chart: Chart; progress: Progr
             </h2>
             <span class={`pill ${s.state === "done" ? "done" : ""}`}>{s.state === "done" ? "Done" : s.state === "now" ? "Up next" : "To do"}</span>
           </div>
-          <p style="margin:8px 0">{s.body}</p>
+          <p style="margin:8px 0">
+            {s.body}
+            {s.id === "crown" && (
+              <>
+                {" "}
+                <Hint label="What is a wedge?">The 112 pairs are split into eight equal wedges of 14, like segments of an orange. Each wedge decreases in the same places, so the top closes evenly.</Hint>
+              </>
+            )}
+          </p>
           {s.detail && <p class="small muted num">{s.detail}</p>}
           <div class="row" style="flex-wrap:wrap">
             {s.manual && (
@@ -169,6 +177,12 @@ export function StepsScreen({ chart, progress }: { chart: Chart; progress: Progr
           </div>
         </section>
       ))}
+      {(progress.steps.swatch || progress.pace) && (
+        <details class="pace-details" open={!!progress.pace}>
+          <summary class="summary">Plan your pace (optional)</summary>
+          <PacePlanner progress={progress} />
+        </details>
+      )}
       {allRoundsDone(progress) && HASHTAG && (
         <section class="card note" aria-labelledby="share">
           <h2 id="share">Share your hat</h2>

@@ -3,6 +3,7 @@ import { LAST_ROUND, PAIRS, pairsInRound, yarnsInRound } from "@doubletake/core"
 import type { Chart } from "@doubletake/core";
 import { Legend } from "../components/Legend";
 import { StripChart } from "../components/StripChart";
+import { Hint } from "../components/Hint";
 import { FINISHING_TEXT, HELP, notesForRound } from "../content";
 import type { Note } from "../content";
 import { blocksFor, currentBlockIndex, pairAfterBlock, stepPair, wholeRoundText } from "../lib/blocks";
@@ -181,7 +182,6 @@ export function RoundScreen({ chart, progress }: { chart: Chart; progress: Progr
   const after = stepPair(chart, round, progress.pair, 1);
 
   const [viewOpen, setViewOpen] = useState(false);
-  const [helpOpen, setHelpOpen] = useState(() => !blocksHelpSeen.value);
   useEffect(() => {
     if (!blocksHelpSeen.value) setBlocksHelpSeen();
   }, []);
@@ -300,11 +300,9 @@ export function RoundScreen({ chart, progress }: { chart: Chart; progress: Progr
         <div class="card now" aria-live="polite">
           <div class="row between">
             <span class="small muted">Now</span>
-            <button class="hint" aria-expanded={helpOpen} aria-label="What is a colour block?" onClick={() => setHelpOpen(!helpOpen)}>
-              <span class="q" aria-hidden="true">
-                ?
-              </span>
-            </button>
+            <Hint label="What is a colour block?" open={!blocksHelpSeen.value}>
+              A colour block is a stretch of pairs in the same colour. Press <strong>Next block</strong> when you’ve worked it, and Doubletake moves your place along.
+            </Hint>
           </div>
           {now ? (
             <div class="now-row">
@@ -318,11 +316,6 @@ export function RoundScreen({ chart, progress }: { chart: Chart; progress: Progr
             </div>
           ) : (
             <p style="margin:4px 0 0">This round’s colour blocks are all worked. Press “Round {round} done” when you’ve finished it.</p>
-          )}
-          {helpOpen && (
-            <p class="small" style="margin:10px 0 0">
-              A colour block is a stretch of pairs in the same colour. Press <strong>Next block</strong> when you’ve worked it, and Doubletake moves your place along.
-            </p>
           )}
         </div>
       )}
@@ -356,7 +349,10 @@ export function RoundScreen({ chart, progress }: { chart: Chart; progress: Progr
                 You’re at pair <span class="num">{progress.pair}</span> of {PAIRS}
                 {progress.pair === 56 ? " (the end of Chart A)" : ""}
               </span>
-            )}
+            )}{" "}
+            <Hint label="What is a pair?">
+              A pair is one stitch on the front and the stitch behind it. Each round has {PAIRS} pairs. Chart A is pairs 1 to 56 and Chart B is pairs 57 to 112, as in the PDF.
+            </Hint>
           </span>
           <span class="seg" role="group" aria-label="Position in the round">
             <button aria-label="Back one pair" disabled={progress.pair === null} onClick={() => set(setPair(progress, stepPair(chart, round, progress.pair, -1)))}>
