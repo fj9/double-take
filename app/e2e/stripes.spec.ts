@@ -44,6 +44,7 @@ test("the stripes appear on the printed pages and in the zip's stripes sheet", a
 
 test("the pace planner spreads the rounds over the days and shows how you are doing", async ({ page }) => {
   await page.goto("/");
+  await page.getByRole("button", { name: "Try an example" }).click();
   await page.getByRole("button", { name: "Use this chart" }).first().click();
   await expect(page.getByText("Round 1 of 95")).toBeVisible();
   await page.getByRole("link", { name: "Steps" }).click();
@@ -81,6 +82,7 @@ test("the pace planner spreads the rounds over the days and shows how you are do
 
 test("a plan is not part of the chart file, or a shared chart", async ({ page }) => {
   await page.goto("/");
+  await page.getByRole("button", { name: "Try an example" }).click();
   await page.getByRole("button", { name: "Use this chart" }).first().click();
   await page.getByRole("link", { name: "Steps" }).click();
   await page.getByRole("button", { name: "Mark as done" }).first().click();

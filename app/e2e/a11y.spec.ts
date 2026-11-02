@@ -19,7 +19,7 @@ async function check(page: Page, label: string, only?: string[]) {
 async function screens(page: Page, scheme: "light" | "dark") {
   await page.emulateMedia({ colorScheme: scheme });
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Knit a reversible hat" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "What would you like to knit?" })).toBeVisible();
   await check(page, `${scheme}: home`);
 
   await page.goto("/#/about");
@@ -36,6 +36,7 @@ async function screens(page: Page, scheme: "light" | "dark") {
 
   // A hat to look at
   await page.goto("/");
+  await page.getByRole("button", { name: "Try an example" }).click();
   await page.getByRole("button", { name: "Use this chart" }).first().click();
   await expect(page.getByText("Round 1 of 95")).toBeVisible();
   await check(page, `${scheme}: round`);
@@ -55,6 +56,7 @@ async function screens(page: Page, scheme: "light" | "dark") {
 
   // Drawing
   await page.goto("/");
+  await page.getByRole("button", { name: "Draw it" }).click();
   await page.getByRole("group", { name: "How many colours?" }).getByRole("button", { name: "3" }).click();
   await page.getByRole("button", { name: "Start drawing" }).click();
   await expect(page.getByRole("heading", { name: "Draw your chart" })).toBeVisible();
@@ -110,6 +112,8 @@ test("everything can be reached and used with the keyboard", async ({ page }) =>
   }
   expect(seen.length).toBeGreaterThan(8);
   // Start a hat and move round with the keyboard alone
+  await page.getByRole("button", { name: "Try an example" }).focus();
+  await page.keyboard.press("Enter");
   await page.getByRole("button", { name: "Use this chart" }).first().focus();
   await page.keyboard.press("Enter");
   await expect(page.getByText("Round 1 of 95")).toBeVisible();
@@ -123,6 +127,7 @@ test("everything can be reached and used with the keyboard", async ({ page }) =>
 
 test("touch targets are at least 44 px", async ({ page }) => {
   await page.goto("/");
+  await page.getByRole("button", { name: "Try an example" }).click();
   await page.getByRole("button", { name: "Use this chart" }).first().click();
   await expect(page.getByText("Round 1 of 95")).toBeVisible();
   const small = await page.evaluate(() => {

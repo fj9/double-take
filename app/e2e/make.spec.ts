@@ -65,7 +65,7 @@ function halvesPng(width = 320, height = 160): Buffer {
 
 async function openMake(page: Page) {
   await page.goto("/");
-  await page.getByRole("link", { name: "Choose a picture" }).click();
+  await page.getByRole("link", { name: "From a picture" }).click();
   await expect(page.getByRole("heading", { name: "Make a chart from a picture" })).toBeVisible();
 }
 

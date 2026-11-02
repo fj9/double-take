@@ -4,6 +4,7 @@ import { execFileSync } from "node:child_process";
 
 async function leopardHat(page: Page) {
   await page.goto("/");
+  await page.getByRole("button", { name: "Try an example" }).click();
   await page.getByRole("button", { name: "Use this chart" }).first().click();
   await expect(page.getByText("Round 1 of 95")).toBeVisible();
   await page.getByRole("link", { name: "Hat" }).click();
