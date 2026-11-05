@@ -45,7 +45,7 @@ async function screens(page: Page, scheme: "light" | "dark") {
     await check(page, `${scheme}: ${link}`);
   }
   await page.getByRole("link", { name: "Review the chart" }).click();
-  await expect(page.getByRole("heading", { name: "Review your chart" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /^(Review your chart|The chart for )/ })).toBeVisible();
   await check(page, `${scheme}: review`);
   await page.goBack();
   await page.getByRole("link", { name: "Chart pages (PDF)" }).click();
@@ -55,10 +55,12 @@ async function screens(page: Page, scheme: "light" | "dark") {
 
   // Drawing
   await page.goto("/");
+  await page.getByRole("group", { name: "How many colours?" }).getByRole("button", { name: "3" }).click();
   await page.getByRole("button", { name: "Start drawing" }).click();
   await expect(page.getByRole("heading", { name: "Draw your chart" })).toBeVisible();
   await page.getByText("Trace over a picture").click();
-  await page.getByText("Colours, duplicate stitch and crown").click();
+  await page.getByText("Crown", { exact: true }).click();
+  await page.getByRole("button", { name: /^Duplicate stitch 0%/ }).click();
   await check(page, `${scheme}: draw`);
 }
 
@@ -80,6 +82,8 @@ test("a striped hat and the pace planner have no accessibility problems", async 
   await expect(page.getByRole("heading", { name: "New stripe" })).toBeVisible();
   await check(page, "striped round with a note");
   await page.getByRole("link", { name: "Steps", exact: true }).click();
+  await page.getByRole("button", { name: "Mark as done" }).first().click();
+  await page.getByText("Plan your pace (optional)").click();
   await page.getByRole("button", { name: "Make a plan" }).click();
   await page.getByText(/All 14 days/).click();
   await check(page, "pace planner");

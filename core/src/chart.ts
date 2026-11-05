@@ -167,3 +167,31 @@ export function newBlankChart(
   };
 }
 
+
+const STRIPE_IDS = ["A", "B", "C", "D", "E", "F"];
+
+/**
+ * A plain striped chart to start drawing on: two to six stripe yarns, with the body split into even bands,
+ * each band worked in a neighbouring pair of yarns (A and B, then B and C, and so on), and the outside in the pair's first yarn.
+ */
+export function newBlankStripesChart(name: string, yarns: { name: string; hex: string }[]): Chart {
+  if (yarns.length < 2 || yarns.length > 6) throw new RangeError("A striped chart needs two to six yarns.");
+  const bands = yarns.length - 1;
+  const pairs: [string, string][] = Array.from({ length: BODY_ROUNDS }, (_, i) => {
+    const band = Math.min(bands - 1, Math.floor((i * bands) / BODY_ROUNDS));
+    return [STRIPE_IDS[band] as string, STRIPE_IDS[band + 1] as string];
+  });
+  const last = pairs[BODY_ROUNDS - 1] as [string, string];
+  return {
+    schema: SCHEMA,
+    name,
+    mode: "stripes",
+    dimensions: { pairs: PAIRS, body_rounds: BODY_ROUNDS, crown_rounds: CROWN_ROUNDS },
+    yarns: yarns.map((y, i) => ({ id: STRIPE_IDS[i] as string, name: y.name, hex: y.hex, role: "stripe" as const })),
+    body: pairs.map(([first]) => first.repeat(PAIRS)),
+    round_pairs: pairs,
+    duplicate: [],
+    crown: { rounds: solidCrownRounds(last[0]) },
+    source: { kind: "drawn" },
+  };
+}

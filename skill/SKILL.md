@@ -28,7 +28,7 @@ Run it from this skill's folder. It reads JPEG and PNG (convert WebP or HEIC fir
 | `colourways PICTURE --out DIR` | For 3 colours: pictures of the three ways to embroider it |
 | `build PICTURE --out DIR` | Writes the chart file and preview pictures |
 
-Options: `--zoom 1..4 --cx 0..1 --cy 0..1` (which part of the picture; zoom 1 uses as much as fits the hat's shape), `--colours 2..6`, `--seam fade|accept`, `--min-patch N`. For `build` also: `--name "Hat name"`, `--names a,b,c` and `--hex "#112233,#445566"` (by colour number: 0 is the most used colour), `--mode two|duplicate|stripes`, `--dup-roles 2,3`, `--outside-role R`.
+Options: `--zoom 1..4 --cx 0..1 --cy 0..1` (which part of the picture; zoom 1 uses as much as fits the hat's shape), `--colours 2..6`, `--seam fade|accept`, `--min-patch N`, `--tile N` (repeat the picture N times across the hat, with `--mirror` to flip every other copy so the edges join), `--merge 4:3` (fold a colour into another, for two shades that are really one colour; colours are numbered 0 = most used, and the numbers shift after each merge), and for `build` `--dup-min N` (drop duplicate stitch patches smaller than N squares). For `build` also: `--name "Hat name"`, `--names a,b,c` and `--hex "#112233,#445566"` (by colour number: 0 is the most used colour), `--mode two|duplicate|stripes`, `--dup-roles 2,3`, `--outside-role R`.
 
 If you can't run scripts, say so, and point them to the Doubletake app's own "Make a chart from a picture", which does the same thing.
 

@@ -1,5 +1,5 @@
 import { signal } from "@preact/signals";
-import { newBlankChart, parseChartJson, validateChart } from "@doubletake/core";
+import { addDuplicateLayer, newBlankChart, newBlankStripesChart, parseChartJson, validateChart } from "@doubletake/core";
 import type { Chart, ChartError } from "@doubletake/core";
 import leopardJson from "../../fixtures/leopard/leopard.doubletake.json";
 import * as db from "./lib/db";
@@ -146,9 +146,17 @@ export async function importText(text: string): Promise<ImportResult> {
   return { ok: true, project: await createProject(result.chart) };
 }
 
-/** A blank two-colour chart to draw on. */
-export function createDrawProject(a: { name: string; hex: string }, b: { name: string; hex: string }, name = "My hat"): Promise<Project> {
-  return createProject(newBlankChart(name, [a, b]), name, "design");
+const EXTRA_COLOURS = ["#e8a933", "#2f9aa0", "#d6285a", "#3a7d44"];
+
+/** A blank chart to draw on: two colours knitted, and any more as duplicate stitch layers, ready to draw. */
+export function createDrawProject(a: { name: string; hex: string }, b: { name: string; hex: string }, name = "My hat", colours = 2, striped = false): Promise<Project> {
+  if (striped) {
+    const yarns = [a, b, ...EXTRA_COLOURS.slice(0, colours - 2).map((hex, i) => ({ name: `Colour ${String.fromCharCode(67 + i)}`, hex }))];
+    return createProject(newBlankStripesChart(name, yarns), name, "design");
+  }
+  const chart = newBlankChart(name, [a, b]);
+  for (let i = 2; i < colours; i++) addDuplicateLayer(chart, { name: `Colour ${String.fromCharCode(65 + i)}`, hex: EXTRA_COLOURS[i - 2] as string });
+  return createProject(chart, name, "design");
 }
 
 export async function saveProject(project: Project): Promise<void> {

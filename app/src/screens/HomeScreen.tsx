@@ -1,9 +1,11 @@
 import { useRef, useState } from "preact/hooks";
 import type { ChartError } from "@doubletake/core";
 import { Flat } from "../components/Flat";
-import { currentRound, percentComplete, TOTAL_ROUNDS } from "../lib/model";
+import { currentRound, newProgress, percentComplete, TOTAL_ROUNDS } from "../lib/model";
+import type { Progress, Project } from "../lib/model";
+import { backupHat } from "../lib/backups";
 import { readFile } from "../lib/files";
-import { EXAMPLES, createDrawProject, createProject, importText, progressById, projects, ready } from "../store";
+import { EXAMPLES, createDrawProject, createProject, importText, progressById, projects, ready, removeProject, renameProject, toast } from "../store";
 
 export function ImportErrors({ errors, onClose }: { errors: ChartError[]; onClose: () => void }) {
   return (
@@ -24,29 +26,145 @@ export function ImportErrors({ errors, onClose }: { errors: ChartError[]; onClos
 }
 
 function DrawCard() {
-  const [a, setA] = useState({ name: "Colour A", hex: "#6b2d9e" });
-  const [b, setB] = useState({ name: "Colour B", hex: "#f07eb5" });
-  const field = (label: string, v: { name: string; hex: string }, set: (v: { name: string; hex: string }) => void) => (
-    <div class="row" style="flex-wrap:wrap;margin-bottom:12px">
-      <input type="color" class="colour-input" aria-label={`${label} colour`} value={v.hex} onInput={(e) => set({ ...v, hex: (e.currentTarget as HTMLInputElement).value })} />
-      <input class="input" style="flex:1;min-width:140px" aria-label={`${label} name`} value={v.name} onInput={(e) => set({ ...v, name: (e.currentTarget as HTMLInputElement).value })} />
-    </div>
-  );
+  const [colours, setColours] = useState(2);
+  const [striped, setStriped] = useState(false);
   return (
     <div class="card">
       <h3>Draw your own chart</h3>
-      <p class="small">Pick your two main yarn colours, then draw on the grid. The outside shows one colour and the inside shows the other.</p>
-      {field("First yarn", a, setA)}
-      {field("Second yarn", b, setB)}
+      <p class="small">Draw on the grid. The outside shows one main colour and the inside shows the other. You choose the yarn colours when you start drawing.</p>
+      <h4 id="draw-colours" style="margin:0 0 6px">
+        How many colours?
+      </h4>
+      <div class="seg" role="group" aria-labelledby="draw-colours">
+        {[2, 3, 4, 5, 6].map((n) => (
+          <button key={n} aria-pressed={colours === n} onClick={() => setColours(n)}>
+            {n}
+          </button>
+        ))}
+      </div>
+      <h4 id="draw-how" style="margin:12px 0 6px">
+        How is it knitted?
+      </h4>
+      <div class="seg" role="group" aria-labelledby="draw-how">
+        <button aria-pressed={!striped} onClick={() => setStriped(false)}>
+          A print
+        </button>
+        <button aria-pressed={striped} onClick={() => setStriped(true)}>
+          Stripes
+        </button>
+      </div>
+      <p class="small muted" style="margin:6px 0 12px">
+        {striped
+          ? "Every round is worked in two of your colours, and you choose which two as you go up the hat. A third colour in a round is added with duplicate stitch."
+          : "Two colours are knitted. Any more are added afterwards with duplicate stitch."}
+      </p>
       <button
         class="btn primary block"
         onClick={async () => {
-          const project = await createDrawProject({ name: a.name.trim() || "Colour A", hex: a.hex }, { name: b.name.trim() || "Colour B", hex: b.hex });
+          const project = await createDrawProject({ name: "Colour A", hex: "#6b2d9e" }, { name: "Colour B", hex: "#f07eb5" }, "My hat", colours, striped);
           location.hash = `#/p/${project.id}/draw`;
         }}
       >
         Start drawing
       </button>
+    </div>
+  );
+}
+
+const dateOf = (t: number) => new Date(t).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+
+function HatRow({ project: p, progress: pr, samename, onOpen }: { project: Project; progress: Progress | undefined; samename: boolean; onOpen: () => void }) {
+  const [menu, setMenu] = useState(false);
+  const [renaming, setRenaming] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [name, setName] = useState(p.name);
+  const status = p.stage === "design" ? "Being designed" : pr ? (pr.completed >= TOTAL_ROUNDS ? "All rounds done" : `Round ${currentRound(pr)} of ${TOTAL_ROUNDS} · ${percentComplete(pr)}%`) : "";
+  return (
+    <div class="card hat-row">
+      <div class="hat-thumb">
+        <Flat chart={p.chart} bodyOnly picture label="" />
+      </div>
+      <div class="hat-info">
+        <div class="row between" style="align-items:flex-start">
+          <div>
+            <h3 style="margin:0">{p.name}</h3>
+            {samename && <p class="small muted" style="margin:2px 0 0">Started {dateOf(p.createdAt)}</p>}
+            <p class="small muted num" style="margin:4px 0 0">{status}</p>
+            <p class="small muted" style="margin:0">Last opened {dateOf(pr?.updatedAt ?? p.updatedAt)}</p>
+          </div>
+          <div class="row">
+            <button class="btn primary" onClick={onOpen} aria-label={`Open ${p.name}`}>
+              Open
+            </button>
+            <button class="btn" aria-expanded={menu} aria-label={`Options for ${p.name}`} onClick={() => setMenu(!menu)}>
+              ⋯
+            </button>
+          </div>
+        </div>
+        {menu && !renaming && !confirming && (
+          <div class="row" style="flex-wrap:wrap;margin-top:8px">
+            <button class="btn small" onClick={() => setRenaming(true)}>
+              Rename
+            </button>
+            <button
+              class="btn small"
+              onClick={async () => {
+                await createProject(structuredClone(p.chart), `${p.name} (copy)`, p.stage);
+                setMenu(false);
+              }}
+            >
+              Make a copy
+            </button>
+            <button
+              class="btn small"
+              onClick={() => {
+                backupHat(p, pr ?? newProgress(p.id));
+                setMenu(false);
+                toast.value = { message: "Backup saved. Keep the file somewhere safe." };
+              }}
+            >
+              Back up
+            </button>
+            <button class="btn small danger" onClick={() => setConfirming(true)}>
+              Remove…
+            </button>
+          </div>
+        )}
+        {renaming && (
+          <div class="row" style="margin-top:8px">
+            <input class="input" aria-label={`New name for ${p.name}`} value={name} onInput={(e) => setName((e.currentTarget as HTMLInputElement).value)} />
+            <button
+              class="btn small primary"
+              disabled={!name.trim()}
+              onClick={async () => {
+                await renameProject(p.id, name);
+                setRenaming(false);
+                setMenu(false);
+              }}
+            >
+              Save the name
+            </button>
+            <button class="btn small" onClick={() => setRenaming(false)}>
+              Cancel
+            </button>
+          </div>
+        )}
+        {confirming && (
+          <div role="alertdialog" aria-label={`Remove ${p.name}`} style="margin-top:8px">
+            <p class="small" style="margin:0 0 8px">
+              This removes <strong>{p.name}</strong>{pr ? ` and your progress (${pr.completed} of ${TOTAL_ROUNDS} rounds done)` : ""} from this device. If you haven’t backed it up, it can’t be brought back.
+            </p>
+            <div class="row" style="flex-wrap:wrap">
+              <button class="btn small danger" onClick={() => removeProject(p.id)}>
+                Remove it
+              </button>
+              <button class="btn small" onClick={() => setConfirming(false)}>
+                Keep it
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -107,26 +225,9 @@ export function HomeScreen() {
       {ready.value && projects.value.length > 0 && (
         <section aria-labelledby="your-hats">
           <h2 id="your-hats">Your hats</h2>
-          {projects.value.map((p) => {
-            const pr = progressById.value[p.id];
-            return (
-              <div class="card" key={p.id}>
-                <div class="row between">
-                  <div>
-                    <h3 style="margin:0">{p.name}</h3>
-                    {projects.value.filter((o) => o.name === p.name).length > 1 && <p class="small muted" style="margin:2px 0 0">Started {new Date(p.createdAt).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}</p>}
-                    <p class="small muted num" style="margin:4px 0 0">
-                      {p.stage === "design" ? "Being designed" : pr ? (pr.completed >= TOTAL_ROUNDS ? "All rounds done" : `Round ${currentRound(pr)} of ${TOTAL_ROUNDS}`) : ""}
-                      {p.stage !== "design" && pr ? ` · ${percentComplete(pr)}%` : ""}
-                    </p>
-                  </div>
-                  <button class="btn primary" onClick={() => open(p.id)} aria-label={`Open ${p.name}`}>
-                    Open
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+          {projects.value.map((p) => (
+            <HatRow key={p.id} project={p} progress={progressById.value[p.id]} samename={projects.value.filter((o) => o.name === p.name).length > 1} onOpen={() => open(p.id)} />
+          ))}
         </section>
       )}
 

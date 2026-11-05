@@ -1,4 +1,4 @@
-import { useEffect } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import type { Chart } from "@doubletake/core";
 import { LINKS } from "../content";
 import { chartPages, stripeBlocks } from "../lib/pages";
@@ -24,9 +24,7 @@ function Key({ items }: { items: { hex?: string; letter?: string; text: string }
     <div class="pkey">
       {items.map((k, i) => (
         <span key={i}>
-          {k.letter && (
-            <i style={k.hex ? `background:${k.hex};color:${textOn(k.hex)}` : ""}>{k.letter}</i>
-          )}
+          {(k.letter || k.hex) && <i style={k.hex ? `background:${k.hex};color:${textOn(k.hex)}` : ""}>{k.letter ?? ""}</i>}
           {k.text}
         </span>
       ))}
@@ -57,7 +55,8 @@ function Footer({ n, total, chart }: { n: number; total: number; chart: Chart })
 /** The chart pages on A4 sheets, in house style. "Print" then "Save as PDF" makes the PDF. */
 export function PrintScreen({ project }: { project: Project }) {
   const chart = project.chart;
-  const pages = chartPages(chart);
+  const [symbols, setSymbols] = useState(true);
+  const pages = chartPages(chart, symbols);
   const total = pages.length + 1;
 
   useEffect(() => {
@@ -78,11 +77,15 @@ export function PrintScreen({ project }: { project: Project }) {
         <p class="muted">
           A4 pages in house style, one chart to a page. Choose <strong>Print</strong>, then pick <strong>Save as PDF</strong> as the printer. Print at 100% size so the stitches are the right shape.
         </p>
+        <label class="check">
+          <input type="checkbox" checked={symbols} onChange={(e) => setSymbols((e.currentTarget as HTMLInputElement).checked)} />
+          Include symbols (a letter in each square, so the charts read in greyscale)
+        </label>
         <div class="row" style="flex-wrap:wrap">
           <button class="btn primary" onClick={() => window.print()}>
             Print or save as PDF
           </button>
-          <a class="btn" href={`#/p/${project.id}/more`}>
+          <a class="btn" href={`#/p/${project.id}/hat`}>
             Back
           </a>
         </div>

@@ -138,7 +138,7 @@ All three produce the same chart file (section 10), pass the same validation, an
 - The round is a loop: in every round, pair 112 is followed by pair 1. A **seam setting** decides what happens at that join. **Fade** (the default for repeating or texture images) cross-fades the image edges so the print tiles with no visible join; if the print repeats exactly, the crop can be one whole repeat so no blending is needed. **Accept** (the default for pictures with a clear subject) leaves the image edges to meet at the join, so there is a visible join, and the app tells the knitter where it is (it is also where stripe changes happen). The join between Chart A and Chart B (pair 56 to pair 57) is only a page split, not a seam in the fabric.
 - **Palette check first:** the app finds the real colours in the image (up to six) and shows each with its share, plus a coverage figure (the share of the image close to a palette colour). Coverage under 70% means a gradient, wash or fine texture that will blur at hat size, so the app says so and suggests a simpler image or crop, or fewer colours. Stripes thinner than one stitch (image width ÷ 112) vanish or blend, and the app says so.
 - Reduce the image to the chosen colours. In two-colour mode this is a threshold; in duplicate stitch mode the smallest regions become duplicate stitch layers, one layer per duplicate colour, and layers never overlap.
-- Stray single cells can be cleaned up with a clean-up slider. Duplicate stitch patches smaller than a minimum size are removed or merged.
+- **Clean-up happens after the colours are chosen.** The duplicate stitch amount control sets the smallest patch kept, per duplicate colour, with fine-tuning always visible; patches smaller than that are removed and become the colour under them. Stray single cells in the main colours can be removed as an option. Colours that are too alike can be merged into another (the merged colours are remapped; the rest keep their numbers).
 - **The crown fades to one colour.** The print carries on into the first rounds of the crown, thins out, and is gone by round 85: rounds 76 to 84 hold what is left, and rounds 85 to 95 are one colour (the first main colour A outside, B inside; in a striped hat the top stripe’s two colours, one colour from round 76). The crown cells are stored in the chart file, so a knitter can draw print right up to the top if they want it, and the app warns that colour changes in the crown make the knitting more complicated but doable.
 - The inside of the hat is the same print in opposite colours. In stripes mode each round has its own outside and inside colours.
 - **Deterministic:** the automatic route uses no model and no randomness. K-means starts from fixed seeds, and all settings (number of colours, threshold, clean-up, minimum patch size, crop, seam choice) are saved with the project and in `source.settings` so a chart can be reproduced exactly.
@@ -150,9 +150,9 @@ All three produce the same chart file (section 10), pass the same validation, an
 - The app has an **Inside view** that shows the inside as the knitter sees it when looking at the inside of the hat, with a line of plain help text. The app does the flipping; users are never asked to mirror anything. The chart file stores the outside only. Inside previews, the inside duplicate stitch map and inside patch ticks all use this view.
 
 ### 7.3 Controls
-- Crop and reposition the image over the grid, with a horizontal wrap preview.
+- The picture screen is one screen: choose the picture, drag the frame directly, optionally repeat the picture across the hat (copies that divide 112 evenly, flipped so they join), see the colours update live, and watch the hat preview while you adjust. On a wide screen the side rail lists its sections (Frame, Colours, Seam, Duplicate stitch, Result) and scrolls to each.
 - Colour share readout (how much of each colour).
-- Threshold, clean-up and minimum patch size sliders.
+- Number of colours, merge colours, the duplicate stitch amount, and the main-colour tidy option.
 - Edit cells directly: tap a cell to flip it. Undo and redo. This is the same editor as the Draw route (section 7.5), so any chart from any route can be tweaked.
 - Preview the outside and inside side by side, flat, and as a tube (optional wrap view).
 
@@ -162,7 +162,12 @@ A chart file (section 10) held in the project, ready for Review.
 ### 7.5 Draw route
 
 A pixel-art style editor on the 112 × 75 body grid and the 20 crown rounds, drawn at knitted proportions (section 5):
-- **Tools:** pencil (tap or drag to paint), eraser, flood fill, colour picker, undo and redo.
+- **Start:** the knitter chooses how many colours (2 to 6) and whether the hat is a print (two knitted colours, the rest duplicate stitch) or stripes (every round worked in a pair of colours that changes up the hat).
+- **Status chip:** always visible, showing the duplicate stitch percentage, colour count and patch count, coloured ok / warn / stop, and opening the gauge with advice.
+- **Preview:** duplicate stitch shows as a filled square in its colour, with a letter, or as a dot where it is too close to the colour underneath to tell apart. Chart and Picture views.
+- **Tidy tools:** find and remove single stray squares and small patches; choose whether each duplicate colour is worked on both faces or the outside only.
+- **Stripes:** a stripe planner (rounds from and to, the two colours of each stripe, add and remove a stripe). Painting a colour that is not in the round’s pair becomes duplicate stitch over the knitted colour.
+- **Tools:** pencil (tap or drag to paint), eraser, flood fill, colour picker, undo and redo, in a strip beside the grid. On a phone the screen shows a note that drawing works best on a tablet or computer, with a way to save the chart file and import it there.
 - **Symmetry and repeat:** mirror left-right, top-bottom or both, and a repeat tool that tiles a motif across the round (112 pairs divides into 2, 4, 7, 8, 14, 16, 28 or 56 repeats). Mirror and repeat respect the wrap, so the join at pair 112/1 stays seamless.
 - **Layers:** the main colours (outside colour A or B for each cell), and one layer for each duplicate stitch colour. Each layer can be shown or hidden, and editing one never changes another.
 - **Palette:** name and hex for each yarn, a swatch selector, up to six yarns. Cells use colour plus symbol as everywhere else.
@@ -335,14 +340,14 @@ Changes to the skill for Doubletake:
 
 ## 13. Export and print
 
-On the More tab of every hat, under **Print and export**:
-- **Chart pages (PDF):** A4 pages in house style, one chart to a page, like the pattern: how to read the charts (with the yarn key, the stripe table for a striped chart, and the yardage note), then body Chart A and B, duplicate stitch A and B for each duplicate colour, then the crown A and B (with the pairs left at the end of each round, and the decrease key), then the crown duplicate stitch if any. Every cell carries its yarn letter as well as its colour, and every page has the Freya’d Knot footer with Ravelry, Instagram and Ko-fi links, and the personal use line for the leopard example. The page is made with the browser’s print, so the knitter chooses “Save as PDF”; a test checks that the print gives one A4 page per sheet.
+On the Hat tab of every hat, under **Print and export**:
+- **Chart pages (PDF):** A4 pages in house style, one chart to a page, like the pattern: how to read the charts (with the yarn key, the stripe table for a striped chart, and the yardage note), then body Chart A and B, duplicate stitch A and B for each duplicate colour, then the crown A and B (with the pairs left at the end of each round, and the decrease key), then the crown duplicate stitch if any. Every cell carries its yarn letter as well as its colour unless **Include symbols** is switched off (it is ticked by default for the PDF; the zip’s PNG and SVG pictures have the same option, off by default), and every page has the Freya’d Knot footer with Ravelry, Instagram and Ko-fi links, and the personal use line for the leopard example. The page is made with the browser’s print, so the knitter chooses “Save as PDF”; a test checks that the print gives one A4 page per sheet.
 - **Download everything (zip):** the chart file; PNG and SVG pictures of the whole hat, outside and inside; `chart.csv` (round 1 first, pair 1 first, blank where a decrease has removed a pair, a slash on each decrease); one CSV for each duplicate stitch layer; `stripes.csv` for a striped chart; `yarns.csv`; and `shopping-list.txt`. Files are compressed where the browser can.
 - **Save the chart file** and **Back up this hat** (as before).
 
 ## 14. Accessibility and quality
 
-- Every colour in a chart also has a symbol, and symbols are consistent across Chart A, Chart B, crown and duplicate stitch charts.
+- Charts show a letter in each cell by default, and it can be switched off; decrease marks are always shown. Letters are consistent across Chart A, Chart B, crown and duplicate stitch charts.
 - High-contrast and large-text options. Screen-reader labels for controls. Chart cells are not required to be individually focusable.
 - Touch targets at least 44 px. No gesture is the only way to do something.
 - Loads fast on a mid-range phone. The charts are small (112 × 95 cells at most), so rendering should be instant.
@@ -389,6 +394,12 @@ On the More tab of every hat, under **Print and export**:
 11. **Repository:** `double-take`, with its own GitHub Pages site (https://fj9.github.io/double-take/).
 12. **Licence:** the code is MIT. The leopard charts, the pattern text and the names and branding are not covered and stay personal use only.
 13. **Tutorial links:** shipped without links for now; the app shows a link wherever one is filled in (`HELP` in `content.ts`).
+14. The knit view is phone first; design stages are tablet and desktop first.
+15. Chart A and B are print only; the app shows one 112-pair strip in a following window.
+16. Crown blank columns are never collapsed.
+17. Decrease marks are always shown.
+18. The duplicate stitch amount control sets the smallest patch kept, per duplicate colour, with fine-tuning always visible.
+19. Chart marks default to letters on and dots off while knitting, with a per-export symbols option.
 
 ## 19. Open questions
 

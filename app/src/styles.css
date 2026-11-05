@@ -268,6 +268,8 @@ label.field { display: block; margin-bottom: 12px; }
 .now-row { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 16px; }
 .then { display: inline-flex; align-items: center; gap: 6px; }
 .hint { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin: -8px -8px -8px 0; padding: 0; border: 0; background: none; color: var(--ink); cursor: pointer; }
+.hint-wrap { position: relative; display: inline; }
+.hint-body { display: block; margin: 8px 0 0; padding: 10px 12px; background: var(--wash); border-radius: 8px; font-weight: 400; }
 .hint .q { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 1.5px solid var(--ink); border-radius: 50%; font: 700 16px var(--font-display); }
 .goto { margin-top: 8px; gap: 8px; }
 .goto .input { width: 96px; min-height: 44px; }
@@ -347,4 +349,30 @@ label.field { display: block; margin-bottom: 12px; }
 @media (max-width: 639px) {
   .colour-row { grid-template-columns: auto minmax(0, 1fr) auto; }
   .colour-row .select { grid-column: 1 / -1; }
+}
+
+/* Drawing: tools beside the grid on wide screens */
+.phone-only { display: block; }
+.draw-layout { display: block; }
+.draw-status { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 4px 0; }
+.status-chip { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; padding: 0 14px; border: 1.5px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); font: 700 14px var(--font-display); text-align: left; cursor: pointer; }
+.status-chip.warn { background: color-mix(in srgb, #e8a933 22%, var(--card)); border-color: #b9780b; }
+.status-chip.stop { background: color-mix(in srgb, var(--error) 16%, var(--card)); border-color: var(--error); }
+@media (min-width: 768px) {
+  .phone-only { display: none; }
+  .draw-layout { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 16px; align-items: start; }
+  .draw-side { position: sticky; top: 8px; max-height: calc(100dvh - 16px); overflow-y: auto; }
+}
+.stripe-block { display: flex; flex-direction: column; gap: 6px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; }
+
+/* A hat in the list: thumbnail beside its details */
+.hat-row { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; align-items: start; }
+.hat-thumb { min-width: 0; }
+@media (max-width: 420px) { .hat-row { grid-template-columns: 72px minmax(0, 1fr); } }
+
+/* The picture screen's section index: only in the side rail, never the bottom bar */
+.section-index { display: none; }
+@media (min-width: 768px) and (min-height: 501px) {
+  .section-index { display: flex; }
+  .section-index a { min-height: 44px; padding: 0 8px; text-align: center; }
 }

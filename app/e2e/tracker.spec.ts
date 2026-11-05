@@ -221,3 +221,59 @@ test("the side rail shows the hat and a way back to the round", async ({ page })
   await rail.getByRole("link", { name: "Back to round" }).click();
   await expect(page.locator("#main").getByText("Round 1 of 95")).toBeVisible();
 });
+
+test("Home lists each hat with a thumbnail and a menu to rename, copy and remove it", async ({ page }) => {
+  await startLeopard(page);
+  await page.goto("/#/");
+  const hats = page.locator(".hat-row");
+  await expect(hats).toHaveCount(1);
+  await expect(hats.first().locator("canvas")).toBeVisible();
+  await expect(hats.first()).toContainText("Last opened");
+  await hats.first().getByRole("button", { name: /^Options for/ }).click();
+  await hats.first().getByRole("button", { name: "Make a copy" }).click();
+  await expect(hats).toHaveCount(2);
+  await hats.first().getByRole("button", { name: /^Options for/ }).click();
+  await hats.first().getByRole("button", { name: "Rename" }).click();
+  await hats.first().getByLabel(/^New name for/).fill("Renamed hat");
+  await hats.first().getByRole("button", { name: "Save the name" }).click();
+  await expect(page.getByRole("heading", { name: "Renamed hat" })).toBeVisible();
+  await page.getByRole("button", { name: "Options for Renamed hat" }).click();
+  await page.getByRole("button", { name: "Remove…" }).click();
+  await page.getByRole("button", { name: "Remove it" }).click();
+  await expect(hats).toHaveCount(1);
+});
+
+test("a gentle backup prompt appears once cast on is done", async ({ page }) => {
+  await startLeopard(page);
+  await page.getByRole("link", { name: "Steps" }).click();
+  await expect(page.getByRole("region", { name: "Back up your hat" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Mark as done" }).nth(1).click();
+  const nudge = page.getByRole("region", { name: "Back up your hat" });
+  await expect(nudge).toContainText("Cast on is done");
+  await nudge.getByRole("button", { name: "Not now" }).click();
+  await expect(nudge).toHaveCount(0);
+  await page.reload();
+  await expect(nudge).toHaveCount(0);
+});
+
+test("the Ko-fi line shows on Hat but not on Steps, and a hint closes with Escape", async ({ page }) => {
+  await startLeopard(page);
+  await expect(page.getByText("Tips on Ko-fi")).toHaveCount(0);
+  await page.getByRole("link", { name: "Steps" }).click();
+  await expect(page.getByText("Tips on Ko-fi")).toHaveCount(0);
+  await page.getByRole("link", { name: "Hat", exact: true }).click();
+  await expect(page.getByText("Tips on Ko-fi")).toBeVisible();
+  await page.getByRole("link", { name: "Round", exact: true }).click();
+  const hint = page.getByRole("button", { name: "What is a pair?" });
+  await hint.click();
+  await expect(page.getByText("A pair is one stitch on the front")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByText("A pair is one stitch on the front")).toHaveCount(0);
+});
+
+test("the knit-stage Review reads as the chart for the hat", async ({ page }) => {
+  await startLeopard(page);
+  await page.goto(page.url().replace(/\/round.*$/, "/review"));
+  await expect(page.getByRole("heading", { name: /^The chart for / })).toBeVisible();
+  await expect(page.getByText("Check everything before you cast on")).toHaveCount(0);
+});
