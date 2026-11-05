@@ -25,16 +25,14 @@ export function ImportErrors({ errors, onClose }: { errors: ChartError[]; onClos
   );
 }
 
-function DrawCard() {
+function DrawPanel() {
   const [colours, setColours] = useState(2);
   const [striped, setStriped] = useState(false);
   return (
-    <div class="card">
-      <h3>Draw your own chart</h3>
-      <p class="small">Draw on the grid. The outside shows one main colour and the inside shows the other. You choose the yarn colours when you start drawing.</p>
-      <h4 id="draw-colours" style="margin:0 0 6px">
+    <div class="card start-panel">
+      <h2 id="draw-colours" style="margin:0 0 6px;font-size:16px">
         How many colours?
-      </h4>
+      </h2>
       <div class="seg" role="group" aria-labelledby="draw-colours">
         {[2, 3, 4, 5, 6].map((n) => (
           <button key={n} aria-pressed={colours === n} onClick={() => setColours(n)}>
@@ -42,9 +40,9 @@ function DrawCard() {
           </button>
         ))}
       </div>
-      <h4 id="draw-how" style="margin:12px 0 6px">
+      <h2 id="draw-how" style="margin:12px 0 6px;font-size:16px">
         How is it knitted?
-      </h4>
+      </h2>
       <div class="seg" role="group" aria-labelledby="draw-how">
         <button aria-pressed={!striped} onClick={() => setStriped(false)}>
           A print
@@ -54,9 +52,7 @@ function DrawCard() {
         </button>
       </div>
       <p class="small muted" style="margin:6px 0 12px">
-        {striped
-          ? "Every round is worked in two of your colours, and you choose which two as you go up the hat. A third colour in a round is added with duplicate stitch."
-          : "Two colours are knitted. Any more are added afterwards with duplicate stitch."}
+        {striped ? "Each round uses two of your colours, and you choose which as you go up. A third is added with duplicate stitch." : "Two colours are knitted. Any more are added afterwards with duplicate stitch."}
       </p>
       <button
         class="btn primary block"
@@ -70,6 +66,18 @@ function DrawCard() {
     </div>
   );
 }
+
+const ICONS = {
+  paw: "M14.7 13.5c-1.1-2-1.4-2.5-2.7-2.5s-1.7.8-2.8 2.7c-.9 1.7-2.8 1.8-3.3 3.3-.1.3-.1.7-.1 1 0 1.200.8 2 1.800 2 1.300 0 3-1 4.500-1s3.200 1 4.500 1c1 0 1.800-.8 1.800-2 0-.3 0-.7-.1-1-.5-1.500-2.500-1.800-3.500-3.500zM20.200 8.100a1 1 0 00-.4-.1c-.7 0-1.600.8-2 1.900-.5 1.300-.3 2.700.5 3 .1.100.3.100.4.100.7 0 1.600-.7 2-1.900.5-1.300.3-2.700-.5-3zM9.500 9c.9-.1 1.500-1.300 1.300-2.700C10.600 5 9.800 4 8.900 4c-.9.100-1.500 1.300-1.300 2.700C7.800 8 8.600 9 9.500 9zM16.500 9c.9 0 1.700-1 1.900-2.300.2-1.400-.4-2.600-1.300-2.700-.9 0-1.700 1-1.900 2.300-.2 1.400.4 2.600 1.300 2.700zM4.200 11.500c.4.200.5.200.7.200.7 0 1.600-.7 2-1.900.5-1.300.3-2.700-.5-3a1 1 0 00-.3-.1c-.7 0-1.600.7-2 1.900-.5 1.300-.3 2.700.5 3z",
+  photo: "M15 8h.01M3 6a3 3 0 013-3h12a3 3 0 013 3v12a3 3 0 01-3 3H6a3 3 0 01-3-3zM3 16l5-5c.9-.9 2.100-.9 3 0l5 5M14 14l1-1c.9-.9 2.100-.9 3 0l3 3",
+  pencil: "M4 20h4L18.500 9.500a2.800 2.800 0 10-4-4L4 16v4zM13.500 6.500l4 4",
+};
+
+const Icon = ({ d }: { d: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d={d} />
+  </svg>
+);
 
 const dateOf = (t: number) => new Date(t).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
 
@@ -85,8 +93,8 @@ function HatRow({ project: p, progress: pr, samename, onOpen }: { project: Proje
         <Flat chart={p.chart} bodyOnly picture label="" />
       </div>
       <div class="hat-info">
-        <div class="row between" style="align-items:flex-start">
-          <div>
+        <div class="row between" style="align-items:flex-start;flex-wrap:wrap">
+          <div style="min-width:140px">
             <h3 style="margin:0">{p.name}</h3>
             {samename && <p class="small muted" style="margin:2px 0 0">Started {dateOf(p.createdAt)}</p>}
             <p class="small muted num" style="margin:4px 0 0">{status}</p>
@@ -172,6 +180,7 @@ function HatRow({ project: p, progress: pr, samename, onOpen }: { project: Proje
 export function HomeScreen() {
   const [errors, setErrors] = useState<ChartError[] | null>(null);
   const input = useRef<HTMLInputElement>(null);
+  const [panel, setPanel] = useState<"example" | "draw" | null>(null);
 
   // The knit-stage hat worked on most recently
   const knitting = projects.value.filter((p) => p.stage !== "design" && progressById.value[p.id]);
@@ -197,45 +206,38 @@ export function HomeScreen() {
 
   return (
     <div>
-      <h1>Knit a reversible hat</h1>
-      <p class="muted">The same print on both sides, in opposite colours. Doubletake keeps your place, round by round.</p>
+      <h1>What would you like to knit?</h1>
+      <p class="muted">One print, both sides, opposite colours.</p>
 
       {errors && <ImportErrors errors={errors} onClose={() => setErrors(null)} />}
 
-      {continuing && (
-        <section class="card continue" aria-labelledby="continue">
-          <div class="continue-pic">
-            <Flat chart={continuing.chart} bodyOnly picture label="" />
-          </div>
-          <div>
-            <h2 id="continue" style="margin:0">Continue</h2>
-            <p style="margin:4px 0 0">
-              <strong>{continuing.name}</strong>
-            </p>
-            <p class="small muted num" style="margin:0 0 12px">
-              Round {currentRound(continuingProgress as NonNullable<typeof continuingProgress>)}/{TOTAL_ROUNDS} · {percentComplete(continuingProgress as NonNullable<typeof continuingProgress>)}%
-            </p>
-            <button class="btn primary" onClick={() => open(continuing.id)}>
-              Continue {continuing.name}
-            </button>
-          </div>
-        </section>
-      )}
+      <div class="start-tiles">
+        <button class="tile" aria-expanded={panel === "example"} onClick={() => setPanel(panel === "example" ? null : "example")}>
+          <span class="tile-pic ink">
+            <Icon d={ICONS.paw} />
+          </span>
+          <span class="tile-name">Try an example</span>
+          <span class="tile-sub">Leopard or stripes</span>
+        </button>
+        <a class="tile" href="#/make">
+          <span class="tile-pic coral">
+            <Icon d={ICONS.photo} />
+          </span>
+          <span class="tile-name">From a picture</span>
+          <span class="tile-sub">Photo, print or sample</span>
+        </a>
+        <button class="tile" aria-expanded={panel === "draw"} onClick={() => setPanel(panel === "draw" ? null : "draw")}>
+          <span class="tile-pic wash">
+            <Icon d={ICONS.pencil} />
+          </span>
+          <span class="tile-name">Draw it</span>
+          <span class="tile-sub">Blank grid, you choose</span>
+        </button>
+      </div>
 
-      {ready.value && projects.value.length > 0 && (
-        <section aria-labelledby="your-hats">
-          <h2 id="your-hats">Your hats</h2>
-          {projects.value.map((p) => (
-            <HatRow key={p.id} project={p} progress={progressById.value[p.id]} samename={projects.value.filter((o) => o.name === p.name).length > 1} onOpen={() => open(p.id)} />
-          ))}
-        </section>
-      )}
-
-      <section aria-labelledby="start-new">
-        <h2 id="start-new">Start a new hat</h2>
-        <h3 style="margin:0 0 8px">Try an example</h3>
-        {EXAMPLES.map((ex) => (
-          <div class="card" key={ex.id}>
+      {panel === "example" &&
+        EXAMPLES.map((ex) => (
+          <div class="card start-panel" key={ex.id}>
             <h3>{ex.title}</h3>
             <p class="small">{ex.blurb}</p>
             <button
@@ -249,26 +251,52 @@ export function HomeScreen() {
             </button>
           </div>
         ))}
-        <div class="card">
-          <h3>Make a chart from a picture</h3>
-          <p class="small">Choose a print or a picture. Doubletake finds the colours and turns it into a chart for the hat. The picture never leaves this device.</p>
-          <a class="btn primary block" href="#/make">
-            Choose a picture
-          </a>
-        </div>
-        <DrawCard />
-        <div class="card">
-          <h3>I have a chart file</h3>
-          <p class="small">Choose a Doubletake chart (.doubletake.json) or a backup you saved earlier. It stays on this device.</p>
-          <input ref={input} id="import-file" class="sr-only" aria-label="Choose a chart file" type="file" accept=".json,application/json" onChange={(e) => onFile((e.currentTarget as HTMLInputElement).files?.[0])} />
-          <label class="btn block" for="import-file">
-            Choose a file
-          </label>
-        </div>
-        <p class="small muted" style="margin:8px 0 0">
-          Want help from Claude? <a href="#/skill">Get the Claude skill</a>, which takes you through the choices and gives you a chart file to bring back here.
-        </p>
-      </section>
+      {panel === "draw" && <DrawPanel />}
+
+      <p class="open-file">
+        <input ref={input} id="import-file" class="sr-only" aria-label="Choose a chart file" type="file" accept=".json,application/json" onChange={(e) => onFile((e.currentTarget as HTMLInputElement).files?.[0])} />
+        <label for="import-file">Have a chart file or backup? Open it</label>
+      </p>
+
+      {continuing && (
+        <section class="continue-card" aria-labelledby="continue">
+          <div class="continue-pic">
+            <Flat chart={continuing.chart} bodyOnly picture label="" />
+          </div>
+          <div>
+            <h2 id="continue" style="margin:0;font-size:13px;font-weight:400" class="muted">
+              Pick up where you left off
+            </h2>
+            <p style="margin:2px 0 0">
+              <strong>{continuing.name}</strong>
+            </p>
+            <p class="small muted num" style="margin:0">
+              Round {currentRound(continuingProgress as NonNullable<typeof continuingProgress>)}/{TOTAL_ROUNDS}
+            </p>
+            <div class="progress" style="margin:6px 0 10px">
+              <div style={`width:${percentComplete(continuingProgress as NonNullable<typeof continuingProgress>)}%`} />
+            </div>
+            <button class="btn primary" onClick={() => open(continuing.id)}>
+              Continue {continuing.name}
+            </button>
+          </div>
+        </section>
+      )}
+
+      {ready.value && projects.value.length > 0 && (
+        <section aria-labelledby="your-hats">
+          <h2 id="your-hats" class="home-sec">
+            Your hats
+          </h2>
+          {projects.value.map((p) => (
+            <HatRow key={p.id} project={p} progress={progressById.value[p.id]} samename={projects.value.filter((o) => o.name === p.name).length > 1} onOpen={() => open(p.id)} />
+          ))}
+        </section>
+      )}
+
+      <p class="small muted" style="margin:16px 0 0">
+        Want help from Claude? <a href="#/skill">Get the Claude skill</a>
+      </p>
     </div>
   );
 }

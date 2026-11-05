@@ -3,6 +3,7 @@ import type { Page } from "@playwright/test";
 
 async function startDrawing(page: Page) {
   await page.goto("/");
+  await page.getByRole("button", { name: "Draw it" }).click();
   await page.getByRole("button", { name: "Start drawing" }).click();
   await expect(page.getByRole("heading", { name: "Draw your chart" })).toBeVisible();
 }
@@ -79,6 +80,7 @@ test("review, then start knitting from a drawn chart", async ({ page }) => {
 
 test("the leopard review warns about the amount of duplicate stitch", async ({ page }) => {
   await page.goto("/");
+  await page.getByRole("button", { name: "Try an example" }).click();
   await page.getByRole("button", { name: "Use this chart" }).first().click();
   await expect(page.getByText("Round 1 of 95")).toBeVisible();
   await page.getByRole("link", { name: "Hat" }).click();
@@ -93,6 +95,7 @@ test("the leopard review warns about the amount of duplicate stitch", async ({ p
 
 test("a chart that is already being knitted can’t be edited in place", async ({ page }) => {
   await page.goto("/");
+  await page.getByRole("button", { name: "Try an example" }).click();
   await page.getByRole("button", { name: "Use this chart" }).first().click();
   await page.getByRole("button", { name: /done, next$/ }).click();
   await page.getByRole("link", { name: "Hat" }).click();
@@ -208,6 +211,7 @@ test("zooming the picture out repeats it to fill the whole body", async ({ page 
 
 test("starting with four colours makes two duplicate stitch layers, ready to draw", async ({ page }) => {
   await page.goto("/");
+  await page.getByRole("button", { name: "Draw it" }).click();
   await page.getByRole("group", { name: "How many colours?" }).getByRole("button", { name: "4" }).click();
   await page.getByRole("button", { name: "Start drawing" }).click();
   await expect(page.getByRole("heading", { name: "Draw your chart" })).toBeVisible();
@@ -220,6 +224,7 @@ test("starting with four colours makes two duplicate stitch layers, ready to dra
 
 test("the status chip shows the amount of duplicate stitch and opens the gauge", async ({ page }) => {
   await page.goto("/");
+  await page.getByRole("button", { name: "Draw it" }).click();
   await page.getByRole("group", { name: "How many colours?" }).getByRole("button", { name: "3" }).click();
   await page.getByRole("button", { name: "Start drawing" }).click();
   await page.getByRole("button", { name: "Duplicate: Colour C" }).click();
@@ -234,6 +239,7 @@ test("the status chip shows the amount of duplicate stitch and opens the gauge",
 
 test("single squares can be shown, counted and removed, and Undo brings them back", async ({ page }) => {
   await page.goto("/");
+  await page.getByRole("button", { name: "Draw it" }).click();
   await page.getByRole("group", { name: "How many colours?" }).getByRole("button", { name: "3" }).click();
   await page.getByRole("button", { name: "Start drawing" }).click();
   await page.getByRole("button", { name: "Duplicate: Colour C" }).click();
@@ -248,6 +254,7 @@ test("single squares can be shown, counted and removed, and Undo brings them bac
 
 test("patches under a size can be tidied for one colour", async ({ page }) => {
   await page.goto("/");
+  await page.getByRole("button", { name: "Draw it" }).click();
   await page.getByRole("group", { name: "How many colours?" }).getByRole("button", { name: "3" }).click();
   await page.getByRole("button", { name: "Start drawing" }).click();
   await page.getByRole("button", { name: "Duplicate: Colour C" }).click();
@@ -262,6 +269,7 @@ test("patches under a size can be tidied for one colour", async ({ page }) => {
 
 test("a duplicate layer can be worked on the outside only", async ({ page }) => {
   await page.goto("/");
+  await page.getByRole("button", { name: "Draw it" }).click();
   await page.getByRole("group", { name: "How many colours?" }).getByRole("button", { name: "3" }).click();
   await page.getByRole("button", { name: "Start drawing" }).click();
   await page.getByLabel("Faces for Colour C").selectOption("outside");
@@ -270,6 +278,7 @@ test("a duplicate layer can be worked on the outside only", async ({ page }) => 
 
 test("on a phone, Draw says it is easier on a tablet or computer", async ({ page }) => {
   await page.goto("/");
+  await page.getByRole("button", { name: "Draw it" }).click();
   await page.getByRole("button", { name: "Start drawing" }).click();
   await expect(page.getByText(/Drawing is easier on a tablet or computer/)).toBeVisible();
   await page.setViewportSize({ width: 1100, height: 800 });
@@ -278,6 +287,7 @@ test("on a phone, Draw says it is easier on a tablet or computer", async ({ page
 
 test("the grid can show the picture, with duplicate stitch in solid colour", async ({ page }) => {
   await page.goto("/");
+  await page.getByRole("button", { name: "Draw it" }).click();
   await page.getByRole("group", { name: "How many colours?" }).getByRole("button", { name: "3" }).click();
   await page.getByRole("button", { name: "Start drawing" }).click();
   await page.getByRole("button", { name: "Duplicate: Colour C" }).click();
@@ -289,6 +299,7 @@ test("the grid can show the picture, with duplicate stitch in solid colour", asy
 
 async function startStripes(page: Page, colours: string) {
   await page.goto("/");
+  await page.getByRole("button", { name: "Draw it" }).click();
   await page.getByRole("group", { name: "How many colours?" }).getByRole("button", { name: colours }).click();
   await page.getByRole("group", { name: "How is it knitted?" }).getByRole("button", { name: "Stripes" }).click();
   await page.getByRole("button", { name: "Start drawing" }).click();

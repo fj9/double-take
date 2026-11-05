@@ -12,6 +12,7 @@ test("the About page has the hashtag, the credit and the links", async ({ page }
 
 test("the share-your-hat note appears when every round is done", async ({ page }) => {
   await page.goto("/");
+  await page.getByRole("button", { name: "Try an example" }).click();
   await page.getByRole("button", { name: "Use this chart" }).first().click();
   await page.getByRole("link", { name: "Steps", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Share your hat" })).toHaveCount(0);

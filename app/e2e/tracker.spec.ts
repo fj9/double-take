@@ -7,6 +7,7 @@ const leopardPath = fileURLToPath(new URL("../../fixtures/leopard/leopard.double
 
 async function startLeopard(page: Page) {
   await page.goto("/");
+  await page.getByRole("button", { name: "Try an example" }).click();
   await page.getByRole("button", { name: "Use this chart" }).first().click();
   await expect(page.getByText("Round 1 of 95")).toBeVisible();
 }
@@ -206,7 +207,7 @@ test("Home offers to continue the hat you were knitting", async ({ page }) => {
   await startLeopard(page);
   await nextRound(page);
   await page.goto("/#/");
-  const card = page.getByRole("region", { name: "Continue" });
+  const card = page.getByRole("region", { name: "Pick up where you left off" });
   await expect(card).toContainText("Round 2/95");
   await card.getByRole("button", { name: /^Continue/ }).click();
   await expect(page.getByText("Round 2 of 95").first()).toBeVisible();

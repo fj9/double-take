@@ -123,10 +123,22 @@ The strip beside the round numbers, the "Colours this round" line and the stripe
 The round chart sizes to its box (section 3.5). The Review chart and Stitch map already do.
 
 ### 4.5 Home
-- With one or more hats, the first card is **Continue**: the hat's thumbnail, name, "Round 39 of 95 · 41%", and a large Continue button for the most recently opened knit-stage hat.
-- Other hats list a thumbnail, name, status and last opened date, with an Open button and a menu: Rename, Make a copy, Back up, Remove.
-- **Start a new hat** has four plain choices: *Try an example* (the leopard and the stripes example), *From a picture*, *Draw it*, and *I have a chart file*. "Make a chart with Claude (optional)" is a quieter link below them.
-- Hats with the same name are told apart by the date and the thumbnail.
+
+Home is one layout for first-time and returning knitters. It asks one question and offers the ways to answer it; what you have already started appears underneath.
+
+- **Top bar:** the wordmark (`double` light, `take` bold, as in the style guide) and the settings gear.
+- **Heading:** "What would you like to knit?", with one line under it: "One print, both sides, opposite colours."
+- **Three start tiles**, always in the same place and order, each with a coloured square holding an icon, a name and a few words:
+  1. **Try an example** (leopard or stripes). Midnight square, coral icon.
+  2. **From a picture** (photo, print or sample). Coral square, midnight icon. Opens the picture screen.
+  3. **Draw it** (blank grid, you choose). Wash square, midnight icon.
+- **Example and Draw open a panel under the tiles** (the tile shows it is expanded; choosing it again closes it). The example panel lists the examples, each with "Use this chart". The draw panel asks "How many colours?" (2 to 6) and "How is it knitted?" (a print or stripes), then "Start drawing". The panel is the only extra step.
+- **Open a file:** one quiet line under the tiles, "Have a chart file or backup? Open it". It takes a chart file or a backup.
+- **Pick up where you left off:** shown only when there is a hat being knitted. A card with the hat's thumbnail, name, "Round 39 of 95", a thin coral progress bar and a **Continue** button. It is for the most recently opened knit-stage hat.
+- **Your hats:** shown only when there are hats. A list with a thumbnail, name, status, last opened date, an **Open** button and a ⋯ menu (Rename, Make a copy, Back up, Remove). Hats with the same name show their start date.
+- **Colour:** midnight leads. Coral appears on the picture tile, the Continue card's edge and its progress bar, and nowhere as text on white. The Continue button is midnight with white text (never white on coral).
+- **Words:** sentence case, no more than a short line under any tile, no paragraphs of explanation on this page. Help moves to the screens each tile opens.
+- "Make a chart with Claude (optional)" stays as a quiet link at the very bottom.
 
 ---
 

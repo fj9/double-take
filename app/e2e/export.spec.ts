@@ -4,6 +4,7 @@ import { execFileSync } from "node:child_process";
 
 async function leopardHat(page: Page) {
   await page.goto("/");
+  await page.getByRole("button", { name: "Try an example" }).click();
   await page.getByRole("button", { name: "Use this chart" }).first().click();
   await expect(page.getByText("Round 1 of 95")).toBeVisible();
   await page.getByRole("link", { name: "Hat" }).click();
@@ -83,7 +84,7 @@ test("the chart pages have an Include symbols option that takes the letters out"
   await leopardHat(page);
   await page.getByRole("link", { name: "Chart pages (PDF)" }).click();
   const letters = () => page.locator(".sheet svg text").evaluateAll((t) => t.filter((x) => /^[A-C]$/.test(x.textContent ?? "")).length);
-  expect(await letters()).toBeGreaterThan(100);
+  await expect.poll(letters).toBeGreaterThan(100);
   await page.getByLabel(/Include symbols/).uncheck();
-  expect(await letters()).toBe(0);
+  await expect.poll(letters).toBe(0);
 });
