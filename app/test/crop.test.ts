@@ -36,7 +36,9 @@ describe("tiling when zoomed out", () => {
   it("zoom 1 and above is a single piece that fills the frame", () => {
     const t = tileDraws(1000, 1000, { zoom: 1, cx: 0.5, cy: 0.5 }, false);
     expect(t).toHaveLength(1);
-    expect(t[0]).toMatchObject({ nx: 0, ny: 0, nw: 1, nh: 1, flipX: false, flipY: false });
+    expect(t[0]).toMatchObject({ nx: 0, ny: 0, flipX: false, flipY: false });
+    expect(t[0]?.nw).toBeCloseTo(1, 9);
+    expect(t[0]?.nh).toBeCloseTo(1, 9);
   });
 
   it("zooming out repeats the picture, and the pieces always fill the frame exactly", () => {

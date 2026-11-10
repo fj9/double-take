@@ -67,11 +67,11 @@ export function buildChart(roles: RoleResult, choice: Choice, opts: BuildOptions
 
   const ground = stripes ? pairOf(H)[0] : knit[0];
 
-  // ---- the real colour role of every cell in rounds 1 to 95 (-1 where a decrease has removed the pair) ----
+  // ---- the real colour role of every cell in rounds 1 to 121 (-1 where a decrease has removed the pair) ----
   const real: number[][] = [[]];
   for (let r = 1; r <= H; r++) real[r] = Array.from({ length: W }, (_, i) => body(r, i + 1));
   // The crown mirrors the top rounds upward and fades: patches are eroded a little more in each round, and what is
-  // left is gone by round 85. A striped hat has a solid crown in the top stripe's colours.
+  // left is gone by round 108. A striped hat has a solid crown in the top stripe's colours.
   const fadeRows = stripes ? 0 : FADE_ROUNDS;
   const keep = fadeMask(fadeRows, (i, p) => body(H - i, p + 1) !== ground);
   for (let r = FIRST_CROWN_ROUND; r <= LAST_ROUND; r++) {

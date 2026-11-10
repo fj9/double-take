@@ -4,6 +4,8 @@ import {
   BODY_ROUNDS,
   CROWN_ROUNDS,
   FIRST_CROWN_ROUND,
+  GAUGE,
+  OLD_GAUGE_DIMENSIONS,
   PAIRS,
   crownLayout,
 } from "./hat";
@@ -14,6 +16,13 @@ export interface ChartError {
   path: string;
   /** What happened, in words a knitter can act on. */
   message: string;
+}
+
+/** Is this a chart made for the first, coarser gauge (112 pairs round)? Those can't be used at the current gauge. */
+export function isOldGauge(chart: unknown): boolean {
+  if (!isObject(chart) || !isObject(chart.dimensions)) return false;
+  const d = chart.dimensions;
+  return d.pairs === OLD_GAUGE_DIMENSIONS.pairs && d.body_rounds === OLD_GAUGE_DIMENSIONS.body_rounds && d.crown_rounds === OLD_GAUGE_DIMENSIONS.crown_rounds;
 }
 
 export type ValidationResult = { ok: true; chart: Chart } | { ok: false; errors: ChartError[] };
@@ -74,6 +83,13 @@ export function validateChart(raw: unknown): ValidationResult {
   if (!mode) err("mode", "mode", "The chart’s mode must be two_colour, duplicate or stripes.");
 
   const dim = input.dimensions;
+  if (isOldGauge(input)) {
+    return fail(
+      "old_gauge",
+      "dimensions",
+      `This chart was made for the first Doubletake gauge (${OLD_GAUGE_DIMENSIONS.pairs} stitch pairs round, 25 pairs and 34 rounds to 4 in). Doubletake now uses ${GAUGE.pairs} pairs and ${GAUGE.rounds} rounds to 4 in, with ${PAIRS} pairs round, so the chart can’t be used as it is. Make a new chart from the same picture or drawing.`,
+    );
+  }
   if (
     !isObject(dim) ||
     dim.pairs !== PAIRS ||

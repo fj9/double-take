@@ -12,8 +12,8 @@ This spec changes how the app is laid out and how the knit view, the picture scr
 ## 1. Principles
 
 1. **The knit view is phone first.** The owner knits with a phone upright, within reach but not in the hand, mostly in portrait and sometimes in landscape for width. Every knit screen must work one-handed at arm's length. Tablets and desktops get more room, not a different design.
-2. **The design stage is tablet and desktop first, and still works on a phone.** Drawing a 112 × 75 grid and fine-tuning a picture are easier on a bigger screen. The picture route must work well on a phone because the camera is there. Draw says so once, in context, and makes moving a chart to a phone easy.
-3. **A and B are for print.** Chart A and Chart B exist to fit A4 portrait. In the app the round is one loop of 112 pairs. Print, PDF and the pattern keep A and B.
+2. **The design stage is tablet and desktop first, and still works on a phone.** Drawing a 136 × 95 grid and fine-tuning a picture are easier on a bigger screen. The picture route must work well on a phone because the camera is there. Draw says so once, in context, and makes moving a chart to a phone easy.
+3. **A and B are for print.** Chart A and Chart B exist to fit A4 portrait. In the app the round is one loop of 136 pairs. Print, PDF and the pattern keep A and B.
 4. **Blank crown columns always stay.** Removed pairs remain as blank columns in every view. Nothing is collapsed, so pair numbers and the staircase of decreases match the pattern.
 5. **Decrease marks are always shown,** in every view and every export, whatever the marks setting says. They are instructions, not a colour aid.
 6. **Colour is never the only cue by default.** Letters on cells stay on by default in the knit view. Solid-colour previews are for judging how the hat will look.
@@ -24,7 +24,7 @@ This spec changes how the app is laid out and how the knit view, the picture scr
 
 | # | Area | Change | Phase |
 |---|---|---|---|
-| A | Round view | One 112-pair strip in a following window, colour blocks and Next block, compact header, undo toast, responsive width, landscape | 1 |
+| A | Round view | One 136-pair strip in a following window, colour blocks and Next block, compact header, undo toast, responsive width, landscape | 1 |
 | F | Chart marks | Letters on by default, duplicate dots off while knitting, solid previews, per-export symbols | 1 |
 | C1 | Picture screen | Palette recalculates from the frame (bug fix) | 1 |
 | B | Navigation | Hat tab replaces More, settings behind a gear, quick View control, new Home, page widths | 2 |
@@ -40,7 +40,7 @@ Phase 1 ends with a gate: the owner knits a few rounds on their own phone with t
 ## 3. A. Knit view: round screen
 
 ### 3.1 The single strip
-- The round is one strip of 112 columns. Pair 1 is at the right, and the strip reads right to left, with the round wrapping from pair 112 to pair 1.
+- The round is one strip of 136 columns. Pair 1 is at the right, and the strip reads right to left, with the round wrapping from pair 136 to pair 1.
 - Every column is always shown, including pairs removed by crown decreases (blank cells). Blank cells look clearly different from a stitch in every theme and in high-contrast mode.
 - The current round is highlighted, with seven rounds above and below (the existing window) on portrait screens.
 - The strip scrolls horizontally as one scroll area. There is one chart, not two.
@@ -50,9 +50,9 @@ Phase 1 ends with a gate: the owner knits a few rounds on their own phone with t
 - On a phone in portrait the strip shows only the pairs that fit at a comfortable cell size, targeting about 24 to 30 pairs on a 375 px viewport (cells of about 12 to 14 px). The target is tuned in the phase 1 prototype.
 - The window **follows the position**. With a position marked it centres on it, and moves when the position moves. With none it starts at pair 1.
 - The knitter can scroll the strip freely. When it has moved away from their place, a **Back to my place** button appears.
-- A thin **minimap** above the strip shows all 112 pairs, the window and the marker. Tapping it moves the window (not the marker).
+- A thin **minimap** above the strip shows all 136 pairs, the window and the marker. Tapping it moves the window (not the marker).
 - A sticky row-number gutter keeps round numbers visible while the strip scrolls.
-- **Chart A | Chart B divider:** a thin vertical line between pair 56 and pair 57, with small labels "Chart A" and "Chart B" at the top of the strip. It is a reference to the PDF, not a break. The position line says "the end of Chart A" at pair 56.
+- **Chart A | Chart B divider:** a thin vertical line between pair 68 and pair 69, with small labels "Chart A" and "Chart B" at the top of the strip. It is a reference to the PDF, not a break. The position line says "the end of Chart A" at pair 56.
 
 ### 3.3 Colour blocks and Next block
 - A **colour block** is a stretch of consecutive pairs with the same outside colour in the current round, as in the existing "This round as text". Removed pairs are skipped and do not break a block. A right-leaning decrease pair is its own block.
@@ -65,29 +65,29 @@ Phase 1 ends with a gate: the owner knits a few rounds on their own phone with t
 - The button's name is a working title (see open question 1).
 
 ### 3.4 Header, notes and bar
-- **One-line header:** "Round 39 of 95 · Body · 41%", with the pairs count (for example "112 pairs · 224 stitches") beside it, and a thin progress bar. The separate "rounds to go" line goes (the figure moves into the progress bar's label). The pace line shows only when a plan exists.
+- **One-line header:** "Round 49 of 121 · Body · 40%", with the pairs count (for example "136 pairs · 272 stitches") beside it, and a thin progress bar. The separate "rounds to go" line goes (the figure moves into the progress bar's label). The pace line shows only when a plan exists.
 - **Notes collapse.** Each round note (before you join, new stripe, jogless step, crown starts, last round) shows as a one-line banner with its title, and expands on tap. A note the knitter has opened is remembered as seen for that hat. Seen notes still show their one-line banner, never a full card. All notes remain reachable from a "Notes for this round" link.
 - **Bottom bar (portrait phone):** two large buttons, **Next block** and **Round {n} done**, side by side, with Back a round and Undo in a smaller row above. "Previous" is renamed **Back a round**. With colour blocks off, the bar is Back a round, Undo, and Round done.
 - **Undo toast:** after Round done, a toast reads "Round 12 done" with an Undo action and stays about 6 seconds, longer if the screen reader is active.
-- The position line reads "You're at pair 37 of 112".
+- The position line reads "You're at pair 37 of 136".
 - The duplicate stitch dots are off by default in this view (see section 7). A single line says "{n} duplicate stitch patches to do after blocking" with a link to the Stitch tab. In cells that hold a duplicate stitch, the chart shows the main colour being knitted.
 
 ### 3.5 Landscape and wide screens
 - **Landscape phone:** the window widens (target 40 to 50 pairs) and shows fewer rows above and below (target 4). The side rail is not used when the viewport height is under 500 px. Controls (Now/Then, Next block, Round done, Back, Undo) sit in a column at the right of the strip, and the section tabs fold into a menu button.
-- **Tablet and desktop (768 px and wider, 500 px and taller):** the side rail applies (section 4.2). The strip fits as many pairs as the width allows at the chosen cell size, up to all 112. At 1100 px and wider the Now/Then card, position, notes, legend and text version move into a side panel next to the strip.
+- **Tablet and desktop (768 px and wider, 500 px and taller):** the side rail applies (section 4.2). The strip fits as many pairs as the width allows at the chosen cell size, up to all 136. At 1100 px and wider the Now/Then card, position, notes, legend and text version move into a side panel next to the strip.
 - Page widths are set per page type (section 4.4).
 
 ### 3.6 Text version
-- "This round as text" becomes one entry for the whole round: "Pairs 1 to 112", with the same blocks and the same note about skipping blanks. The A/B split remains in print and PDF only.
+- "This round as text" becomes one entry for the whole round: "Pairs 1 to 136", with the same blocks and the same note about skipping blanks. The A/B split remains in print and PDF only.
 
 ### 3.7 Stripes
 The strip beside the round numbers, the "Colours this round" line and the stripe notes are unchanged.
 
 ### 3.8 Acceptance criteria
 - On a 375 px wide viewport the round view shows the current round with its neighbours, the Now card and both big buttons without scrolling, with the chart taking most of the screen.
-- Knitting a 112-pair round needs no horizontal scroll by hand: the window follows the marker.
+- Knitting a 136-pair round needs no horizontal scroll by hand: the window follows the marker.
 - Next block, Back a round, Undo and tap-to-mark all agree on the position, and Undo restores it.
-- Crown rounds show all 112 columns, with blanks distinct from stitches, and Next block skips blanks.
+- Crown rounds show all 136 columns, with blanks distinct from stitches, and Next block skips blanks.
 - The text version and the Now/Then card give the same blocks for every round of the leopard and stripes fixtures.
 - Landscape and desktop widths use the extra room as in 3.5.
 
@@ -107,7 +107,7 @@ The strip beside the round numbers, the "Colours this round" line and the stripe
 
 ### 4.2 Side rail
 - The rail used inside a hat at 768 px and wider stays, and also appears on the picture screen as a section index (Frame, Colours, Seam, Duplicate stitch, Result) that scrolls to each section.
-- The empty area under the tabs shows the hat's name, "Round 39 of 95" with a progress bar, and on pages other than the round view a **Back to round** button.
+- The empty area under the tabs shows the hat's name, "Round 49 of 121" with a progress bar, and on pages other than the round view a **Back to round** button.
 - The rail needs a viewport height of at least 500 px, so a phone in landscape keeps the compact layout in 3.5.
 
 ### 4.3 Settings and the View control
@@ -134,7 +134,7 @@ Home is one layout for first-time and returning knitters. It asks one question a
   3. **Draw it** (blank grid, you choose). Wash square, midnight icon.
 - **Example and Draw open a panel under the tiles** (the tile shows it is expanded; choosing it again closes it). The example panel lists the examples, each with "Use this chart". The draw panel asks "How many colours?" (2 to 6) and "How is it knitted?" (a print or stripes), then "Start drawing". The panel is the only extra step.
 - **Open a file:** one quiet line under the tiles, "Have a chart file or backup? Open it". It takes a chart file or a backup.
-- **Pick up where you left off:** shown only when there is a hat being knitted. A card with the hat's thumbnail, name, "Round 39 of 95", a thin coral progress bar and a **Continue** button. It is for the most recently opened knit-stage hat.
+- **Pick up where you left off:** shown only when there is a hat being knitted. A card with the hat's thumbnail, name, "Round 49 of 121", a thin coral progress bar and a **Continue** button. It is for the most recently opened knit-stage hat.
 - **Your hats:** shown only when there are hats. A list with a thumbnail, name, status, last opened date, an **Open** button and a ⋯ menu (Rename, Make a copy, Back up, Remove). Hats with the same name show their start date.
 - **Colour:** midnight leads. Coral appears on the picture tile, the Continue card's edge and its progress bar, and nowhere as text on white. The Continue button is midnight with white text (never white on coral).
 - **Words:** sentence case, no more than a short line under any tile, no paragraphs of explanation on this page. Help moves to the screens each tile opens.
@@ -157,9 +157,9 @@ Home is one layout for first-time and returning knitters. It asks one question a
 - While dragging, the hat preview updates at a low resolution and redraws fully when the finger lifts. A stale job is always dropped (as today).
 
 ### 5.3 Tiling
-- **Repeat the picture** is an option next to Zoom. Settings: how many repeats **across the hat** (the divisors of 112: 2, 4, 7, 8, 14, 16, 28, 56, plus 1), and **Mirror every other copy** (so the edges match).
-- Rounds per repeat follow from the picture's shape and the stitch shape: rounds per tile = pairs per tile × (tile height ÷ tile width) × 1.36.
-- The preview shows the tiles, and the seam is set to "leave the join" automatically when the repeats divide 112 evenly, since nothing needs to blend.
+- **Repeat the picture** is an option next to Zoom. Settings: how many repeats **across the hat** (the divisors of 136: 2, 4, 8, 17, 34, 68, plus 1), and **Mirror every other copy** (so the edges match).
+- Rounds per repeat follow from the picture's shape and the stitch shape: rounds per tile = pairs per tile × (tile height ÷ tile width) × 1.375.
+- The preview shows the tiles, and the seam is set to "leave the join" automatically when the repeats divide 136 evenly, since nothing needs to blend.
 - The tile maths already used by the Draw underlay (`tileDraws`, `frameBox`) moves into the core so the app and the skill produce the same tiled picture (section 11).
 
 ### 5.4 Live palette
@@ -244,7 +244,7 @@ A removed patch takes the colour that most surrounds it (the existing "ring" rul
 ## 9. G. Smaller items
 
 - **Pace planner** is kept for knit-alongs but demoted: it moves to the bottom of Steps as a collapsed "Plan your pace (optional)", so the steps come first and nobody sees a date form unless they open it. It is not offered during the swatch step and has no rest days. The round view shows its line only when a plan exists, as now. The standing text is reviewed so it never reads as blame.
-- **Backups:** a gentle prompt at milestones (cast on done, round 75, round 95), and "Last backed up" on the Hat page. Buttons are renamed as in 4.1.
+- **Backups:** a gentle prompt at milestones (cast on done, round 95, round 121), and "Last backed up" on the Hat page. Buttons are renamed as in 4.1.
 - **Hints:** a single tap-to-open hint component (not hover) for pair, colour block, wedge, seam and Chart A/B, closed by tap or Escape.
 - **Footer:** the Ko-fi line shows only on Home, About, Settings and Hat.
 - **Review wording:** "Check everything before you cast on" only in the design stage. In the knit stage the page reads "The chart for {name}".
@@ -267,7 +267,7 @@ A removed patch takes the colour that most surrounds it (the existing "ring" rul
 
 **Decisions to add to the app spec (section 18):**
 14. The knit view is phone first; design stages are tablet and desktop first.
-15. Chart A and B are print only; the app shows one 112-pair strip in a following window.
+15. Chart A and B are print only; the app shows one 136-pair strip in a following window.
 16. Crown blank columns are never collapsed.
 17. Decrease marks are always shown.
 18. The duplicate stitch amount control sets the smallest patch kept, per duplicate colour, with fine-tuning always visible.

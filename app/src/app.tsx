@@ -1,4 +1,5 @@
 import { useEffect, useState } from "preact/hooks";
+import { GAUGE, isOldGauge } from "@doubletake/core";
 import { LINKS } from "./content";
 import { AboutScreen } from "./screens/AboutScreen";
 import { DrawScreen } from "./screens/DrawScreen";
@@ -135,6 +136,7 @@ export function App() {
   const project = projectId ? projects.value.find((p) => p.id === projectId) : undefined;
   const progress = projectId ? (progressById.value[projectId] ?? newProgress(projectId)) : undefined;
   const designing = project?.stage === "design";
+  const oldGauge = project ? isOldGauge(project.chart) : false;
   const hasDuplicate = (project?.chart.duplicate.length ?? 0) > 0;
   // A hat being designed shows Draw and Review; a hat being knitted shows the tracker. Anything else falls back to the first.
   const allowed = designing ? DESIGN_TABS : KNIT_TABS;
@@ -157,6 +159,16 @@ export function App() {
         <div>
           <h1>That hat isn’t here</h1>
           <p>It may have been removed from this device. Nothing here yet? Start a new hat.</p>
+          <a class="btn primary" href="#/">
+            Back to your hats
+          </a>
+        </div>
+      );
+    } else if (oldGauge) {
+      body = (
+        <div>
+          <h1>This hat is at the old gauge</h1>
+          <p>{project.name} was made for the first Doubletake gauge (112 stitch pairs round, 25 pairs and 34 rounds to 4 in). Doubletake now uses {GAUGE.pairs} pairs and {GAUGE.rounds} rounds to 4 in, so this hat can’t be opened any more. You can still back it up or remove it from your hats.</p>
           <a class="btn primary" href="#/">
             Back to your hats
           </a>
@@ -192,7 +204,7 @@ export function App() {
   }
 
   const rail = route === "make" && sectionIndex.value.length > 1;
-  const showTabs = inProject && !!project && tab !== "print";
+  const showTabs = inProject && !!project && !oldGauge && tab !== "print";
   const tabLink = (id: Tab, label: string, d: string) => (
     <a href={`#/p/${projectId}/${id}`} aria-current={tab === id ? "page" : undefined}>
       <Icon d={d} />

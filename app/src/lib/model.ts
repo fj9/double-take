@@ -1,8 +1,9 @@
+import { BODY_ROUNDS, LAST_ROUND } from "@doubletake/core";
 import type { Chart } from "@doubletake/core";
 import type { Pace } from "./pace";
 
-/** Total rounds in the hat (body 1-75, crown 76-95). */
-export const TOTAL_ROUNDS = 95;
+/** Total rounds in the hat (body 1-95, crown 96-121). */
+export const TOTAL_ROUNDS = LAST_ROUND;
 export const MANUAL_STEPS = ["swatch", "caston", "finish", "block"] as const;
 export type ManualStep = (typeof MANUAL_STEPS)[number];
 
@@ -13,7 +14,7 @@ export interface PatchTick {
 
 export interface Progress {
   projectId: string;
-  /** Rounds finished, 0 to 95. The round to work is completed + 1. */
+  /** Rounds finished, 0 to 121. The round to work is completed + 1. */
   completed: number;
   /** Last pair worked in the current round ("I’m at pair 37"), or null. */
   pair: number | null;
@@ -51,7 +52,7 @@ export function newProgress(projectId: string, now = Date.now()): Progress {
   return { projectId, completed: 0, pair: null, steps: {}, patches: {}, history: [], updatedAt: now };
 }
 
-/** The round to work next, 1 to 95 (stays at 95 once every round is done). */
+/** The round to work next, 1 to 121 (stays at 121 once every round is done). */
 export function currentRound(p: Progress): number {
   return Math.min(p.completed + 1, TOTAL_ROUNDS);
 }

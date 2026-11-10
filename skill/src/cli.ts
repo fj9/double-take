@@ -19,7 +19,7 @@ Shared options
   --colours N                2 to 6 (default: what the picture has)
   --seam fade|accept         blend the join round the hat, or leave it
   --min-patch N              remove patches smaller than N squares (when the colours are first found)
-  --tile N [--mirror]        repeat the picture N times across the hat (2, 4, 7, 8, 14, 16, 28 or 56), flipping every other copy with --mirror
+  --tile N [--mirror]        repeat the picture N times across the hat (2, 4, 8, 17, 34 or 68), flipping every other copy with --mirror
   --merge 4:3,5:3            fold colour 4 into 3, then 5 into 3 (colour numbers as they stand after each step, 0 = most used)
 build options
   --dup-min N                the smallest duplicate stitch patch to keep, in squares (smaller ones take the colour under them)

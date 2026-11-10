@@ -1,7 +1,7 @@
 import { refreshSections, sectionIndex } from "../lib/sections";
 import { Hint } from "../components/Hint";
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
-import { analyse, applyTidy, buildChart, mergeRoles, BuildError, compareRoutes, rgbToLab, tilePixels, TILE_ACROSS } from "@doubletake/core";
+import { FADE_ROUNDS, FIRST_CROWN_ROUND, analyse, applyTidy, buildChart, mergeRoles, BuildError, compareRoutes, rgbToLab, tilePixels, TILE_ACROSS } from "@doubletake/core";
 import type { Chart, Choice, PaletteCheck, Pixels, RoleResult, RoleTidy } from "@doubletake/core";
 import { Flat } from "../components/Flat";
 import { DuplicateAmount, smallest } from "../components/DuplicateAmount";
@@ -677,7 +677,7 @@ export function MakeScreen() {
                 <p class="small" style="margin:0">
                   {comparison !== null && chosenRoute === "B"
                     ? "A striped hat has a crown in one colour, in the top stripe’s colours."
-                    : "The print fades out over the first rounds of the crown and is gone by round 85, so the top of the hat is one colour. The drawing editor lets you change the crown if you want more print there."}
+                    : `The print fades out over the first rounds of the crown and is gone by round ${FIRST_CROWN_ROUND + FADE_ROUNDS}, so the top of the hat is one colour. The drawing editor lets you change the crown if you want more print there.`}
                 </p>
               </div>
             )}

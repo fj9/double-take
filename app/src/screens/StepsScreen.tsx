@@ -1,7 +1,7 @@
 import { Hint } from "../components/Hint";
 import { useState } from "preact/hooks";
 import type { Chart } from "@doubletake/core";
-import { findAllPatches } from "@doubletake/core";
+import { BODY_ROUNDS, CROWN_ROUNDS, FIRST_CROWN_ROUND, GAUGE, LAST_ROUND, NEEDLE_STITCHES, PAIRS, WEDGE_PAIRS, findAllPatches } from "@doubletake/core";
 import { BLOCKING_TEXT, FINISHING_TEXT, HASHTAG, HELP } from "../content";
 import { allRoundsDone, currentRound, patchKey, patchesDone, percentComplete, setPace, toggleStep, TOTAL_ROUNDS } from "../lib/model";
 import { formatDate, plan, standing, todayIso, validPace } from "../lib/pace";
@@ -110,16 +110,16 @@ function PacePlanner({ progress }: { progress: Progress }) {
 
 export function StepsScreen({ chart, progress }: { chart: Chart; progress: Progress }) {
   const id = progress.projectId;
-  const bodyDone = progress.completed >= 75;
+  const bodyDone = progress.completed >= BODY_ROUNDS;
   const crownDone = allRoundsDone(progress);
   const patchList = findAllPatches(chart).flatMap((layer, li) => layer.map((p) => ({ key: patchKey(li, p.index), faces: p.faces })));
   const dupDone = patchList.length > 0 && patchesDone(progress, patchList) === patchList.length;
 
   const steps: Step[] = [
-    { id: "swatch", title: "Swatch and check gauge", manual: "swatch", state: progress.steps.swatch ? "done" : "todo", body: "Swatch in double knit stockinette and block it before you cast on. You want 25 stitch pairs and 34 rounds to 4 in (10 cm). Change needle size until you match." },
-    { id: "caston", title: "Cast on 224 stitches", manual: "caston", state: progress.steps.caston ? "done" : "todo", help: "caston", body: chart.mode === "stripes" ? `Use the two colours for round 1 (${(chart.round_pairs?.[0] ?? []).map((id) => chart.yarns.find((y) => y.id === id)?.name ?? id).join(" and ")}) and the alternating invisible cast on for double knitting in the round: 112 stitches of each colour, making 112 stitch pairs. Place a marker and join in the round, taking care not to twist.` : "Use your two main colours and the alternating invisible cast on for double knitting in the round: 112 stitches of each colour, making 112 stitch pairs. Place a marker and join in the round, taking care not to twist." },
-    { id: "body", title: "Body, rounds 1–75", state: bodyDone ? "done" : "todo", body: "Work Chart A then Chart B for each round. Knit the front stitch in the colour shown, then purl the back stitch in the other colour. Slip the marker at the start of every round.", help: "doubleknit", link: { href: `#/p/${id}/round`, label: "Open the round view" }, detail: bodyDone ? "All 75 body rounds done" : `${Math.min(progress.completed, 75)} of 75 rounds done` },
-    { id: "crown", title: "Crown, rounds 76–95", state: crownDone ? "done" : "todo", body: "The crown decreases in eight identical wedges. A square marked / is a right-leaning decrease, worked over that pair and the pair just before it.", help: "decrease", link: { href: `#/p/${id}/round`, label: "Open the round view" }, detail: crownDone ? "All 20 crown rounds done" : `${Math.max(0, Math.min(progress.completed, 95) - 75)} of 20 rounds done` },
+    { id: "swatch", title: "Swatch and check gauge", manual: "swatch", state: progress.steps.swatch ? "done" : "todo", body: "Swatch in double knit stockinette and block it before you cast on. You want ${GAUGE.pairs} stitch pairs and ${GAUGE.rounds} rounds to 4 in (10 cm). Change needle size until you match." },
+    { id: "caston", title: `Cast on ${NEEDLE_STITCHES} stitches`, manual: "caston", state: progress.steps.caston ? "done" : "todo", help: "caston", body: chart.mode === "stripes" ? `Use the two colours for round 1 (${(chart.round_pairs?.[0] ?? []).map((id) => chart.yarns.find((y) => y.id === id)?.name ?? id).join(" and ")}) and the alternating invisible cast on for double knitting in the round: ${PAIRS} stitches of each colour, making ${PAIRS} stitch pairs. Place a marker and join in the round, taking care not to twist.` : `Use your two main colours and the alternating invisible cast on for double knitting in the round: ${PAIRS} stitches of each colour, making ${PAIRS} stitch pairs. Place a marker and join in the round, taking care not to twist.` },
+    { id: "body", title: `Body, rounds 1–${BODY_ROUNDS}`, state: bodyDone ? "done" : "todo", body: "Work Chart A then Chart B for each round. Knit the front stitch in the colour shown, then purl the back stitch in the other colour. Slip the marker at the start of every round.", help: "doubleknit", link: { href: `#/p/${id}/round`, label: "Open the round view" }, detail: bodyDone ? `All ${BODY_ROUNDS} body rounds done` : `${Math.min(progress.completed, BODY_ROUNDS)} of ${BODY_ROUNDS} rounds done` },
+    { id: "crown", title: `Crown, rounds ${FIRST_CROWN_ROUND}–${LAST_ROUND}`, state: crownDone ? "done" : "todo", body: "The crown decreases in eight identical wedges. A square marked / is a right-leaning decrease, worked over that pair and the pair just before it.", help: "decrease", link: { href: `#/p/${id}/round`, label: "Open the round view" }, detail: crownDone ? `All ${CROWN_ROUNDS} crown rounds done` : `${Math.max(0, Math.min(progress.completed, LAST_ROUND) - BODY_ROUNDS)} of ${CROWN_ROUNDS} rounds done` },
     { id: "finish", title: "Finish the crown", manual: "finish", state: progress.steps.finish ? "done" : "todo", body: FINISHING_TEXT },
     { id: "block", title: "Block", manual: "block", state: progress.steps.block ? "done" : "todo", body: BLOCKING_TEXT },
   ];
@@ -153,7 +153,7 @@ export function StepsScreen({ chart, progress }: { chart: Chart; progress: Progr
             {s.id === "crown" && (
               <>
                 {" "}
-                <Hint label="What is a wedge?">The 112 pairs are split into eight equal wedges of 14, like segments of an orange. Each wedge decreases in the same places, so the top closes evenly.</Hint>
+                <Hint label="What is a wedge?">The {PAIRS} pairs are split into eight equal wedges of {WEDGE_PAIRS}, like segments of an orange. Each wedge decreases in the same places, so the top closes evenly.</Hint>
               </>
             )}
           </p>

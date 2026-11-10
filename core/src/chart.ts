@@ -23,14 +23,14 @@ export interface Yarn {
 export interface DuplicateLayer {
   yarn: YarnId;
   faces: "both" | "outside";
-  /** 75 strings of 112 characters, `1` = duplicate stitch, `0` = none. */
+  /** 95 strings of 136 characters, `1` = duplicate stitch, `0` = none. */
   body: string[];
-  /** 20 strings of 112 characters: `1`, `0`, and `.` at removed pairs. */
+  /** 26 strings of 136 characters: `1`, `0`, and `.` at removed pairs. */
   crown: string[];
 }
 
 export interface Crown {
-  /** 20 strings of 112 characters: the outside yarn id, or `.` for a removed pair. */
+  /** 26 strings of 136 characters: the outside yarn id, or `.` for a removed pair. */
   rounds: string[];
 }
 
@@ -42,7 +42,7 @@ export interface Chart {
   mode: Mode;
   dimensions: { pairs: number; body_rounds: number; crown_rounds: number };
   yarns: Yarn[];
-  /** 75 strings of 112 characters; character 0 is pair 1; each is the outside yarn id. */
+  /** 95 strings of 136 characters; character 0 is pair 1; each is the outside yarn id. */
   body: string[];
   /** For stripes: one [yarn, yarn] pair per body round. Null otherwise. */
   round_pairs: [YarnId, YarnId][] | null;
@@ -52,7 +52,7 @@ export interface Chart {
   source?: { kind: "image" | "claude" | "drawn" | "example"; note?: string; settings?: unknown };
 }
 
-/** The 20 crown rows in one colour on the outside, with `.` where a decrease has removed the pair. */
+/** The 26 crown rows in one colour on the outside, with `.` where a decrease has removed the pair. */
 export function solidCrownRounds(yarn: YarnId): string[] {
   return Array.from({ length: CROWN_ROUNDS }, (_, i) =>
     crownLayout(FIRST_CROWN_ROUND + i)
@@ -61,7 +61,7 @@ export function solidCrownRounds(yarn: YarnId): string[] {
   );
 }
 
-/** 20 crown rows with no duplicate stitch. */
+/** 26 crown rows with no duplicate stitch. */
 export function emptyDuplicateCrown(): string[] {
   return solidCrownRounds("0");
 }
@@ -94,7 +94,7 @@ export function upgradeChart(input: unknown): unknown {
   return out;
 }
 
-/** The two yarns worked in a round. Rounds are 1 to 95. */
+/** The two yarns worked in a round. Rounds are 1 to 121. */
 export function yarnsInRound(chart: Chart, round: number): [YarnId, YarnId] {
   if (chart.mode === "stripes" && chart.round_pairs) {
     // The crown follows the last body round's pair.

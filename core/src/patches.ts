@@ -2,9 +2,9 @@ import type { Chart, DuplicateLayer } from "./chart";
 import { BODY_ROUNDS, FIRST_CROWN_ROUND, LAST_ROUND, PAIRS, crownLayout } from "./hat";
 
 export interface Cell {
-  /** 1 to 95. */
+  /** 1 to 121. */
   round: number;
-  /** 1 to 112. */
+  /** 1 to 136. */
   pair: number;
 }
 
@@ -18,7 +18,7 @@ export interface Patch {
   cells: Cell[];
 }
 
-/** Which pairs exist in each round, index 1 to 95. */
+/** Which pairs exist in each round, index 1 to 121. */
 function presenceByRound(): boolean[][] {
   const rows: boolean[][] = [[]];
   for (let r = 1; r <= LAST_ROUND; r++) {
@@ -32,7 +32,7 @@ const PRESENT = presenceByRound();
 const wrap = (i: number) => ((i % PAIRS) + PAIRS) % PAIRS;
 
 /**
- * Cells next to a cell (spec 9.4): the eight surrounding cells, wrapping across the seam (pair 112 next
+ * Cells next to a cell (spec 9.4): the eight surrounding cells, wrapping across the seam (pair 136 next
  * to pair 1), running from the body into the crown, and reaching across a pair removed by a decrease.
  */
 function neighbours(round: number, i: number): [number, number][] {

@@ -26,36 +26,36 @@ describe("spreadsheets (CSV)", () => {
 
   it("the chart is in knitting order: round 1 first, pair 1 first", () => {
     const rows = lines(chartCsv(leopard()));
-    expect(rows).toHaveLength(96); // header and rounds 1 to 95
-    expect(rows[0]?.split(",")).toHaveLength(113);
+    expect(rows).toHaveLength(122); // header and rounds 1 to 121
+    expect(rows[0]?.split(",")).toHaveLength(137);
     expect(rows[0]?.startsWith("Round,P1,P2")).toBe(true);
     const c = leopard();
     expect(rows[1]?.split(",")[1]).toBe(c.body[0]?.[0]);
-    expect(rows[1]?.split(",")[112]).toBe(c.body[0]?.[111]);
+    expect(rows[1]?.split(",")[136]).toBe(c.body[0]?.[135]);
   });
 
   it("removed pairs are blank and every decrease is marked with a slash", () => {
     const rows = lines(chartCsv(leopard()));
-    const round76 = (rows[76] as string).split(",");
-    expect(round76[0]).toBe("76");
-    expect(round76[1]).toBe(""); // pair 1 is removed in round 76
+    const round96 = (rows[96] as string).split(",");
+    expect(round96[0]).toBe("96");
+    expect(round96[1]).toBe(""); // pair 1 is removed in round 96
     const slashes = rows.slice(1).flatMap((r) => r.split(",").slice(1)).filter((c) => c.endsWith("/")).length;
     let expected = 0;
-    for (let r = 76; r <= 95; r++) expected += crownLayout(r).marked.filter(Boolean).length;
-    expect(expected).toBe(96);
-    expect(slashes).toBe(96);
+    for (let r = 96; r <= 121; r++) expected += crownLayout(r).marked.filter(Boolean).length;
+    expect(expected).toBe(120); // 13 rounds of one decrease in each of 8 wedges, and one round of two
+    expect(slashes).toBe(120);
   });
 
   it("each duplicate stitch layer lists exactly its squares", () => {
     const rows = lines(duplicateCsv(leopard(), 0));
     const ones = rows.slice(1).flatMap((r) => r.split(",").slice(1)).filter((c) => c === "1").length;
-    expect(ones).toBe(1842);
+    expect(ones).toBe(3427);
   });
 
   it("a striped chart has a stripes sheet, and others don't", () => {
     expect(stripesCsv(leopard())).toBeNull();
     const rows = lines(stripesCsv(stripedChart()) as string);
-    expect(rows).toHaveLength(76);
+    expect(rows).toHaveLength(96);
     expect(rows[0]).toBe("Round,Yarn 1,Yarn 2,Name 1,Name 2");
   });
 
@@ -76,19 +76,19 @@ describe("chart pictures (SVG)", () => {
   const cols = (from: number, to: number) => Array.from({ length: from - to + 1 }, (_, i) => from - i);
 
   it("draws one square for every pair that exists", () => {
-    const svg = chartSvg({ chart: newBlankChart("t"), cols: cols(56, 1), rows: cols(75, 1), label: "x" });
+    const svg = chartSvg({ chart: newBlankChart("t"), cols: cols(68, 1), rows: cols(95, 1), label: "x" });
     expect(svg.startsWith("<svg")).toBe(true);
-    expect((svg.match(/<rect /g) ?? []).length).toBe(56 * 75);
+    expect((svg.match(/<rect /g) ?? []).length).toBe(68 * 95);
   });
 
   it("leaves the removed crown pairs blank and marks each decrease", () => {
-    const svg = chartSvg({ chart: newBlankChart("t"), cols: cols(56, 1), rows: cols(95, 76), counts: true, label: "x" });
+    const svg = chartSvg({ chart: newBlankChart("t"), cols: cols(68, 1), rows: cols(121, 96), counts: true, label: "x" });
     let present = 0;
     let marked = 0;
-    for (let r = 76; r <= 95; r++) {
+    for (let r = 96; r <= 121; r++) {
       const l = crownLayout(r);
-      present += l.present.slice(0, 56).filter(Boolean).length;
-      marked += l.marked.slice(0, 56).filter(Boolean).length;
+      present += l.present.slice(0, 68).filter(Boolean).length;
+      marked += l.marked.slice(0, 68).filter(Boolean).length;
     }
     expect((svg.match(/<rect /g) ?? []).length).toBe(present);
     expect((svg.match(/stroke-width="0.2"\/>/g) ?? []).length).toBe(marked);
@@ -97,7 +97,7 @@ describe("chart pictures (SVG)", () => {
 
   it("shows only one duplicate layer in colour when asked", () => {
     const c = leopard();
-    const svg = chartSvg({ chart: c, cols: cols(56, 1), rows: cols(75, 1), onlyLayer: 0, label: "x" });
+    const svg = chartSvg({ chart: c, cols: cols(68, 1), rows: cols(95, 1), onlyLayer: 0, label: "x" });
     expect((svg.match(/fill-opacity="0.18"/g) ?? []).length).toBeGreaterThan(1000);
     expect(svg).toContain(`fill="#2A5FD0"`);
   });
@@ -118,7 +118,7 @@ describe("chart pages", () => {
   it("groups a striped chart's rounds into blocks", () => {
     const blocks = stripeBlocks(stripedChart());
     expect(blocks[0]?.from).toBe(1);
-    expect(blocks[blocks.length - 1]?.to).toBe(75);
+    expect(blocks[blocks.length - 1]?.to).toBe(95);
     for (let i = 1; i < blocks.length; i++) expect(blocks[i]?.from).toBe((blocks[i - 1]?.to as number) + 1);
   });
 });
@@ -167,5 +167,5 @@ describe("compressed zip files", () => {
 });
 
 it("analysis still agrees with the numbers the exports quote", () => {
-  expect(analyse(leopard()).duplicate[0]?.cells).toBe(1842);
+  expect(analyse(leopard()).duplicate[0]?.cells).toBe(3427);
 });

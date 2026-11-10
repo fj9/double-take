@@ -9,7 +9,7 @@ async function startLeopard(page: Page) {
   await page.goto("/");
   await page.getByRole("button", { name: "Try an example" }).click();
   await page.getByRole("button", { name: "Use this chart" }).first().click();
-  await expect(page.getByText("Round 1 of 95")).toBeVisible();
+  await expect(page.getByText("Round 1 of 121")).toBeVisible();
 }
 
 const nextRound = (page: Page) => page.getByRole("button", { name: /done, next$/ }).click();
@@ -17,24 +17,24 @@ const nextRound = (page: Page) => page.getByRole("button", { name: /done, next$/
 test("the leopard example starts on round 1", async ({ page }) => {
   await startLeopard(page);
   await expect(page.getByRole("img", { name: /Round \d+ with the rounds around it/ })).toBeVisible();
-  await expect(page.getByText("112 pairs · 224 stitches")).toBeVisible();
+  await expect(page.getByText("136 pairs · 272 stitches")).toBeVisible();
 });
 
 test("closing and reopening returns to the same round", async ({ page }) => {
   await startLeopard(page);
   await nextRound(page);
   await nextRound(page);
-  await expect(page.getByText("Round 3 of 95")).toBeVisible();
+  await expect(page.getByText("Round 3 of 121")).toBeVisible();
   await page.reload();
-  await expect(page.getByText("Round 3 of 95")).toBeVisible();
+  await expect(page.getByText("Round 3 of 121")).toBeVisible();
 });
 
 test("undo puts the round back", async ({ page }) => {
   await startLeopard(page);
   await nextRound(page);
-  await expect(page.getByText("Round 2 of 95")).toBeVisible();
+  await expect(page.getByText("Round 2 of 121")).toBeVisible();
   await page.getByRole("button", { name: "Undo", exact: true }).click();
-  await expect(page.getByText("Round 1 of 95")).toBeVisible();
+  await expect(page.getByText("Round 1 of 121")).toBeVisible();
 });
 
 test("works offline after the first load, on the same round", async ({ page, context }) => {
@@ -42,7 +42,7 @@ test("works offline after the first load, on the same round", async ({ page, con
   await nextRound(page);
   await nextRound(page);
   await nextRound(page);
-  await expect(page.getByText("Round 4 of 95")).toBeVisible();
+  await expect(page.getByText("Round 4 of 121")).toBeVisible();
   // Let the service worker finish caching, then reload once so it controls the page.
   await page.evaluate(async () => {
     await navigator.serviceWorker.ready;
@@ -51,7 +51,7 @@ test("works offline after the first load, on the same round", async ({ page, con
   await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
   await context.setOffline(true);
   await page.reload();
-  await expect(page.getByText("Round 4 of 95")).toBeVisible();
+  await expect(page.getByText("Round 4 of 121")).toBeVisible();
   await expect(page.getByRole("img", { name: /Round \d+ with the rounds around it/ })).toBeVisible();
   await context.setOffline(false);
 });
@@ -75,10 +75,21 @@ test("a bad chart file gives specific errors and changes nothing", async ({ page
   await expect(page.getByRole("button", { name: /^Open / })).toHaveCount(before);
 });
 
+test("a chart file from the first gauge is turned down with a clear reason", async ({ page }) => {
+  await page.goto("/");
+  const chart = JSON.parse(readFileSync(leopardPath, "utf-8"));
+  chart.dimensions = { pairs: 112, body_rounds: 75, crown_rounds: 20 };
+  await page.locator("#import-file").setInputFiles({ name: "old.doubletake.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(chart)) });
+  const alert = page.getByRole("alert");
+  await expect(alert).toContainText("first Doubletake gauge");
+  await expect(alert).toContainText("32 pairs and 44 rounds to 4 in");
+  await expect(page.getByRole("button", { name: /^Open / })).toHaveCount(0);
+});
+
 test("a valid chart file creates a project", async ({ page }) => {
   await page.goto("/");
   await page.locator("#import-file").setInputFiles(leopardPath);
-  await expect(page.getByText("Round 1 of 95")).toBeVisible();
+  await expect(page.getByText("Round 1 of 121")).toBeVisible();
   await page.goto("/#/");
   await expect(page.getByRole("heading", { name: "Your hats" })).toBeVisible();
   await expect(page.getByRole("button", { name: /^Open Leopard/ })).toHaveCount(1);
@@ -94,7 +105,7 @@ test("a backup restores a hat with its progress", async ({ page }) => {
   const file = await (await download).path();
   await page.goto("/#/");
   await page.locator("#import-file").setInputFiles(file);
-  await expect(page.getByText("Round 3 of 95")).toBeVisible();
+  await expect(page.getByText("Round 3 of 121")).toBeVisible();
 });
 
 test("Next block moves your place along the colour blocks, and Undo puts it back", async ({ page }) => {
@@ -103,7 +114,7 @@ test("Next block moves your place along the colour blocks, and Undo puts it back
   await expect(now).toContainText("purple");
   const first = (await now.innerText()).match(/purple\s*×(\d+)/)?.[1];
   await page.getByRole("button", { name: "Next block" }).click();
-  await expect(page.getByText(new RegExp(`You’re at pair ${first} of 112`))).toBeVisible();
+  await expect(page.getByText(new RegExp(`You’re at pair ${first} of 136`))).toBeVisible();
   await expect(now).toContainText("pink");
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   await expect(page.getByText("Put the work down mid-round?")).toBeVisible();
@@ -112,10 +123,10 @@ test("Next block moves your place along the colour blocks, and Undo puts it back
 test("finishing a round offers an undo for a few seconds", async ({ page }) => {
   await startLeopard(page);
   await nextRound(page);
-  await expect(page.getByText("Round 2 of 95")).toBeVisible();
+  await expect(page.getByText("Round 2 of 121")).toBeVisible();
   await expect(page.getByRole("status").filter({ hasText: "Round 1 done" })).toBeVisible();
   await page.getByRole("button", { name: "Undo round 1" }).click();
-  await expect(page.getByText("Round 1 of 95")).toBeVisible();
+  await expect(page.getByText("Round 1 of 121")).toBeVisible();
 });
 
 test("colour blocks can be switched off in the View panel", async ({ page }) => {
@@ -131,10 +142,10 @@ test("you can go straight to a pair", async ({ page }) => {
   await startLeopard(page);
   await page.locator("#goto-pair").fill("40");
   await page.getByRole("button", { name: "Go", exact: true }).click();
-  await expect(page.getByText(/You’re at pair 40 of 112/)).toBeVisible();
+  await expect(page.getByText(/You’re at pair 40 of 136/)).toBeVisible();
   await page.locator("#goto-pair").fill("200");
   await page.getByRole("button", { name: "Go", exact: true }).click();
-  await expect(page.getByText("Enter a pair from 1 to 112.")).toBeVisible();
+  await expect(page.getByText("Enter a pair from 1 to 136.")).toBeVisible();
 });
 
 test("round notes are one-line banners that open on tap", async ({ page }) => {
@@ -145,25 +156,25 @@ test("round notes are one-line banners that open on tap", async ({ page }) => {
   await expect(page.getByText(/aren’t twisted/)).toBeVisible();
 });
 
-test("the crown shows its note and decrease key at round 76", async ({ page }) => {
+test("the crown shows its note and decrease key at round 96", async ({ page }) => {
   await startLeopard(page);
-  for (let i = 0; i < 75; i++) await nextRound(page);
-  await expect(page.getByText("Round 76 of 95")).toBeVisible();
+  for (let i = 0; i < 95; i++) await nextRound(page);
+  await expect(page.getByText("Round 96 of 121")).toBeVisible();
   await expect(page.getByRole("heading", { name: "The crown starts" })).toBeVisible();
   await expect(page.locator(".legend").getByText("right-leaning decrease")).toBeVisible();
-  await expect(page.getByText("Ends with 104 pairs (208 stitches)")).toBeVisible();
+  await expect(page.getByText("Ends with 128 pairs (256 stitches)")).toBeVisible();
 });
 
 test("the duplicate stitch tracker counts patches and faces", async ({ page }) => {
   await startLeopard(page);
   await page.getByRole("link", { name: "Stitch" }).click();
-  await expect(page.getByText("0 of 33 patches done")).toBeVisible();
+  await expect(page.getByText("0 of 40 patches done")).toBeVisible();
   await page.getByRole("button", { name: "Outside: mark as done" }).click();
-  await expect(page.getByText("0 of 33 patches done")).toBeVisible(); // one face is not enough
+  await expect(page.getByText("0 of 40 patches done")).toBeVisible(); // one face is not enough
   await page.getByRole("button", { name: "Inside: mark as done" }).click();
-  await expect(page.getByText("1 of 33 patches done")).toBeVisible();
+  await expect(page.getByText("1 of 40 patches done")).toBeVisible();
   await page.getByRole("button", { name: "Next patch to do" }).click();
-  await expect(page.getByRole("heading", { name: "Patch 2 of 33" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Patch 2 of 40" })).toBeVisible();
 });
 
 test("nothing is sent to any other site", async ({ page }) => {
@@ -208,9 +219,9 @@ test("Home offers to continue the hat you were knitting", async ({ page }) => {
   await nextRound(page);
   await page.goto("/#/");
   const card = page.getByRole("region", { name: "Pick up where you left off" });
-  await expect(card).toContainText("Round 2/95");
+  await expect(card).toContainText("Round 2/121");
   await card.getByRole("button", { name: /^Continue/ }).click();
-  await expect(page.getByText("Round 2 of 95").first()).toBeVisible();
+  await expect(page.getByText("Round 2 of 121").first()).toBeVisible();
 });
 
 test("the side rail shows the hat and a way back to the round", async ({ page }) => {
@@ -218,9 +229,9 @@ test("the side rail shows the hat and a way back to the round", async ({ page })
   await startLeopard(page);
   await page.getByRole("link", { name: "Steps" }).click();
   const rail = page.getByRole("navigation", { name: "Sections" });
-  await expect(rail).toContainText("Round 1/95");
+  await expect(rail).toContainText("Round 1/121");
   await rail.getByRole("link", { name: "Back to round" }).click();
-  await expect(page.locator("#main").getByText("Round 1 of 95")).toBeVisible();
+  await expect(page.locator("#main").getByText("Round 1 of 121")).toBeVisible();
 });
 
 test("Home lists each hat with a thumbnail and a menu to rename, copy and remove it", async ({ page }) => {

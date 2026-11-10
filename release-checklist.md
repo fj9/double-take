@@ -17,6 +17,7 @@ Status on 29 October 2026. Everything marked **Done** is built and tested. The r
 
 ## Needs you
 
+- [ ] **New gauge (32 pairs, 44 rounds to 4 in, 136 pairs round).** The hat is now 136 pairs round with 95 body rounds and a 26-round crown. The crown (the draft decrease table), the needle size, the head sizes it fits, the rounds per inch (about 11) and all the yardage need a test knit. The pattern PDF needs redrawing at the new size, with the leopard example charts from `tools/make_leopard.ts`.
 - [ ] **Yardage.** Sample-knit one two-colour and one duplicate stitch hat, then give me the real yarn used so the estimates can be added. Until then the app says "Yardage isn't calculated yet. Buy more than you think you need."
 - [ ] **Tutorial links.** Choose a tutorial for each (cast on, double knitting in the round, right-leaning decrease, duplicate stitch, jogless stripes) and send me the addresses. They go in `HELP` in `app/src/content.ts`; a "Watch the tutorial" link appears wherever one is filled in.
 - [ ] **Jogless stripes.** Test-knit the lifted-stitch method and correct the wording. The app labels it "a draft that is still to be test-knit" until then.
@@ -25,7 +26,7 @@ Status on 29 October 2026. Everything marked **Done** is built and tested. The r
 - [ ] **Pattern PDF yardage line.** It says "have a little extra" of the duplicate stitch colour. The app says to buy more than you think you need. You may want to match them.
 - [ ] **App icon.** The icon is a placeholder (two overlapping discs). Replace the files in `app/public` (and `app/scripts/make-icons.mjs` if you want to regenerate them).
 - [ ] **Update the pattern PDF for the crown.** The crown fades to one colour, with no patterned or plain choice: use `pattern-editor-prompt.md`.
-- [ ] **Confirm the crown.** The print fades out over rounds 76 to 84 and the crown is one colour from round 85; a striped chart's crown is one colour in the top stripe's colours from round 76.
+- [ ] **Confirm the crown.** The print fades out over rounds 96 to 107 and the crown is one colour from round 108; a striped chart's crown is one colour in the top stripe's colours from round 96.
 
 ## Test on real phones (about 20 minutes)
 
@@ -60,7 +61,7 @@ I can't do these from here. Please try them on an iPhone (Safari) and an Android
 18. Use the duplicate stitch sliders with three duplicate colours on a phone.
 19. Check the **Hat** tab and the **Settings** gear on a phone and a tablet.
 20. Open **Draw** on a phone: you should see the note about tablets and computers, and be able to save the chart file.
-21. Reach cast on done, round 75 and round 95: each should offer a backup once.
+21. Reach cast on done, round 95 and round 121: each should offer a backup once.
 
 Write down anything that felt wrong, with the model of phone.
 

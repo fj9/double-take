@@ -7,7 +7,7 @@ description: Turn a photo of a print, pattern or picture into a chart for the Do
 
 Use this when someone gives you a picture and wants a chart for the **Doubletake** hat, a reversible double-knit beanie that shows the same print on both sides in opposite colours.
 
-The hat is fixed, so do not ask about size or gauge: **112 stitch pairs round, 75 body rounds, then a 20-round crown** (95 rounds in all), at 25 pairs and 34 rounds to 4 in (10 cm). A stitch pair is wider than it is tall, and the tool already takes that into account.
+The hat is fixed, so do not ask about size or gauge: **136 stitch pairs round, 95 body rounds, then a 26-round crown** (121 rounds in all), at 32 pairs and 44 rounds to 4 in (10 cm). A stitch pair is wider than it is tall, and the tool already takes that into account.
 
 Only help with pictures the person has the right to use. If they plan to sell a pattern made from someone else's artwork or fabric, remind them to check the licence.
 
@@ -38,12 +38,12 @@ Ask only a few questions, and give a default for each.
 
 1. **Picture and palette.** If there is no picture, ask for one. Run `palette` before asking anything else. Tell them how many real colours it found (with the hex colours and shares) and the `coverage` figure.
    - **Coverage under 0.70** means a gradient, wash or fine texture that will blur into mixed colours at hat size. Say so up front, suggest a simpler picture or crop, or offer 2 or 3 colours. Do not make a 4 to 6 colour chart from such a picture.
-   - Stripes or lines thinner than about one stitch (picture width divided by 112) vanish or blend. Say so.
+   - Stripes or lines thinner than about one stitch (picture width divided by 136) vanish or blend. Say so.
 2. **Choices.** The defaults are in `palette`'s `suggestedColours`.
    - **How many colours**, 2 to 6. Extra shades of one colour (shadow, pile) are not new colours, so use as few as the picture needs.
    - **The join.** `fade` blends the picture's edges so a repeating print carries on round the hat with no visible join (default for 2 or 3 colours). `accept` leaves the edges to meet at the join, which suits a picture with one clear subject (default for more colours). If you choose `accept`, tell them the join will show, and that it is also where stripe changes happen.
    - **Which part of the picture.** The hat is about twice as wide as tall. If the picture is a different shape, decide what to keep with `--zoom`, `--cx`, `--cy`, and say which part you kept.
-   - **The crown.** The tool fades the print out over rounds 76 to 84 and the crown is one colour from round 85, whatever the picture. A striped hat's crown is one colour from round 76, in the top stripe's colours. If someone wants more print in the crown, they can draw it in the app's editor.
+   - **The crown.** The tool fades the print out over rounds 96 to 107 and the crown is one colour from round 108, whatever the picture. A striped hat's crown is one colour from round 96, in the top stripe's colours. If someone wants more print in the crown, they can draw it in the app's editor.
    - **Yarn colours and names**, if they know them (`--names`, `--hex`). Otherwise the picture's colours are used.
 3. **Two colours.** One hat, two faces. Go straight to `build --colours 2`.
 4. **Three colours.** The third colour is worked in duplicate stitch, on both faces, after blocking. Any of the three can be the embroidered one. Run `colourways`, **look at each picture** (outside above, inside below), show the options, and suggest `mostContrasting`. Then ask which colour to embroider and which of the other two should be on the outside (`--dup-roles D --outside-role R`).

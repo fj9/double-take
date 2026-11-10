@@ -7,7 +7,7 @@ A free, installable web app for the **Doubletake** reversible double-knit beanie
 - **Knit it:** round by round with the right chart half on screen, a duplicate stitch tracker, stripes with jogless prompts, a pace planner, and offline use.
 - **Print and export:** A4 chart pages in house style, plus pictures (PNG, SVG), spreadsheets (CSV) and a shopping list.
 
-The hat is one fixed design: 112 stitch pairs round, 75 body rounds and a 20-round crown, at 25 pairs and 34 rounds to 4 in (10 cm).
+The hat is one fixed design: 136 stitch pairs round, 95 body rounds and a 26-round crown (121 rounds in all), at 32 pairs and 44 rounds to 4 in (10 cm).
 
 ## Documents
 

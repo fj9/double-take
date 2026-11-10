@@ -6,7 +6,7 @@ async function leopardHat(page: Page) {
   await page.goto("/");
   await page.getByRole("button", { name: "Try an example" }).click();
   await page.getByRole("button", { name: "Use this chart" }).first().click();
-  await expect(page.getByText("Round 1 of 95")).toBeVisible();
+  await expect(page.getByText("Round 1 of 121")).toBeVisible();
   await page.getByRole("link", { name: "Hat" }).click();
   await expect(page.getByRole("heading", { name: "Print and export" })).toBeVisible();
 }
@@ -74,7 +74,7 @@ test("everything downloads as one zip with pictures, spreadsheets and a shopping
   const svg = execFileSync("unzip", ["-p", path, "leopard/inside.svg"], { encoding: "utf-8", maxBuffer: 50 * 1024 * 1024 });
   expect(svg.startsWith("<svg xmlns")).toBe(true);
   const csv = execFileSync("unzip", ["-p", path, "leopard/chart.csv"], { encoding: "utf-8" });
-  expect(csv.trimEnd().split("\n")).toHaveLength(96);
+  expect(csv.trimEnd().split("\n")).toHaveLength(122);
   // The chart file inside the zip can be imported again
   const json = execFileSync("unzip", ["-p", path, "leopard/leopard.doubletake.json"], { encoding: "utf-8" });
   expect(JSON.parse(json).schema).toBe("doubletake-chart/1");

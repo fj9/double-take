@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
-import { LAST_ROUND, PAIRS, pairsInRound, yarnsInRound } from "@doubletake/core";
+import { BODY_ROUNDS, CHART_A_LAST_PAIR, FIRST_CROWN_ROUND, LAST_ROUND, PAIRS, pairsInRound, yarnsInRound } from "@doubletake/core";
 import type { Chart } from "@doubletake/core";
 import { Legend } from "../components/Legend";
 import { StripChart } from "../components/StripChart";
@@ -251,9 +251,9 @@ export function RoundScreen({ chart, progress }: { chart: Chart; progress: Progr
           </button>
         </div>
         <p class="small muted" style="margin:2px 0 6px">
-          {done ? "All rounds done" : round >= 76 ? "Crown" : "Body"} · {percentComplete(progress)}% · {LAST_ROUND - progress.completed} rounds to go ·{" "}
-          <span class="num" aria-label={`${pairs} stitch pairs, ${pairs * 2} needle stitches${round >= 76 ? " at the end of this round" : ""}`}>
-            {round >= 76 ? `Ends with ${pairs} pairs (${pairs * 2} stitches)` : `${pairs} pairs · ${pairs * 2} stitches`}
+          {done ? "All rounds done" : round >= FIRST_CROWN_ROUND ? "Crown" : "Body"} · {percentComplete(progress)}% · {LAST_ROUND - progress.completed} rounds to go ·{" "}
+          <span class="num" aria-label={`${pairs} stitch pairs, ${pairs * 2} needle stitches${round >= FIRST_CROWN_ROUND ? " at the end of this round" : ""}`}>
+            {round >= FIRST_CROWN_ROUND ? `Ends with ${pairs} pairs (${pairs * 2} stitches)` : `${pairs} pairs · ${pairs * 2} stitches`}
           </span>
         </p>
         <div class="progress" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percentComplete(progress)} aria-label="Rounds finished" style="margin:0 0 8px">
@@ -284,7 +284,7 @@ export function RoundScreen({ chart, progress }: { chart: Chart; progress: Progr
 
       {done && (
         <div class="card note">
-          <h2>All 95 rounds are knitted</h2>
+          <h2>All {LAST_ROUND} rounds are knitted</h2>
           <p>{FINISHING_TEXT}</p>
           <a class="btn" href={`#/p/${progress.projectId}/steps`}>
             See the finishing steps
@@ -347,11 +347,11 @@ export function RoundScreen({ chart, progress }: { chart: Chart; progress: Progr
             ) : (
               <span>
                 You’re at pair <span class="num">{progress.pair}</span> of {PAIRS}
-                {progress.pair === 56 ? " (the end of Chart A)" : ""}
+                {progress.pair === CHART_A_LAST_PAIR ? " (the end of Chart A)" : ""}
               </span>
             )}{" "}
             <Hint label="What is a pair?">
-              A pair is one stitch on the front and the stitch behind it. Each round has {PAIRS} pairs. Chart A is pairs 1 to 56 and Chart B is pairs 57 to 112, as in the PDF.
+              A pair is one stitch on the front and the stitch behind it. Each round has {PAIRS} pairs. Chart A is pairs 1 to {CHART_A_LAST_PAIR} and Chart B is pairs {CHART_A_LAST_PAIR + 1} to {PAIRS}, as in the PDF.
             </Hint>
           </span>
           <span class="seg" role="group" aria-label="Position in the round">
@@ -393,7 +393,7 @@ export function RoundScreen({ chart, progress }: { chart: Chart; progress: Progr
         )}
       </div>
 
-      <Legend chart={chart} showDecrease={round >= 76} />
+      <Legend chart={chart} showDecrease={round >= FIRST_CROWN_ROUND} />
 
       <details class="card">
         <summary class="small" style="min-height:44px;display:flex;align-items:center;cursor:pointer">

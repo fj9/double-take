@@ -11,7 +11,7 @@ function spotsPng(width = 320, height = 160): Buffer {
       const cx = (x % 40) - 20;
       const cy = (y % 40) - 20;
       const d = cx * cx + cy * cy;
-      const [r, g, b] = d < 4 * 4 ? [30, 60, 190] : d < 11 * 11 ? [200, 40, 40] : [240, 230, 200];
+      const [r, g, b] = d < 3 * 3 ? [30, 60, 190] : d < 11 * 11 ? [200, 40, 40] : [240, 230, 200];
       const o = y * (width * 3 + 1) + 1 + x * 3;
       raw[o] = r;
       raw[o + 1] = g;

@@ -2,7 +2,7 @@ import { CHART_A_LAST_PAIR, PAIRS, crownLayout, outsideAt, FIRST_CROWN_ROUND } f
 import type { Chart } from "@doubletake/core";
 
 export interface RoundText {
-  /** “Chart A, pairs 1–56” */
+  /** “Chart A, pairs 1–68” */
   heading: string;
   /** “purple × 5, pink × 3, pink (decrease) × 1 …” in the order worked. */
   runs: string;

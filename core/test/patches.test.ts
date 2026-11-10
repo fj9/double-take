@@ -8,8 +8,8 @@ function layerWith(cells: [number, number][]): DuplicateLayer {
   const chart = blankDuplicateChart(1);
   const layer = chart.duplicate[0] as DuplicateLayer;
   for (const [round, pair] of cells) {
-    if (round <= 75) layer.body[round - 1] = setChar(layer.body[round - 1] as string, pair - 1, "1");
-    else layer.crown[round - 76] = setChar(layer.crown[round - 76] as string, pair - 1, "1");
+    if (round <= 95) layer.body[round - 1] = setChar(layer.body[round - 1] as string, pair - 1, "1");
+    else layer.crown[round - 96] = setChar(layer.crown[round - 96] as string, pair - 1, "1");
   }
   return layer;
 }
@@ -29,32 +29,32 @@ describe("patch rules", () => {
     expect(findPatches(layerWith([[5, 10], [5, 12]]))).toHaveLength(2);
   });
 
-  it("wraps across the seam: pair 112 joins pair 1", () => {
-    const patches = findPatches(layerWith([[20, 112], [20, 1]]));
+  it("wraps across the seam: pair 136 joins pair 1", () => {
+    const patches = findPatches(layerWith([[20, 136], [20, 1]]));
     expect(patches).toHaveLength(1);
     expect(patches[0]?.cells).toHaveLength(2);
   });
 
   it("joins diagonally across the seam", () => {
-    expect(findPatches(layerWith([[20, 112], [21, 1]]))).toHaveLength(1);
+    expect(findPatches(layerWith([[20, 136], [21, 1]]))).toHaveLength(1);
   });
 
-  it("joins across the Chart A / Chart B split at pair 56/57", () => {
-    expect(findPatches(layerWith([[30, 56], [30, 57]]))).toHaveLength(1);
+  it("joins across the Chart A / Chart B split at pair 68/69", () => {
+    expect(findPatches(layerWith([[30, 68], [30, 69]]))).toHaveLength(1);
   });
 
   it("runs from the body into the crown", () => {
-    expect(findPatches(layerWith([[75, 30], [76, 30]]))).toHaveLength(1);
+    expect(findPatches(layerWith([[95, 30], [96, 30]]))).toHaveLength(1);
   });
 
   it("joins across a pair removed by a decrease", () => {
-    // Round 76 removes pair 1 of each wedge (pairs 1, 15, ...), so pairs 112 and 2 sit either side of pair 1.
-    expect(crownLayout(76).present[0]).toBe(false);
-    expect(findPatches(layerWith([[76, 112], [76, 2]]))).toHaveLength(1);
+    // Round 96 removes pair 1 of each wedge (pairs 1, 18, ...), so pairs 136 and 2 sit either side of pair 1.
+    expect(crownLayout(96).present[0]).toBe(false);
+    expect(findPatches(layerWith([[96, 136], [96, 2]]))).toHaveLength(1);
   });
 
   it("does not join cells that only touch through a longer gap", () => {
-    expect(findPatches(layerWith([[76, 112], [76, 4]]))).toHaveLength(2);
+    expect(findPatches(layerWith([[96, 136], [96, 4]]))).toHaveLength(2);
   });
 
   it("numbers patches from the bottom of the hat and sorts their cells", () => {
@@ -76,17 +76,17 @@ describe("patch rules", () => {
 });
 
 describe("the leopard", () => {
-  it("has 33 patches and 1,842 duplicate cells once the crown print has faded", () => {
+  it("has 40 patches and 3,427 duplicate cells once the crown print has faded", () => {
     const [layer] = findAllPatches(loadLeopard());
-    expect(layer).toHaveLength(33);
-    expect(layer?.reduce((n, p) => n + p.cells.length, 0)).toBe(1842);
+    expect(layer).toHaveLength(40);
+    expect(layer?.reduce((n, p) => n + p.cells.length, 0)).toBe(3427);
   });
 
-  it("its smallest patch is seven cells and its largest is 95", () => {
+  it("its smallest patch is eight cells and its largest is 297", () => {
     const [layer] = findAllPatches(loadLeopard());
     const sizes = (layer ?? []).map((p) => p.cells.length);
-    expect(Math.min(...sizes)).toBe(7);
-    expect(Math.max(...sizes)).toBe(95);
+    expect(Math.min(...sizes)).toBe(8);
+    expect(Math.max(...sizes)).toBe(297);
   });
 
   it("no cell is in two patches", () => {

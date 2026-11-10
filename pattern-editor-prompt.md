@@ -9,10 +9,10 @@ WHAT CHANGED
 
 The hat no longer has a choice of crowns. There is no "patterned crown" and no "plain crown" any more. There is just "the crown", and it works the same way for every chart:
 
-- Rounds 76 to 95, 20 rounds, in eight identical wedges of 14 pairs, with the same right-leaning decreases as before. The decrease table (pairs and needle stitches by round) does not change.
-- The print carries on into the first rounds of the crown, but it fades out. It thins out round by round and is gone by round 85. From round 85 to round 95 the crown is one colour: the first main colour (purple in the leopard example) on the outside and the second (pink) on the inside. The leopard's last print is in round 82.
-- If the chart has duplicate stitch, the duplicate stitch stops where the print stops, so any duplicate stitch in the crown is in rounds 76 to 84 only.
-- If a chart has stripes, the crown is one colour from round 76, in the two colours of the top stripe.
+- Rounds 96 to 121, 26 rounds, in eight identical wedges of 17 pairs, with right-leaning decreases. (The hat is now 136 pairs round, 95 body rounds and a 26-round crown at 32 pairs and 44 rounds to 4 in, so the decrease table has changed: use the one in the pattern wording, 128 pairs down to 16.)
+- The print carries on into the first rounds of the crown, but it fades out. It thins out round by round and is gone by round 108. From round 108 to round 121 the crown is one colour: the first main colour (purple in the leopard example) on the outside and the second (pink) on the inside. Check the leopard's last print round in the app (it is made by `tools/make_leopard.ts`).
+- If the chart has duplicate stitch, the duplicate stitch stops where the print stops, so any duplicate stitch in the crown is in rounds 96 to 107 only.
+- If a chart has stripes, the crown is one colour from round 96, in the two colours of the top stripe.
 - A knitter who designs their own chart can draw print up to the very top of the crown if they want to. This makes the knitting more complicated, because the rounds are short and the decreases move across the pattern, but it can be done. The chart pages show whatever the chart has.
 - The word "plain" should not be used for the crown anywhere. Do not describe the crown as an option or as the "standard" one. It is simply the crown.
 
@@ -23,16 +23,16 @@ WHAT TO DO IN pattern.md
 1. In the front matter, change charts.pages from the current seven (Chart A, Chart B, Duplicate stitch A, Duplicate stitch B, Patterned crown, "Patterned crown: duplicate stitch", Plain crown) to eight: Chart A, Chart B, Duplicate stitch A, Duplicate stitch B, Crown A, Crown B, Crown duplicate stitch A, Crown duplicate stitch B. Keep the same builder conventions for titles and page numbers.
 
 2. In the "crown" instructions section, replace this:
-   "Work the crown charts that go with your chart, rounds 76–95. Work the crown charts the same way as the body."
+   "Work the crown charts that go with your chart, rounds 96–121. Work the crown charts the same way as the body."
    and this:
    "The example has a choice of two crowns: the patterned crown (the leopard print carries on through the decreases) or the plain crown (purple outside, pink inside)."
    with a single short paragraph in the same voice, along these lines:
-   "Work Crown A then Crown B for each round, from round 76 to round 95, the same way as the body. The print carries on into the first rounds of the crown and fades out, so from round 85 the crown is one colour: your first main colour (purple in the example) on the outside and your second (pink) on the inside. Work any duplicate stitch in the crown after blocking, with the rest. If your chart has stripes, the crown is one colour in the two colours of the top stripe."
+   "Work Crown A then Crown B for each round, from round 96 to round 121, the same way as the body. The print carries on into the first rounds of the crown and fades out, so from round 108 the crown is one colour: your first main colour (purple in the example) on the outside and your second (pink) on the inside. Work any duplicate stitch in the crown after blocking, with the rest. If your chart has stripes, the crown is one colour in the two colours of the top stripe."
    Keep the note box about the / decrease symbol, the blank space, and the eight wedges, and keep the decrease table exactly as it is.
 
 3. In "good to know", after the sentence about every chart having the same size, add: "The crown is the same shape for every chart."
 
-4. In the "duplicate stitch" section, add one sentence: "The print fades out over the crown, so duplicate stitch stops by round 84." Check that it doesn't say the crown has none, and that it doesn't mention a "patterned crown" or "plain crown".
+4. In the "duplicate stitch" section, add one sentence: "The print fades out over the crown, so duplicate stitch stops by round 107." Check that it doesn't say the crown has none, and that it doesn't mention a "patterned crown" or "plain crown".
 
 5. Search the whole file for "patterned", "plain crown", "crown charts", "two crowns" and "plain", and remove or reword anything left over so that no sentence describes a choice of crowns. Check the alt text and captions for the two preview photos as well.
 

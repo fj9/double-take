@@ -4,15 +4,15 @@ import { CROWN_ROUNDS, FIRST_CROWN_ROUND, PAIRS } from "./hat";
 import { components } from "./generate/grid";
 
 /**
- * The print fades out over the first rounds of the crown and is gone by round 85: rounds 76 to 84 carry what is
- * left of it, and rounds 85 to 95 are one colour.
+ * The print fades out over the first rounds of the crown and is gone by round 108: rounds 96 to 107 carry what is
+ * left of it, and rounds 108 to 121 are one colour. (About an inch of fabric, as it was at the coarser gauge.)
  */
-export const FADE_ROUNDS = 9;
+export const FADE_ROUNDS = 12;
 
 const W = PAIRS;
 
 /**
- * Which cells of the first `rows` crown rounds keep their print (row 0 is round 76). `printed(i, p)` says whether
+ * Which cells of the first `rows` crown rounds keep their print (row 0 is round 96). `printed(i, p)` says whether
  * row i has print at pair p (0-based). A cell survives in row i while it is further than 0.6 * i cells from the
  * nearest unprinted cell, so thin shapes go first and every shape shrinks as the rows go up. Anything left of fewer
  * than three cells is dropped, so the fade doesn't leave single stitches to embroider.
@@ -58,7 +58,7 @@ export function fadeMask(rows: number, printed: (i: number, p: number) => boolea
 const setChar = (s: string, i: number, ch: string) => s.slice(0, i) + ch + s.slice(i + 1);
 
 /**
- * Fade the print out of the crown: what is left is gone by round 85 and the rest of the crown is one colour (the
+ * Fade the print out of the crown: what is left is gone by round 108 and the rest of the crown is one colour (the
  * first yarn of the round's pair outside, no duplicate stitch). Changes the chart it is given.
  */
 export function fadeCrown(chart: Chart): void {

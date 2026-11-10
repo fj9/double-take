@@ -1,4 +1,5 @@
 import { useRef, useState } from "preact/hooks";
+import { isOldGauge } from "@doubletake/core";
 import type { ChartError } from "@doubletake/core";
 import { Flat } from "../components/Flat";
 import { currentRound, newProgress, percentComplete, TOTAL_ROUNDS } from "../lib/model";
@@ -86,12 +87,15 @@ function HatRow({ project: p, progress: pr, samename, onOpen }: { project: Proje
   const [renaming, setRenaming] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [name, setName] = useState(p.name);
-  const status = p.stage === "design" ? "Being designed" : pr ? (pr.completed >= TOTAL_ROUNDS ? "All rounds done" : `Round ${currentRound(pr)} of ${TOTAL_ROUNDS} · ${percentComplete(pr)}%`) : "";
+  const old = isOldGauge(p.chart);
+  const status = old ? "Made for the old gauge: can’t be opened" : p.stage === "design" ? "Being designed" : pr ? (pr.completed >= TOTAL_ROUNDS ? "All rounds done" : `Round ${currentRound(pr)} of ${TOTAL_ROUNDS} · ${percentComplete(pr)}%`) : "";
   return (
-    <div class="card hat-row">
-      <div class="hat-thumb">
-        <Flat chart={p.chart} bodyOnly picture label="" />
-      </div>
+    <div class="card hat-row" style={old ? "grid-template-columns:minmax(0,1fr)" : undefined}>
+      {!old && (
+        <div class="hat-thumb">
+          <Flat chart={p.chart} bodyOnly picture label="" />
+        </div>
+      )}
       <div class="hat-info">
         <div class="row between" style="align-items:flex-start;flex-wrap:wrap">
           <div style="min-width:140px">
@@ -101,9 +105,11 @@ function HatRow({ project: p, progress: pr, samename, onOpen }: { project: Proje
             <p class="small muted" style="margin:0">Last opened {dateOf(pr?.updatedAt ?? p.updatedAt)}</p>
           </div>
           <div class="row">
-            <button class="btn primary" onClick={onOpen} aria-label={`Open ${p.name}`}>
-              Open
-            </button>
+            {!old && (
+              <button class="btn primary" onClick={onOpen} aria-label={`Open ${p.name}`}>
+                Open
+              </button>
+            )}
             <button class="btn" aria-expanded={menu} aria-label={`Options for ${p.name}`} onClick={() => setMenu(!menu)}>
               ⋯
             </button>
@@ -114,6 +120,7 @@ function HatRow({ project: p, progress: pr, samename, onOpen }: { project: Proje
             <button class="btn small" onClick={() => setRenaming(true)}>
               Rename
             </button>
+            {!old && (
             <button
               class="btn small"
               onClick={async () => {
@@ -123,6 +130,7 @@ function HatRow({ project: p, progress: pr, samename, onOpen }: { project: Proje
             >
               Make a copy
             </button>
+            )}
             <button
               class="btn small"
               onClick={() => {
@@ -183,7 +191,7 @@ export function HomeScreen() {
   const [panel, setPanel] = useState<"example" | "draw" | null>(null);
 
   // The knit-stage hat worked on most recently
-  const knitting = projects.value.filter((p) => p.stage !== "design" && progressById.value[p.id]);
+  const knitting = projects.value.filter((p) => p.stage !== "design" && progressById.value[p.id] && !isOldGauge(p.chart));
   const continuing = knitting.reduce<(typeof knitting)[number] | null>((a, b) => (!a || (progressById.value[b.id]?.updatedAt ?? 0) > (progressById.value[a.id]?.updatedAt ?? 0) ? b : a), null);
   const continuingProgress = continuing ? progressById.value[continuing.id] : undefined;
 

@@ -3,8 +3,8 @@ import { FABRIC_ASPECT } from "./crop";
 import { resizeLanczos, toRgb } from "./image";
 import type { Pixels } from "./image";
 
-/** How many copies fit evenly round the 112 pairs (the divisors of 112 above 1). */
-export const TILE_ACROSS = [2, 4, 7, 8, 14, 16, 28, 56] as const;
+/** How many copies fit evenly round the 136 pairs (the divisors of 136 above 1, up to half the pairs). */
+export const TILE_ACROSS = [2, 4, 8, 17, 34, 68] as const;
 
 export interface TileOptions {
   /** Copies of the picture across the hat. */

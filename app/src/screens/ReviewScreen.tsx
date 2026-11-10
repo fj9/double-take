@@ -1,5 +1,5 @@
 import { useRef, useState } from "preact/hooks";
-import { analyse, crownPrint, crownTable, validateChart, yarnsInRound } from "@doubletake/core";
+import { BODY_ROUNDS, LAST_ROUND, PAIRS, WEDGE_PAIRS, analyse, crownPrint, crownTable, validateChart, yarnsInRound } from "@doubletake/core";
 import { ChartCanvas } from "../components/ChartCanvas";
 import { allRoundsDone } from "../lib/model";
 import type { Progress, Project } from "../lib/model";
@@ -22,9 +22,9 @@ export function ReviewScreen({ project, progress }: { project: Project; progress
   const box = useRef<HTMLDivElement>(null);
   const width = useWidth(box);
 
-  const cellW = Math.max(2.5, (width - 40) / 112);
-  const rows = Array.from({ length: 95 }, (_, i) => 95 - i);
-  const cols = Array.from({ length: 112 }, (_, i) => (face === "outside" ? 112 - i : i + 1));
+  const cellW = Math.max(2.5, (width - 40) / PAIRS);
+  const rows = Array.from({ length: LAST_ROUND }, (_, i) => LAST_ROUND - i);
+  const cols = Array.from({ length: PAIRS }, (_, i) => (face === "outside" ? PAIRS - i : i + 1));
   const view: ChartView = { chart, cols, rows, cellW, showDuplicate: true, solidDuplicate: true, picture: !marks, inside: face === "inside", highContrast: false, dark: isDark() };
 
   const start = async () => {
@@ -42,7 +42,7 @@ export function ReviewScreen({ project, progress }: { project: Project; progress
   };
 
   const yarnLabel = (id: string) => chart.yarns.find((y) => y.id === id)?.name ?? id;
-  const crownYarns = yarnsInRound(chart, 75).map(yarnLabel);
+  const crownYarns = yarnsInRound(chart, BODY_ROUNDS).map(yarnLabel);
   const print = crownPrint(chart);
 
   return (
@@ -111,7 +111,7 @@ export function ReviewScreen({ project, progress }: { project: Project; progress
             </div>
           ))}
         </div>
-        <p class="small muted" style="margin:8px 0 0">Fingering (4-ply) weight yarn, 2.0 mm (US 0) needles, stitch markers and a blunt tapestry needle.</p>
+        <p class="small muted" style="margin:8px 0 0">Fingering (4-ply) weight yarn, needles that give you gauge (the size is still to be confirmed after sample knitting), stitch markers and a blunt tapestry needle.</p>
       </section>
 
       <section class="card note" aria-labelledby="yardage">
@@ -153,7 +153,7 @@ export function ReviewScreen({ project, progress }: { project: Project; progress
         </p>
         <details>
           <summary class="summary">The decrease table</summary>
-          <p class="small">Right-leaning decreases in eight identical wedges of 14 pairs. Pairs left at the end of each round:</p>
+          <p class="small">Right-leaning decreases in eight identical wedges of {WEDGE_PAIRS} pairs. Pairs left at the end of each round:</p>
           <table class="small" style="border-collapse:collapse;width:100%">
             <thead>
               <tr>
