@@ -22,7 +22,7 @@ export interface RoleOptions {
 }
 
 export interface RoleResult {
-  /** One role per cell in image order: row 0 is the top round (75), column 0 is the picture's left edge (pair 112). 0 is the most used colour. */
+  /** One role per cell in image order: row 0 is the top round (95), column 0 is the picture's left edge (pair 136). 0 is the most used colour. */
   grid: Grid;
   /** The colour of each role, RGB. */
   centres: Rgb[];
@@ -35,7 +35,7 @@ export interface RoleResult {
 const WORK = 4;
 
 /**
- * Turn a picture into the 112 × 75 body as colour roles: crop to the shape of the fabric, optionally make it
+ * Turn a picture into the 136 × 95 body as colour roles: crop to the shape of the fabric, optionally make it
  * tile round the hat, shrink to the grid, find the colours, give each cell its colour, and tidy up specks.
  */
 export function makeRoles(img: Pixels, opts: RoleOptions): RoleResult {

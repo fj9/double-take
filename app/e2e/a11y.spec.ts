@@ -38,7 +38,7 @@ async function screens(page: Page, scheme: "light" | "dark") {
   await page.goto("/");
   await page.getByRole("button", { name: "Try an example" }).click();
   await page.getByRole("button", { name: "Use this chart" }).first().click();
-  await expect(page.getByText("Round 1 of 95")).toBeVisible();
+  await expect(page.getByText("Round 1 of 121")).toBeVisible();
   await check(page, `${scheme}: round`);
   for (const [link, heading] of [["Steps", "Steps"], ["Stitch", "Duplicate stitch"], ["Hat", "Hat"]] as const) {
     await page.getByRole("link", { name: link, exact: true }).click();
@@ -79,8 +79,8 @@ test("no accessibility problems in dark mode", async ({ page }) => {
 test("a striped hat and the pace planner have no accessibility problems", async ({ page }) => {
   await page.goto("/");
   await page.locator("#import-file").setInputFiles(stripes);
-  await expect(page.getByText("Round 1 of 95")).toBeVisible();
-  for (let i = 0; i < 38; i++) await page.getByRole("button", { name: /done, next$/ }).click();
+  await expect(page.getByText("Round 1 of 121")).toBeVisible();
+  for (let i = 0; i < 48; i++) await page.getByRole("button", { name: /done, next$/ }).click();
   await expect(page.getByRole("heading", { name: "New stripe" })).toBeVisible();
   await check(page, "striped round with a note");
   await page.getByRole("link", { name: "Steps", exact: true }).click();
@@ -116,20 +116,20 @@ test("everything can be reached and used with the keyboard", async ({ page }) =>
   await page.keyboard.press("Enter");
   await page.getByRole("button", { name: "Use this chart" }).first().focus();
   await page.keyboard.press("Enter");
-  await expect(page.getByText("Round 1 of 95")).toBeVisible();
+  await expect(page.getByText("Round 1 of 121")).toBeVisible();
   await page.getByRole("button", { name: /done, next$/ }).focus();
   await page.keyboard.press("Enter");
-  await expect(page.getByText("Round 2 of 95")).toBeVisible();
+  await expect(page.getByText("Round 2 of 121")).toBeVisible();
   await page.getByRole("button", { name: "Undo", exact: true }).focus();
   await page.keyboard.press("Space");
-  await expect(page.getByText("Round 1 of 95")).toBeVisible();
+  await expect(page.getByText("Round 1 of 121")).toBeVisible();
 });
 
 test("touch targets are at least 44 px", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Try an example" }).click();
   await page.getByRole("button", { name: "Use this chart" }).first().click();
-  await expect(page.getByText("Round 1 of 95")).toBeVisible();
+  await expect(page.getByText("Round 1 of 121")).toBeVisible();
   const small = await page.evaluate(() => {
     const out: string[] = [];
     document.querySelectorAll("a, button, input, select, summary, label.btn").forEach((el) => {

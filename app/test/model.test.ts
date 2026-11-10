@@ -34,10 +34,10 @@ describe("rounds", () => {
     expect(previousRound(fresh())).toEqual(fresh());
   });
 
-  it("stops at round 95 and reports done", () => {
+  it("stops at round 121 and reports done", () => {
     let p = fresh();
-    for (let i = 0; i < 120; i++) p = nextRound(p);
-    expect(currentRound(p)).toBe(95);
+    for (let i = 0; i < 121; i++) p = nextRound(p);
+    expect(currentRound(p)).toBe(121);
     expect(allRoundsDone(p)).toBe(true);
     expect(percentComplete(p)).toBe(100);
   });

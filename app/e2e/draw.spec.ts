@@ -13,7 +13,7 @@ const grid = (page: Page) => page.getByRole("img", { name: /^Drawing grid/ });
 /** Click the cell at a column and row counted from the top left of the grid (cells are 12 px wide at the default zoom). */
 async function clickCell(page: Page, col: number, row: number) {
   const cellW = 12;
-  const cellH = cellW / 1.36;
+  const cellH = cellW / 1.375;
   await grid(page).click({ position: { x: 6 + col * cellW + cellW / 2, y: 14 + row * cellH + cellH / 2 } });
 }
 
@@ -74,7 +74,7 @@ test("review, then start knitting from a drawn chart", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "How much yarn?" })).toBeVisible();
   await expect(page.getByText("buy more than you think you need")).toBeVisible();
   await page.getByRole("button", { name: "Looks good, start knitting" }).click();
-  await expect(page.getByText("Round 1 of 95")).toBeVisible();
+  await expect(page.getByText("Round 1 of 121")).toBeVisible();
   await expect(page.getByRole("link", { name: "Steps" })).toBeVisible();
 });
 
@@ -82,12 +82,12 @@ test("the leopard review warns about the amount of duplicate stitch", async ({ p
   await page.goto("/");
   await page.getByRole("button", { name: "Try an example" }).click();
   await page.getByRole("button", { name: "Use this chart" }).first().click();
-  await expect(page.getByText("Round 1 of 95")).toBeVisible();
+  await expect(page.getByText("Round 1 of 121")).toBeVisible();
   await page.getByRole("link", { name: "Hat" }).click();
   await page.getByRole("link", { name: "Review the chart" }).click();
   await expect(page.getByRole("heading", { name: /^(Review your chart|The chart for )/ })).toBeVisible();
-  await expect(page.getByText(/Duplicate stitch covers 19% of the hat/)).toBeVisible();
-  await expect(page.getByText(/33 patches, 1842 squares/)).toBeVisible();
+  await expect(page.getByText(/Duplicate stitch covers 23% of the hat/)).toBeVisible();
+  await expect(page.getByText(/40 patches, 3427 squares/)).toBeVisible();
   // Not started yet, so it can be edited, or copied
   await page.getByRole("button", { name: "Make an editable copy" }).click();
   await expect(page.getByRole("heading", { name: "Draw your chart" })).toBeVisible();
@@ -124,10 +124,10 @@ const cellColour = (page: Page, col: number, row: number) =>
     ({ col, row }) => {
       const canvas = document.querySelector('canvas[aria-label^="Drawing grid"]') as HTMLCanvasElement;
       const dpr = window.devicePixelRatio || 1;
-      const cellW = parseFloat(canvas.style.width) / (6 + 112 + 3) ; // approximate; only the colour matters
+      const cellW = parseFloat(canvas.style.width) / (6 + 136 + 3) ; // approximate; only the colour matters
       void cellW;
       const x = (6 + col * 12 + 6) * dpr;
-      const y = (14 + row * (12 / 1.36) + 4) * dpr;
+      const y = (14 + row * (12 / 1.375) + 4) * dpr;
       const d = (canvas.getContext("2d") as CanvasRenderingContext2D).getImageData(x, y, 1, 1).data;
       return [d[0], d[1], d[2]];
     },
@@ -197,11 +197,11 @@ test("zooming the picture out repeats it to fill the whole body", async ({ page 
   await page.getByLabel("Zoom the picture").fill("0.3");
   await expect(page.getByText(/repeating the picture/)).toBeVisible();
   // Both ends of the body are covered, not just one copy in the middle
-  for (const [col, row] of [[3, 25], [60, 45], [108, 70]] as const) {
+  for (const [col, row] of [[3, 30], [60, 55], [130, 100]] as const) {
     await expect.poll(async () => ((await cellColour(page, col, row)) as number[]).join(",")).toBe("255,0,0");
   }
   await page.getByLabel("Flip every other copy so the edges match").check();
-  await expect.poll(async () => ((await cellColour(page, 108, 70)) as number[]).join(",")).toBe("255,0,0");
+  await expect.poll(async () => ((await cellColour(page, 130, 100)) as number[]).join(",")).toBe("255,0,0");
   await page.waitForTimeout(700);
   await page.reload();
   await page.getByText("Trace over a picture").click();
@@ -315,12 +315,12 @@ test("a striped chart can be drawn: stripes, colours, and a third colour in a ro
   await expect(page.getByRole("button", { name: /^Duplicate:/ })).toHaveCount(0);
   // Colour C is not in the first stripe's pair, so drawing it there is duplicate stitch
   await page.getByRole("button", { name: /Colour C \(C\)/ }).click();
-  await clickCell(page, 30, 70);
+  await clickCell(page, 30, 100);
   await expect(page.getByText(/Colour C duplicate stitch: 1 patch/)).toBeVisible();
   // Move where the stripes change, and the drawing keeps its colours
   await page.getByLabel("Last round of stripe 1").fill("20");
   await page.getByLabel("Last round of stripe 1").blur();
-  await expect(page.getByText(/Rounds 21 to 75/)).toBeVisible();
+  await expect(page.getByText(/Rounds 21 to 95/)).toBeVisible();
   await page.getByRole("link", { name: "Review and start knitting" }).click();
   await expect(page.getByRole("heading", { name: "Review your chart" })).toBeVisible();
   await expect(page.getByRole("alert")).toHaveCount(0);
@@ -338,5 +338,5 @@ test("a striped chart can be started knitting", async ({ page }) => {
   await startStripes(page, "2");
   await page.getByRole("link", { name: "Review and start knitting" }).click();
   await page.getByRole("button", { name: /start knitting/i }).click();
-  await expect(page.locator("#main").getByText(/Round 1 of 95/)).toBeVisible();
+  await expect(page.locator("#main").getByText(/Round 1 of 121/)).toBeVisible();
 });

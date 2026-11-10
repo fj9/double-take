@@ -49,7 +49,7 @@ export function yarnsCsv(chart: Chart): string {
 
 export function shoppingList(chart: Chart, name: string): string {
   const a = analyse(chart);
-  const lines = [`${name}: shopping list`, "", "Fingering (4-ply) weight yarn. Needles 2.0 mm (US 0). Stitch markers and a blunt tapestry needle.", ""];
+  const lines = [`${name}: shopping list`, "", "Fingering (4-ply) weight yarn. Needles that give you gauge (the size is still to be confirmed after sample knitting). Stitch markers and a blunt tapestry needle.", ""];
   for (const y of chart.yarns) {
     const role = y.role === "main" ? "main colour" : y.role === "stripe" ? "stripe colour" : "duplicate stitch";
     const share = y.role === "duplicate" ? "" : `, ${Math.round((a.outsideShare[y.id] ?? 0) * 100)}% of the outside`;

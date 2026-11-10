@@ -1,6 +1,7 @@
-/** The pace planner: spread the 95 rounds over a number of days from a start date (spec 9.5). */
+/** The pace planner: spread all the rounds over a number of days from a start date (spec 9.5). */
+import { LAST_ROUND } from "@doubletake/core";
 
-export const TOTAL_ROUNDS = 95;
+export const TOTAL_ROUNDS = LAST_ROUND;
 
 export interface Pace {
   /** The first day, as YYYY-MM-DD. */

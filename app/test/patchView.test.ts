@@ -24,18 +24,18 @@ describe("patchWindow", () => {
   });
 
   it("keeps a patch that crosses the seam in one piece", () => {
-    const w = patchWindow(patch([[20, 111], [20, 112], [20, 1], [20, 2]]));
-    expect(w.insideCols).toEqual([110, 111, 112, 1, 2, 3]);
-    expect(w.outsideCols).toEqual([3, 2, 1, 112, 111, 110]);
+    const w = patchWindow(patch([[20, 135], [20, 136], [20, 1], [20, 2]]));
+    expect(w.insideCols).toEqual([134, 135, 136, 1, 2, 3]);
+    expect(w.outsideCols).toEqual([3, 2, 1, 136, 135, 134]);
   });
 
-  it("doesn’t go below round 1 or above round 95", () => {
+  it("doesn’t go below round 1 or above round 121", () => {
     expect(patchWindow(patch([[1, 5]])).rows).toEqual([2, 1]);
-    expect(patchWindow(patch([[95, 5]])).rows).toEqual([95, 94]);
+    expect(patchWindow(patch([[121, 5]])).rows).toEqual([121, 120]);
   });
 
   it("copes with a single cell", () => {
-    const w = patchWindow(patch([[30, 56]]));
-    expect(w.insideCols).toEqual([55, 56, 57]);
+    const w = patchWindow(patch([[30, 68]]));
+    expect(w.insideCols).toEqual([67, 68, 69]);
   });
 });

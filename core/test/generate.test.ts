@@ -25,9 +25,9 @@ const CREAM: Rgb = [240, 230, 200];
 const GREEN: Rgb = [40, 150, 60];
 const GOLD: Rgb = [220, 180, 30];
 
-/** Big soft spots on a plain ground, 640 × 320 (the shape of the fabric). */
+/** Big soft spots on a plain ground, 640 × 325 (the shape of the fabric). */
 const spots = (spot: Rgb, ground: Rgb) =>
-  image(640, 316, (x, y) => {
+  image(640, 325, (x, y) => {
     const cx = (x % 80) - 40;
     const cy = (y % 80) - 40;
     return cx * cx + cy * cy < 22 * 22 ? spot : ground;
@@ -35,7 +35,7 @@ const spots = (spot: Rgb, ground: Rgb) =>
 
 describe("fabric shape", () => {
   it("is about twice as wide as it is tall (cells are wider than tall)", () => {
-    expect(FABRIC_ASPECT).toBeCloseTo(2.03, 2);
+    expect(FABRIC_ASPECT).toBeCloseTo(1.97, 2);
   });
 });
 
@@ -63,10 +63,10 @@ describe("palette check", () => {
 });
 
 describe("turning a picture into colour roles", () => {
-  it("makes a 112 × 75 grid, most used colour first", () => {
+  it("makes a 136 × 95 grid, most used colour first", () => {
     const r = makeRoles(spots(RED, CREAM), { colours: 2 });
-    expect(r.grid.width).toBe(112);
-    expect(r.grid.height).toBe(75);
+    expect(r.grid.width).toBe(136);
+    expect(r.grid.height).toBe(95);
     expect(r.shares[0]).toBeGreaterThan(r.shares[1] as number);
     expect(r.shares[0]! + r.shares[1]!).toBeCloseTo(1, 6);
   });
@@ -78,24 +78,24 @@ describe("turning a picture into colour roles", () => {
     expect(b.centres).toEqual(a.centres);
   });
 
-  it("puts the picture’s top left at round 75, pair 112", () => {
+  it("puts the picture’s top left at round 95, pair 136", () => {
     // A blue block in the top left corner of an otherwise cream picture
-    const img = image(640, 316, (x, y) => (x < 80 && y < 40 ? BLUE : CREAM));
+    const img = image(640, 325, (x, y) => (x < 80 && y < 40 ? BLUE : CREAM));
     const roles = makeRoles(img, { colours: 2, seam: "accept" });
     const chart = buildChart(roles, { kind: "two" });
     const blue = chart.yarns.find((y) => y.hex === "#" + BLUE.map((v) => v.toString(16).padStart(2, "0")).join(""));
     const minor = roles.shares[1] as number;
     expect(minor).toBeLessThan(0.2);
-    // the cell in the top left of the picture is round 75, pair 112, and it is the small colour
+    // the cell in the top left of the picture is round 95, pair 136, and it is the small colour
     const small = chart.yarns[1]!.id;
-    expect(outsideAt(chart, 75, 112)).toBe(small);
+    expect(outsideAt(chart, 95, 136)).toBe(small);
     expect(outsideAt(chart, 1, 1)).toBe(chart.yarns[0]!.id);
     void blue;
   });
 
   it("fade makes the picture tile round the hat; accept leaves a seam", () => {
     // Red on the left half, blue on the right: the right edge meets the left edge badly
-    const img = image(640, 316, (x) => (x < 320 ? RED : BLUE));
+    const img = image(640, 325, (x) => (x < 320 ? RED : BLUE));
     const seamMismatch = (seam: "fade" | "accept") => {
       const g = makeRoles(img, { colours: 2, seam }).grid;
       let diff = 0;
@@ -109,11 +109,11 @@ describe("turning a picture into colour roles", () => {
 
   it("removes stray specks, and keeps a real shape", () => {
     // Two one-pixel specks: at most a few cells at worst, never a scatter of single stitches
-    const specks = image(640, 316, (x, y) => ((x === 100 && y === 100) || (x === 400 && y === 200) ? BLUE : CREAM));
+    const specks = image(640, 325, (x, y) => ((x === 100 && y === 100) || (x === 400 && y === 200) ? BLUE : CREAM));
     const r = makeRoles(specks, { colours: 2, seam: "accept" });
-    expect(r.shares[1]).toBeLessThanOrEqual(4 / 8400);
+    expect(r.shares[1]).toBeLessThanOrEqual(4 / 12920);
     // A block of 40 × 40 pixels (about 7 × 9 cells) survives
-    const block = image(640, 316, (x, y) => (x > 200 && x < 240 && y > 100 && y < 140 ? BLUE : CREAM));
+    const block = image(640, 325, (x, y) => (x > 200 && x < 240 && y > 100 && y < 140 ? BLUE : CREAM));
     expect(makeRoles(block, { colours: 2, seam: "accept" }).shares[1]).toBeGreaterThan(0.005);
   });
 });
@@ -128,7 +128,7 @@ describe("charts", () => {
   });
 
   it("a three-colour picture embroiders the smallest colour", () => {
-    const img = image(640, 316, (x, y) => {
+    const img = image(640, 325, (x, y) => {
       const cx = (x % 80) - 40;
       const cy = (y % 80) - 40;
       if (cx * cx + cy * cy < 8 * 8) return BLUE; // small centres
@@ -157,19 +157,19 @@ describe("charts", () => {
     expect(swapped.yarns[0]?.name).toBe("colour 2");
   });
 
-  it("the print fades out over the crown and is one colour from round 85", () => {
+  it("the print fades out over the crown and is one colour from round 108", () => {
     const roles = makeRoles(spots(RED, CREAM), { colours: 2 });
     const chart = buildChart(roles, { kind: "two" });
     expect(validateChart(chart).ok).toBe(true);
-    expect(crownPrint(chart)?.lastRound ?? 0).toBeLessThan(85);
-    for (let r = 85; r <= 95; r++) for (let p = 1; p <= 112; p++) expect([null, "A"]).toContain(outsideAt(chart, r, p));
+    expect(crownPrint(chart)?.lastRound ?? 0).toBeLessThan(108);
+    for (let r = 108; r <= 121; r++) for (let p = 1; p <= 136; p++) expect([null, "A"]).toContain(outsideAt(chart, r, p));
     // the fade only ever removes print, so the rounds next to the body are as printed as the body's top rounds
-    const printedIn = (r: number) => Array.from({ length: 112 }, (_, p) => outsideAt(chart, r, p + 1)).filter((v) => v !== null && v !== "A").length;
-    expect(printedIn(76)).toBeGreaterThanOrEqual(printedIn(82));
+    const printedIn = (r: number) => Array.from({ length: 136 }, (_, p) => outsideAt(chart, r, p + 1)).filter((v) => v !== null && v !== "A").length;
+    expect(printedIn(96)).toBeGreaterThanOrEqual(printedIn(104));
   });
 
-  it("a duplicate stitch chart has no duplicate stitch from round 85", () => {
-    const img = image(640, 316, (x, y) => {
+  it("a duplicate stitch chart has no duplicate stitch from round 108", () => {
+    const img = image(640, 325, (x, y) => {
       const cx = (x % 80) - 40;
       const cy = (y % 80) - 40;
       if (cx * cx + cy * cy < 8 * 8) return BLUE;
@@ -177,7 +177,7 @@ describe("charts", () => {
     });
     const chart = buildChart(makeRoles(img, { colours: 3 }), { kind: "duplicate" });
     expect(validateChart(chart).ok).toBe(true);
-    for (const layer of chart.duplicate) for (let i = 85 - 76; i < 20; i++) expect(layer.crown[i]).not.toContain("1");
+    for (const layer of chart.duplicate) for (let i = 108 - 96; i < 26; i++) expect(layer.crown[i]).not.toContain("1");
   });
 
   it("refuses a two-colour chart from three colours", () => {
@@ -187,7 +187,7 @@ describe("charts", () => {
 
 describe("more than three colours", () => {
   // Four horizontal bands of colour, like a sky, a sea and a shore
-  const bands = image(640, 316, (_x, y) => (y < 79 ? BLUE : y < 158 ? CREAM : y < 237 ? GREEN : GOLD));
+  const bands = image(640, 325, (_x, y) => (y < 81 ? BLUE : y < 162 ? CREAM : y < 243 ? GREEN : GOLD));
 
   it("stripes suit big areas that run in layers", () => {
     const roles = makeRoles(bands, { colours: 4 });
@@ -200,7 +200,7 @@ describe("more than three colours", () => {
 
   it("plans two yarns for every round", () => {
     const pairs = planPairs(makeRoles(bands, { colours: 4 }).grid);
-    expect(pairs).toHaveLength(75);
+    expect(pairs).toHaveLength(95);
     for (const p of pairs) expect(p[0]).not.toBe(p[1]);
   });
 
@@ -208,13 +208,13 @@ describe("more than three colours", () => {
     const chart = buildChart(makeRoles(bands, { colours: 4 }), { kind: "stripes" });
     expect(validateChart(chart).ok).toBe(true);
     expect(chart.mode).toBe("stripes");
-    expect(chart.round_pairs).toHaveLength(75);
+    expect(chart.round_pairs).toHaveLength(95);
     expect(chart.yarns.every((y) => y.role === "stripe")).toBe(true);
     expect(crownPrint(chart)).toBeNull();
   });
 
   it("small scattered accents suit duplicate stitch (route A)", () => {
-    const img = image(640, 316, (x, y) => {
+    const img = image(640, 325, (x, y) => {
       const cx = (x % 80) - 40;
       const cy = (y % 80) - 40;
       if (cx * cx + cy * cy < 5 * 5) return GOLD;
@@ -233,7 +233,7 @@ describe("more than three colours", () => {
   it("says there is no good route when both need too much embroidery", () => {
     // Six colours in a patchwork: every round holds all six, so neither route works
     const cols: Rgb[] = [RED, BLUE, CREAM, GREEN, GOLD, [120, 20, 140]];
-    const noise = image(640, 316, (x, y) => cols[(Math.floor(x / 40) * 5 + Math.floor(y / 40) * 3) % 6] as Rgb);
+    const noise = image(640, 325, (x, y) => cols[(Math.floor(x / 40) * 5 + Math.floor(y / 40) * 3) % 6] as Rgb);
     const roles = makeRoles(noise, { colours: 6 });
     expect(compareRoutes(roles.grid).recommend).toBe("none");
   });
@@ -342,7 +342,7 @@ describe("tiling a picture across the hat", () => {
   });
 
   it("joins up round the hat when the copies are mirrored", () => {
-    for (const across of [2, 4, 8, 14]) {
+    for (const across of [2, 4, 8, 34]) {
       const out = tilePixels(picture(40, 30), { across, mirror: true });
       for (let y = 0; y < out.height; y += 7) {
         const left = [...out.data.slice(y * out.width * 4, y * out.width * 4 + 4)];

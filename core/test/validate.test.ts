@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { crownLayout, crownPrint, newBlankChart, parseChartJson, validateChart } from "../src";
+import { crownLayout, crownPrint, isOldGauge, newBlankChart, parseChartJson, validateChart } from "../src";
 import type { Chart } from "../src";
 import { blankDuplicateChart, clone, loadLeopard, setChar } from "./helpers";
 
@@ -22,8 +22,20 @@ describe("valid charts", () => {
     const leopard = loadLeopard();
     const print = crownPrint(leopard);
     expect(print).not.toBeNull();
-    expect(print!.lastRound).toBeLessThan(85);
-    expect(new Set(leopard.crown.rounds[10]!.replaceAll(".", ""))).toEqual(new Set(["A"]));
+    expect(print!.lastRound).toBeLessThan(108);
+    expect(new Set(leopard.crown.rounds[12]!.replaceAll(".", ""))).toEqual(new Set(["A"]));
+  });
+
+  it("says clearly that a chart from the first gauge can’t be used", () => {
+    const old = { ...loadLeopard(), dimensions: { pairs: 112, body_rounds: 75, crown_rounds: 20 } };
+    const result = validateChart(old);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors[0]?.code).toBe("old_gauge");
+      expect(result.errors[0]?.message).toContain("136 pairs");
+    }
+    expect(isOldGauge(old)).toBe(true);
+    expect(isOldGauge(loadLeopard())).toBe(false);
   });
 
   it("parses the leopard from JSON text", () => {
@@ -125,7 +137,7 @@ describe("yarns and the two-colours-per-round rule", () => {
 describe("the crown", () => {
   it("rejects a letter where a pair has been removed", () => {
     const c = loadLeopard();
-    const removedAt = crownLayout(76).present.indexOf(false); // pair 1
+    const removedAt = crownLayout(96).present.indexOf(false); // pair 1
     c.crown.rounds[0] = setChar(c.crown.rounds[0] as string, removedAt, "A");
     expect(codes(c)).toContain("crown_layout");
   });
@@ -138,7 +150,7 @@ describe("the crown", () => {
 
   it("rejects a pair that comes back after being removed", () => {
     const c = loadLeopard();
-    const i = crownLayout(76).present.indexOf(false);
+    const i = crownLayout(96).present.indexOf(false);
     c.crown.rounds[10] = setChar(c.crown.rounds[10] as string, i, "A");
     expect(codes(c)).toContain("crown_layout");
   });
@@ -165,7 +177,7 @@ describe("the crown", () => {
 describe("duplicate stitch layers", () => {
   it("rejects a duplicate cell on a removed pair", () => {
     const c = loadLeopard();
-    const removed = crownLayout(76).present.indexOf(false);
+    const removed = crownLayout(96).present.indexOf(false);
     const layer = c.duplicate[0]!;
     layer.crown[0] = setChar(layer.crown[0] as string, removed, "1");
     expect(codes(c)).toContain("crown_layout");

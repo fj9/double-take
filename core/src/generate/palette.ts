@@ -2,6 +2,7 @@ import { kmeans, rgbToLab, sample } from "./colour";
 import type { Rgb } from "./colour";
 import { crop, cropToAspect, median3, thumbnail, toRgb } from "./image";
 import type { CropBox, Pixels } from "./image";
+import { PAIRS } from "../hat";
 
 export interface PaletteCheck {
   /** The real colours found, most used first, RGB 0 to 255. */
@@ -138,7 +139,7 @@ export function extractPalette(img: Pixels, opts: PaletteOptions = {}): PaletteC
       "This picture is mostly gradients or fine texture. At hat size it will blur into mixed colours. A simpler picture or crop works better, or use two or three colours.",
     );
   }
-  const stripeWidth = Math.max(rgbImg.width, rgbImg.height) / 112;
+  const stripeWidth = Math.max(rgbImg.width, rgbImg.height) / PAIRS;
   warnings.push(`Details thinner than about ${Math.round(stripeWidth)} pixels (one stitch across) will vanish or blend.`);
   return { palette, shares, coverage, warnings };
 }

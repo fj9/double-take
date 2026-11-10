@@ -1,4 +1,4 @@
-import { LAST_ROUND, yarnsInRound } from "@doubletake/core";
+import { BODY_ROUNDS, FIRST_CROWN_ROUND, LAST_ROUND, WEDGE_PAIRS, yarnsInRound } from "@doubletake/core";
 import type { Chart } from "@doubletake/core";
 
 /** Tutorial links. Left empty until the tutorials are chosen (spec open question 4): empty means no link is shown. */
@@ -34,7 +34,7 @@ const samePair = (a: [string, string], b: [string, string]) => a[0] === b[0] && 
  * the new stripe it is worked as normal; on the second round, the jogless step hides the step at the join.
  */
 export function stripeNotes(chart: Chart, round: number): Note[] {
-  if (chart.mode !== "stripes" || round < 2 || round > 75) return [];
+  if (chart.mode !== "stripes" || round < 2 || round > BODY_ROUNDS) return [];
   const pair = yarnsInRound(chart, round);
   const before = yarnsInRound(chart, round - 1);
   const notes: Note[] = [];
@@ -71,11 +71,11 @@ export function notesForRound(round: number, chart?: Chart): Note[] {
       help: "caston",
     });
   }
-  if (round === 76) {
+  if (round === FIRST_CROWN_ROUND) {
     notes.push({
       id: "crown-start",
       title: "The crown starts",
-      body: "A square marked / is a right-leaning decrease. Work it over that pair and the pair just before it (the blank space on its right). The new pair takes the colour shown. A blank space means there is no stitch there. The crown is eight identical wedges of 14 pairs, each decreasing in the same places.",
+      body: `A square marked / is a right-leaning decrease. Work it over that pair and the pair just before it (the blank space on its right). The new pair takes the colour shown. A blank space means there is no stitch there. The crown is eight identical wedges of ${WEDGE_PAIRS} pairs, each decreasing in the same places.`,
       help: "decrease",
     });
   }

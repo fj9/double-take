@@ -28,7 +28,7 @@ The leopard print is the built-in example. It must work end to end with no image
 - Charts that are clear without colour alone (symbols as well as colours).
 
 ### Non-goals
-- Multiple sizes, gauges or lengths. There is one hat: 112 stitch pairs, 75 body rounds, 20 crown rounds.
+- Multiple sizes, gauges or lengths. There is one hat: 136 stitch pairs, 95 body rounds, 26 crown rounds.
 - User accounts, cloud sync, sharing galleries, or selling charts.
 - Teaching double knitting. The pattern links tutorials; the app links the same ones.
 - Generating written patterns for other hat shapes.
@@ -59,43 +59,48 @@ All dimensions are constants. The app and the chart file schema both assume them
 
 | Item | Value |
 |---|---|
-| Stitch pairs per round | 112 (Chart A = pairs 1–56, Chart B = pairs 57–112) |
-| Needle stitches per round | 224 (112 of each colour) |
-| Body rounds | 1–75 |
-| Crown rounds | 76–95 |
-| Pairs left after round 95 | 16 (32 stitches) |
-| Gauge | 25 pairs and 34 rounds to 4 in (10 cm), blocked |
-| Cell shape | Across the same distance there are 1.36 rounds for every pair (34 ÷ 25), so a cell is about 1.36 : 1 wider than tall (0.16 in wide, about 0.118 in tall). The 112 × 75 body is about 17.9 × 8.8 in (about 2.03 : 1). |
+| Stitch pairs per round | 136 (Chart A = pairs 1–68, Chart B = pairs 69–136) |
+| Needle stitches per round | 272 (136 of each colour) |
+| Body rounds | 1–95 |
+| Crown rounds | 96–121 |
+| Pairs left after round 121 | 16 (32 stitches) |
+| Gauge | 32 pairs and 44 rounds to 4 in (10 cm), blocked |
+| Cell shape | Across the same distance there are 1.375 rounds for every pair (44 ÷ 32), so a cell is about 1.375 : 1 wider than tall (0.125 in wide, about 0.091 in tall). The 136 × 95 body is about 17.0 × 8.6 in (about 1.97 : 1). |
 
-Charts, previews and the crop frame in the app are drawn with cells at this knitted proportion, not as squares, so the chart looks like the finished fabric. Cells keep this shape in exports unless a chart page needs a different shape for legibility, in which case that is stated on the page.
+The hat is the same shape as the first version of Doubletake (112 pairs round at 25 pairs and 34 rounds to 4 in, a circumference of about 17.9 in), at a finer gauge. It is 17.0 in round and about 11 in long once the crown is included. Charts made for the first gauge are not compatible: the app and the skill turn them down with a clear message.
+
+Charts, previews and the crop frame in the app are drawn with cells at this knitted proportion, not as squares, so the chart looks like the finished fabric. Cells keep this shape in exports unless a chart page needs a different shape for legibility, in which case that is stated on the page (the printed chart pages use 2.35 mm cells, so that 68 columns fit between the margins of an A4 page).
 
 Pairs per round for the crown (round: pairs left at the end of that round, after any decreases in it):
 
 | Rounds | Pairs |
 |---|---|
-| 76–77 | 104 |
-| 78–79 | 96 |
-| 80–81 | 88 |
-| 82–83 | 80 |
-| 84–85 | 72 |
-| 86–87 | 64 |
-| 88–89 | 56 |
-| 90–91 | 48 |
-| 92–93 | 40 |
-| 94 | 24 |
-| 95 | 16 |
+| 96–97 | 128 |
+| 98–99 | 120 |
+| 100–101 | 112 |
+| 102–103 | 104 |
+| 104–105 | 96 |
+| 106–107 | 88 |
+| 108–109 | 80 |
+| 110–111 | 72 |
+| 112–113 | 64 |
+| 114–115 | 56 |
+| 116–117 | 48 |
+| 118–119 | 40 |
+| 120 | 24 |
+| 121 | 16 |
 
-The crown is eight identical wedges of 14 pairs (wedge *n* is pairs 14(*n*−1)+1 to 14*n*; the construction follows the Chrysanthemum chart, which is a 28-pair repeat worked four times, each repeat being two 14-pair wedges). Decreases fall in the same place in every wedge. A right-leaning decrease works over the marked pair and the pair just before it in the working order (the pair with the lower number, since rounds are read right to left, pair 1 first). The marked pair stays and takes the colour shown on the chart. The pair just before it is removed.
+The crown is eight identical wedges of 17 pairs (wedge *n* is pairs 17(*n*−1)+1 to 17*n*; the construction follows the Chrysanthemum chart, which decreases in eight wedges). Decreases fall in the same place in every wedge. A right-leaning decrease works over the marked pair and the pair just before it in the working order (the pair with the lower number, since rounds are read right to left, pair 1 first). The marked pair stays and takes the colour shown on the chart. The pair just before it is removed.
 
-Decrease positions, by pair position *w* within the wedge (1 = first worked, 14 = last worked):
+Decrease positions, by pair position *w* within the wedge (1 = first worked, 17 = last worked):
 
 | Round | Marked pair *w* | Removed pair *w* |
 |---|---|---|
-| 76, 78, 80, 82, 84, 86, 88, 90, 92 | 2, 3, 4, 5, 6, 7, 8, 9, 10 respectively (round 76 + 2*k* marks *w* = 2 + *k*) | the one before it: 1, 2, 3 … 9 |
-| 94 | 14 and 11 | 13 and 10 |
-| 95 | 12 | 11 |
+| 96, 98, 100 … 118 | 2, 3, 4 … 13 respectively (round 96 + 2*k* marks *w* = 2 + *k*, for *k* = 0 to 11) | the one before it: 1, 2, 3 … 12 |
+| 120 | 17 and 14 | 16 and 13 |
+| 121 | 15 | 14 |
 
-The removed pairs stay in the grid as blank cells, so every crown round keeps the same 112 columns. The decreases step across one column every two rounds, which gives the staircase on the PDF chart. (Worked check: round 94 goes from 5 to 3 pairs per wedge, which is 40 to 24 overall. Round 95 goes from 3 to 2, which is 24 to 16.)
+The removed pairs stay in the grid as blank cells, so every crown round keeps the same 136 columns. The decreases step across one column every two rounds, which gives the staircase on the PDF chart. (Worked check: round 120 goes from 5 to 3 pairs per wedge, which is 40 to 24 overall. Round 121 goes from 3 to 2, which is 24 to 16.) The crown is not yet test-knit.
 
 ## 6. User journey
 
@@ -134,23 +139,23 @@ All three produce the same chart file (section 10), pass the same validation, an
 - **Yarn colours:** pick from a colour picker or from the image. Each colour has a name and a hex value.
 
 ### 7.2 Generation
-- Resample the image to the 112 × 75 body grid. One cell is one stitch pair; the cell colour is the colour on the outside. The grid is sampled at knitted proportions (section 5), so the crop frame is about 2:1, not 112:75.
-- The round is a loop: in every round, pair 112 is followed by pair 1. A **seam setting** decides what happens at that join. **Fade** (the default for repeating or texture images) cross-fades the image edges so the print tiles with no visible join; if the print repeats exactly, the crop can be one whole repeat so no blending is needed. **Accept** (the default for pictures with a clear subject) leaves the image edges to meet at the join, so there is a visible join, and the app tells the knitter where it is (it is also where stripe changes happen). The join between Chart A and Chart B (pair 56 to pair 57) is only a page split, not a seam in the fabric.
-- **Palette check first:** the app finds the real colours in the image (up to six) and shows each with its share, plus a coverage figure (the share of the image close to a palette colour). Coverage under 70% means a gradient, wash or fine texture that will blur at hat size, so the app says so and suggests a simpler image or crop, or fewer colours. Stripes thinner than one stitch (image width ÷ 112) vanish or blend, and the app says so.
+- Resample the image to the 136 × 95 body grid. One cell is one stitch pair; the cell colour is the colour on the outside. The grid is sampled at knitted proportions (section 5), so the crop frame is about 2:1, not 136:95.
+- The round is a loop: in every round, pair 136 is followed by pair 1. A **seam setting** decides what happens at that join. **Fade** (the default for repeating or texture images) cross-fades the image edges so the print tiles with no visible join; if the print repeats exactly, the crop can be one whole repeat so no blending is needed. **Accept** (the default for pictures with a clear subject) leaves the image edges to meet at the join, so there is a visible join, and the app tells the knitter where it is (it is also where stripe changes happen). The join between Chart A and Chart B (pair 68 to pair 69) is only a page split, not a seam in the fabric.
+- **Palette check first:** the app finds the real colours in the image (up to six) and shows each with its share, plus a coverage figure (the share of the image close to a palette colour). Coverage under 70% means a gradient, wash or fine texture that will blur at hat size, so the app says so and suggests a simpler image or crop, or fewer colours. Stripes thinner than one stitch (image width ÷ 136) vanish or blend, and the app says so.
 - Reduce the image to the chosen colours. In two-colour mode this is a threshold; in duplicate stitch mode the smallest regions become duplicate stitch layers, one layer per duplicate colour, and layers never overlap.
 - **Clean-up happens after the colours are chosen.** The duplicate stitch amount control sets the smallest patch kept, per duplicate colour, with fine-tuning always visible; patches smaller than that are removed and become the colour under them. Stray single cells in the main colours can be removed as an option. Colours that are too alike can be merged into another (the merged colours are remapped; the rest keep their numbers).
-- **The crown fades to one colour.** The print carries on into the first rounds of the crown, thins out, and is gone by round 85: rounds 76 to 84 hold what is left, and rounds 85 to 95 are one colour (the first main colour A outside, B inside; in a striped hat the top stripe’s two colours, one colour from round 76). The crown cells are stored in the chart file, so a knitter can draw print right up to the top if they want it, and the app warns that colour changes in the crown make the knitting more complicated but doable.
+- **The crown fades to one colour.** The print carries on into the first rounds of the crown, thins out, and is gone by round 108: rounds 96 to 107 hold what is left, and rounds 108 to 121 are one colour (the first main colour A outside, B inside; in a striped hat the top stripe’s two colours, one colour from round 96). The crown cells are stored in the chart file, so a knitter can draw print right up to the top if they want it, and the app warns that colour changes in the crown make the knitting more complicated but doable.
 - The inside of the hat is the same print in opposite colours. In stripes mode each round has its own outside and inside colours.
 - **Deterministic:** the automatic route uses no model and no randomness. K-means starts from fixed seeds, and all settings (number of colours, threshold, clean-up, minimum patch size, crop, seam choice) are saved with the project and in `source.settings` so a chart can be reproduced exactly.
 - Steps in the automatic route: palette extraction, k-means colouring, clean-up of tiny patches, crop to the fixed hat grid, seam handling (accept or fade the seam), the duplicate stitch split, the stripe planner (v1.1), the crown, and the yardage estimate.
 - **Duplicate stitch limits:** warn above 10% of cells, refuse above 25% (offering fewer colours, a larger minimum patch size, a simpler crop, or stripes).
 - **Exactly three colours:** the knitter chooses which colour is the duplicate stitch colour and which main colour is outside. The app shows the three possible colourways (outside and inside) side by side and suggests the most contrasting.
 - **More than three colours (up to six), two routes compared automatically.** **A:** knit the two most-used colours and embroider the rest (duplicate stitch, outside only). **B:** stripes, with at most two yarns in a round and the pair changing up the rounds, and duplicate stitch (outside only) for cells outside the round’s pair. The app shows both side by side (duplicate stitch %, stitches to embroider, yarn changes and stripe blocks) and recommends: A if A needs 10% duplicate stitch or less; if A is 10 to 25%, B when stripes cut it to under half and A otherwise; if A is over 25%, B when B is 25% or less; and no route when both are over 25%, in which case it suggests fewer colours. As a rule of thumb: duplicate stitch suits small scattered accents; stripes suit big areas that run in horizontal layers.
-- **Crown generation:** the crown mirrors the top body rounds upward. Each round the print is eroded a little more (a cell stays while it is further than 0.6 × (rounds above the body) cells from the nearest unprinted cell), anything left of fewer than three cells is dropped, and from round 85 the crown is one colour. A striped hat has a one-colour crown from round 76. The same rule is the drawing editor’s “Fade the print out of the crown” button.
+- **Crown generation:** the crown mirrors the top body rounds upward. Each round the print is eroded a little more (a cell stays while it is further than 0.6 × (rounds above the body) cells from the nearest unprinted cell), anything left of fewer than three cells is dropped, and from round 108 the crown is one colour. A striped hat has a one-colour crown from round 96. The same rule is the drawing editor’s “Fade the print out of the crown” button.
 - The app has an **Inside view** that shows the inside as the knitter sees it when looking at the inside of the hat, with a line of plain help text. The app does the flipping; users are never asked to mirror anything. The chart file stores the outside only. Inside previews, the inside duplicate stitch map and inside patch ticks all use this view.
 
 ### 7.3 Controls
-- The picture screen is one screen: choose the picture, drag the frame directly, optionally repeat the picture across the hat (copies that divide 112 evenly, flipped so they join), see the colours update live, and watch the hat preview while you adjust. On a wide screen the side rail lists its sections (Frame, Colours, Seam, Duplicate stitch, Result) and scrolls to each.
+- The picture screen is one screen: choose the picture, drag the frame directly, optionally repeat the picture across the hat (copies that divide 136 evenly: 2, 4, 8, 17, 34 or 68, flipped so they join; an odd number of copies cannot join up when flipped), see the colours update live, and watch the hat preview while you adjust. On a wide screen the side rail lists its sections (Frame, Colours, Seam, Duplicate stitch, Result) and scrolls to each.
 - Colour share readout (how much of each colour).
 - Number of colours, merge colours, the duplicate stitch amount, and the main-colour tidy option.
 - Edit cells directly: tap a cell to flip it. Undo and redo. This is the same editor as the Draw route (section 7.5), so any chart from any route can be tweaked.
@@ -161,17 +166,17 @@ A chart file (section 10) held in the project, ready for Review.
 
 ### 7.5 Draw route
 
-A pixel-art style editor on the 112 × 75 body grid and the 20 crown rounds, drawn at knitted proportions (section 5):
+A pixel-art style editor on the 136 × 95 body grid and the 26 crown rounds, drawn at knitted proportions (section 5):
 - **Start:** the knitter chooses how many colours (2 to 6) and whether the hat is a print (two knitted colours, the rest duplicate stitch) or stripes (every round worked in a pair of colours that changes up the hat).
 - **Status chip:** always visible, showing the duplicate stitch percentage, colour count and patch count, coloured ok / warn / stop, and opening the gauge with advice.
 - **Preview:** duplicate stitch shows as a filled square in its colour, with a letter, or as a dot where it is too close to the colour underneath to tell apart. Chart and Picture views.
 - **Tidy tools:** find and remove single stray squares and small patches; choose whether each duplicate colour is worked on both faces or the outside only.
 - **Stripes:** a stripe planner (rounds from and to, the two colours of each stripe, add and remove a stripe). Painting a colour that is not in the round’s pair becomes duplicate stitch over the knitted colour.
 - **Tools:** pencil (tap or drag to paint), eraser, flood fill, colour picker, undo and redo, in a strip beside the grid. On a phone the screen shows a note that drawing works best on a tablet or computer, with a way to save the chart file and import it there.
-- **Symmetry and repeat:** mirror left-right, top-bottom or both, and a repeat tool that tiles a motif across the round (112 pairs divides into 2, 4, 7, 8, 14, 16, 28 or 56 repeats). Mirror and repeat respect the wrap, so the join at pair 112/1 stays seamless.
+- **Symmetry and repeat:** mirror left-right, top-bottom or both, and a repeat tool that tiles a motif across the round (136 pairs divides into 2, 4, 8, 17, 34 or 68 repeats). Mirror and repeat respect the wrap, so the join at pair 136/1 stays seamless.
 - **Layers:** the main colours (outside colour A or B for each cell), and one layer for each duplicate stitch colour. Each layer can be shown or hidden, and editing one never changes another.
 - **Palette:** name and hex for each yarn, a swatch selector, up to six yarns. Cells use colour plus symbol as everywhere else.
-- **Image underlay:** an optional picture shown faintly over the body of the grid (rounds 1 to 75) to trace over, with its own strength, zoom and position, and a show / hide switch. Zooming out below 1 repeats the picture to fill the body, with an option to flip every other copy so the edges match. It is cropped to the shape of the fabric so it lines up with the grid. It is kept on the device with the hat (shrunk to a small JPEG) so drawing can carry on later, and it is not part of the chart file, backups or exports. It is removed with the hat.
+- **Image underlay:** an optional picture shown faintly over the body of the grid (rounds 1 to 95) to trace over, with its own strength, zoom and position, and a show / hide switch. Zooming out below 1 repeats the picture to fill the body, with an option to flip every other copy so the edges match. It is cropped to the shape of the fabric so it lines up with the grid. It is kept on the device with the hat (shrunk to a small JPEG) so drawing can carry on later, and it is not part of the chart file, backups or exports. It is removed with the hat.
 - **Crown:** crown rounds are edited in the same grid, to the top. Removed pairs are greyed and not editable. While the crown has any colour change or duplicate stitch the editor shows a note that this makes the knitting more complicated but can be done, and a button fades the print out (section 7.2).
 - **Live checks:** at most two colours per round, colour share, the yardage estimate with its warning, and the same warnings as Review.
 - **Phone use:** pan and pinch-zoom, with a paint / pan toggle so one finger can do either; tool buttons at least 44 px.
@@ -184,7 +189,7 @@ A pixel-art style editor on the 112 × 75 body grid and the 20 crown rounds, dra
 - One duplicate stitch chart per duplicate colour (if any), with patch counts.
 - The crown: how far the print carries on, then one colour, with the decrease table.
 - **Yardage estimate** (**TODO:** the formulas are provisional until sample knitting, see open question 3) per yarn, shown with a strong, prominent warning (not small print) wherever yardage appears (Review, shopping list, exports): **these amounts are estimates based on assumptions, not measured values. Your design, tension and yarn can change how much you need. Always buy more than the estimate and keep spare.** The estimate is a guess drawn from the leopard hat (about 190 yd / 174 m per main colour; about 200 yd / 183 m duplicate colour). *(To be calibrated against test knits.)*
-  - **Main colours:** in double knitting every pair uses one stitch of each main colour, so the two mains use about the same yarn whatever the design. Their estimate is a constant, 0.0195 yd per pair per main colour (about 190 yd for the whole hat), from the leopard hat at 25 pairs per 4 in, and is not scaled by colour share.
+  - **Main colours:** in double knitting every pair uses one stitch of each main colour, so the two mains use about the same yarn whatever the design. Their estimate is a constant, 0.0195 yd per pair per main colour, measured on the leopard hat at the first gauge (25 pairs per 4 in). **It does not apply at the current gauge (32 pairs per 4 in) and has to be re-measured from a test knit before the estimate is switched on**; it is not scaled by colour share.
   - **Each duplicate stitch colour:** 2 to 3 times 0.0195 yd for each duplicate stitch (a cell counts once for each face it is worked on), given as a range because it varies most with tension. The warning applies most strongly here.
   - **Stripes (v1.1):** each stripe yarn is 0.0195 yd per pair in the rounds where it is in the pair.
 - Shopping list: colour names, swatches and yardage, carrying the same warning.
@@ -197,15 +202,15 @@ A pixel-art style editor on the 112 × 75 body grid and the 20 crown rounds, dra
 Steps come from the pattern and are the same for every chart:
 
 1. Swatch and check gauge.
-2. Cast on 224 stitches (link to the cast on tutorial).
-3. Body, rounds 1–75.
-4. Crown, rounds 76–95.
+2. Cast on 272 stitches (link to the cast on tutorial).
+3. Body, rounds 1–95.
+4. Crown, rounds 96–121.
 5. Finish the crown (close the top).
 6. Block.
 7. Duplicate stitch (only if the chart has it).
 
 ### 9.2 Round view
-- Shows the current round number, with the whole round in two parts: Chart A (pairs 1–56), then Chart B (pairs 57–112).
+- Shows the current round number, with the whole round in two parts: Chart A (pairs 1–68), then Chart B (pairs 69–136).
 - The current round is highlighted, with a faded view of the rounds above and below.
 - Read direction (right to left) and the 5-stitch and 5-round gridlines, as in the PDF.
 - Stitch counts shown for the round (pairs and needle stitches), including the crown table values.
@@ -219,11 +224,11 @@ Steps come from the pattern and are the same for every chart:
 - First round: place your marker, check for twists.
 - Stripe changes: a prompt on the first round of the new stripe (change colours at the marker and work it as normal) and again on the second round (the jogless lifted-stitch step on both faces), using the method from the pattern. The pattern marks that method as a draft still to be test-knit.
 - Crown start: a reminder of the decrease and the wedge layout.
-- Round 95: finishing instructions.
+- Round 121: finishing instructions.
 - Each note links to the matching help tutorial.
 
 ### 9.4 Duplicate stitch tracker
-- A patch is a connected group of duplicate stitch cells of one colour. Cells that touch diagonally are connected. Patches wrap across the seam (pair 112 to pair 1), continue across the Chart A / Chart B join, and can run from the body into the crown (the fabric is continuous). Across a pair removed by a crown decrease, the pairs on either side count as neighbours. Patches of different colours are always separate.
+- A patch is a connected group of duplicate stitch cells of one colour. Cells that touch diagonally are connected. Patches wrap across the seam (pair 136 to pair 1), continue across the Chart A / Chart B join, and can run from the body into the crown (the fabric is continuous). Across a pair removed by a crown decrease, the pairs on either side count as neighbours. Patches of different colours are always separate.
 - The knitter ticks off each patch on the outside and on the inside separately (two ticks per patch) for layers on both faces, and one tick for outside-only layers.
 - Overview map of patches, with done and to-do states, plus a count.
 - Patches are worked one at a time, as in the pattern (“treat each shape as its own mini-project”), so the app shows one patch at a time with its two faces. The inside patch is shown directly behind the outside patch, using the Inside view.
@@ -232,7 +237,7 @@ Steps come from the pattern and are the same for every chart:
 ### 9.5 Progress and pace
 - Progress saved automatically on the device and separate from the chart file, so the design data stays shareable.
 - Percent complete and rounds remaining.
-- **Optional pace planner (built on the Steps tab):** the user chooses a start date and a number of days from 1 to 365; the 95 rounds are spread evenly (each day’s share rounds to a whole number, and with more days than rounds some days have none). The app lists every day with its dates (as 28 October 2026) and rounds, marks today, and says where the knitter stands: “By the end of today, aim for round 40: 3 rounds ahead.” The same line shows on the round view. The plan is saved with the progress on the device, is a setting that Undo leaves alone, and is never stored in the chart file or shared.
+- **Optional pace planner (built on the Steps tab):** the user chooses a start date and a number of days from 1 to 365; the 121 rounds are spread evenly (each day’s share rounds to a whole number, and with more days than rounds some days have none). The app lists every day with its dates (as 28 October 2026) and rounds, marks today, and says where the knitter stands: “By the end of today, aim for round 40: 3 rounds ahead.” The same line shows on the round view. The plan is saved with the progress on the device, is a setting that Undo leaves alone, and is never stored in the chart file or shared.
 
 ## 10. Chart file format (`doubletake-chart/1`)
 
@@ -245,7 +250,7 @@ The single contract between the app, the Claude skill and any future tool. JSON,
   "created": "2026-10-28",
   "generator": { "tool": "app", "version": "0.1.0" },
   "mode": "duplicate",
-  "dimensions": { "pairs": 112, "body_rounds": 75, "crown_rounds": 20 },
+  "dimensions": { "pairs": 136, "body_rounds": 95, "crown_rounds": 26 },
   "yarns": [
     { "id": "A", "name": "purple", "hex": "#6B2D9E", "role": "main" },
     { "id": "B", "name": "pink",   "hex": "#F07EB5", "role": "main" },
@@ -265,11 +270,11 @@ The single contract between the app, the Claude skill and any future tool. JSON,
 ```
 
 ### 10.1 Rules
-- `body` has 75 strings of 112 characters. Index 0 is round 1; character 0 is pair 1. Each character is the yarn `id` of the colour on the **outside**.
-- The inside colour of a pair is the other colour in that round’s pair. By default every round uses the two `main` yarns. For stripes, `round_pairs` is an array of 75 entries (for example `["A","B"]`) that overrides the pair for each round, with at most two colours per round.
+- `body` has 95 strings of 136 characters. Index 0 is round 1; character 0 is pair 1. Each character is the yarn `id` of the colour on the **outside**.
+- The inside colour of a pair is the other colour in that round’s pair. By default every round uses the two `main` yarns. For stripes, `round_pairs` is an array of 95 entries (for example `["A","B"]`) that overrides the pair for each round, with at most two colours per round.
 - `duplicate` is a list of layers, one per duplicate stitch colour: none in two-colour mode, at most four otherwise. Each layer has `yarn` (see the roles rule below), `faces` (`both` or `outside`: `both` is the Doubletake pattern’s method and the default; `outside` is used by stripes and by the more-than-three-colour routes), `body` (same shape as the chart `body`: `1` is a duplicate stitch, `0` is not) and `crown` (same shape as `crown.rounds`: `1`, `0`, and `.` at removed pairs, in the same places as `crown.rounds`). Duplicate stitch is worked on the layer’s faces over the same position. A cell is in at most one layer.
-- `crown.rounds` has 20 strings of 112 characters for rounds 76–95, one per round, in the same pair columns as the body so the print carries straight on through the crown. `.` means the pair has been removed by an earlier decrease in that wedge. A capital letter is a pair that is still there, giving its outside colour. Which pairs are removed and which are decrease-marked is fixed by the table in section 5, so the file does not mark decreases; the app draws the decrease symbol at the marked pairs. The colour at a marked pair is the colour of the new pair.
-- `crown.rounds` is 20 strings of 112 characters (rounds 76 to 95): the outside yarn of each pair, or `.` where an earlier decrease has removed the pair. Each character must be one of the two yarns worked in that round. A file with no crown (made by an earlier version) is read as a one-colour crown, and the old `variant` and `plain_from` fields are ignored.
+- `crown.rounds` has 26 strings of 136 characters for rounds 96–121, one per round, in the same pair columns as the body so the print carries straight on through the crown. `.` means the pair has been removed by an earlier decrease in that wedge. A capital letter is a pair that is still there, giving its outside colour. Which pairs are removed and which are decrease-marked is fixed by the table in section 5, so the file does not mark decreases; the app draws the decrease symbol at the marked pairs. The colour at a marked pair is the colour of the new pair.
+- `crown.rounds` is 26 strings of 136 characters (rounds 96 to 121): the outside yarn of each pair, or `.` where an earlier decrease has removed the pair. Each character must be one of the two yarns worked in that round. A file with no crown (made by an earlier version) is read as a one-colour crown, and the old `variant` and `plain_from` fields are ignored.
 - Yarn ids are single capital letters A to F, so a chart has at most six colours. In duplicate stitch mode A and B are the main yarns and C onwards are duplicate yarns. `role` is `main`, `stripe` or `duplicate`. In stripes mode a layer’s yarn is a stripe yarn used elsewhere, so a yarn can be both a stripe yarn and a duplicate yarn.
 - `source.kind` is `image`, `claude`, `drawn` or `example`. For `image`, `source.settings` holds the generator settings so the chart can be reproduced.
 - Progress is **not** stored in this file.
@@ -277,7 +282,7 @@ The single contract between the app, the Claude skill and any future tool. JSON,
 ### 10.2 Validation
 - Lengths and characters match the fixed dimensions.
 - Every character refers to a defined yarn.
-- In duplicate stitch mode, layers use distinct yarns with role `duplicate`. In stripes mode a layer’s yarn is one of the stripe yarns. No cell is in more than one layer. A layer’s `crown` rows are 20 strings of `1`, `0` and `.` (removed pairs).
+- In duplicate stitch mode, layers use distinct yarns with role `duplicate`. In stripes mode a layer’s yarn is one of the stripe yarns. No cell is in more than one layer. A layer’s `crown` rows are 26 strings of `1`, `0` and `.` (removed pairs).
 - Crown pair counts per round match the table in section 5, and the `.` positions are exactly the removed pairs from the decrease table in section 5. In particular, a `.` or a letter in the wrong place is an error.
 - In every round, at most two colours appear as outside or inside.
 - Unknown `schema` versions are refused with a clear message; older versions are migrated where possible.
@@ -327,7 +332,7 @@ The skill:
 
 Changes to the skill for Doubletake:
 - Write `.doubletake.json` (the old skill wrote PDF, PNG and CSV only).
-- A Doubletake mode that fixes the hat at 112 × 75 with 20 crown rounds and the gauge at 25 pairs and 34 rounds to 4 in, with no gauge or size questions. (The old skill also handled cowls and flat panels.)
+- A Doubletake mode that fixes the hat at 136 × 95 with 26 crown rounds and the gauge at 32 pairs and 44 rounds to 4 in, with no gauge or size questions. (The old skill also handled cowls and flat panels.)
 - Duplicate stitch layers carry a `faces` setting and per-layer colours (`both` for the three-colour method, `outside` for the more-than-three-colour routes).
 - The core uses the patch definition from section 9.4 everywhere (diagonals connect, wrap across the seam), so clean-up, the duplicate split and the tracker agree.
 
@@ -350,7 +355,7 @@ On the Hat tab of every hat, under **Print and export**:
 - Charts show a letter in each cell by default, and it can be switched off; decrease marks are always shown. Letters are consistent across Chart A, Chart B, crown and duplicate stitch charts.
 - High-contrast and large-text options. Screen-reader labels for controls. Chart cells are not required to be individually focusable.
 - Touch targets at least 44 px. No gesture is the only way to do something.
-- Loads fast on a mid-range phone. The charts are small (112 × 95 cells at most), so rendering should be instant.
+- Loads fast on a mid-range phone. The charts are small (136 × 121 cells at most), so rendering should be instant.
 - Works in current Safari, Chrome, Firefox and Edge.
 
 ## 15. Privacy, rights and copyright
@@ -382,20 +387,20 @@ On the Hat tab of every hat, under **Print and export**:
 
 1. **Generator:** new code in JavaScript, run in the browser. The same code runs in the skill: one shared JavaScript core used by the app (in the browser) and the skill (with Node), so results match. The skill’s Python engine is retired. Not Pyodide.
 2. **Stripes:** at most two colours in any one round, with duplicate stitch for small details. Colour changes are shown as a strip of colour pairs beside the chart, with a marker on change rounds.
-3. **The crown:** the print fades out over rounds 76 to 84 and the crown is one colour from round 85. The crown cells are in the chart file and can be drawn on.
+3. **The crown:** the print fades out over rounds 96 to 107 and the crown is one colour from round 108. The crown cells are in the chart file and can be drawn on.
 4. **Charts and copyright:** charts people make from their own images are theirs to share. The leopard charts and pattern text stay personal use.
 5. **Name:** Doubletake.
 6. **Hosting:** its own repository (this one) and its own GitHub Pages site.
 7. **Duplicate stitch colours:** one to four duplicate colours per chart, as separate layers.
 8. **Patches:** diagonals connect; patches wrap across the seam and the A/B join and run from body into crown.
-9. **Gauge:** fixed at 25 pairs and 34 rounds to 4 in (10 cm), so the app and the skill have no gauge input. Knitters match gauge by changing needle size, as the pattern says.
+9. **Gauge:** fixed at 32 pairs and 44 rounds to 4 in (10 cm) (changed from 25 pairs and 34 rounds, 112 pairs round, on 10 November 2026; charts from the first gauge are not compatible), so the app and the skill have no gauge input. Knitters match gauge by changing needle size, as the pattern says.
 
 10. **Hashtag:** #doubletakehat, shown on the About page and when the rounds are done.
 11. **Repository:** `double-take`, with its own GitHub Pages site (https://fj9.github.io/double-take/).
 12. **Licence:** the code is MIT. The leopard charts, the pattern text and the names and branding are not covered and stay personal use only.
 13. **Tutorial links:** shipped without links for now; the app shows a link wherever one is filled in (`HELP` in `content.ts`).
 14. The knit view is phone first; design stages are tablet and desktop first.
-15. Chart A and B are print only; the app shows one 112-pair strip in a following window.
+15. Chart A and B are print only; the app shows one 136-pair strip in a following window.
 16. Crown blank columns are never collapsed.
 17. Decrease marks are always shown.
 18. The duplicate stitch amount control sets the smallest patch kept, per duplicate colour, with fine-tuning always visible.
@@ -403,8 +408,8 @@ On the Hat tab of every hat, under **Print and export**:
 
 ## 19. Open questions
 
-1. **The crown, confirm:** is a fade to one colour from round 85 (print gone by 84) what you want, or should it start earlier or later?
-2. **Stripes and the crown:** a striped chart has a one-colour crown in the top stripe’s colours from round 76. Is that what you want?
+1. **The crown, confirm:** is a fade to one colour from round 108 (print gone by 107) what you want, or should it start earlier or later?
+2. **Stripes and the crown:** a striped chart has a one-colour crown in the top stripe’s colours from round 96. Is that what you want?
 3. **Yardage calibration:** test knit at least one two-colour and one duplicate stitch hat to calibrate the estimate. Until then the app says yardage isn’t calculated and to buy extra.
 4. **Tutorials:** choose which cast on, double knit decrease, duplicate stitch and jogless tutorials to link, or record your own.
 5. **Jogless stripes:** test knit the method and correct the wording.

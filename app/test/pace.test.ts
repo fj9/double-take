@@ -4,8 +4,8 @@ import { addDays, dayIndex, doneByEndOfDay, formatDate, plan, standing, todayIso
 const pace = { start: "2026-11-01", days: 10 };
 
 describe("the pace planner", () => {
-  it("spreads the 95 rounds over the days, with no gaps and no overlaps", () => {
-    for (const days of [1, 2, 7, 10, 14, 30, 95, 120]) {
+  it("spreads the 121 rounds over the days, with no gaps and no overlaps", () => {
+    for (const days of [1, 2, 7, 10, 14, 30, 121, 150]) {
       const p = plan({ start: "2026-11-01", days });
       expect(p).toHaveLength(days);
       let next = 1;
@@ -14,18 +14,18 @@ describe("the pace planner", () => {
         expect(d.to).toBeGreaterThanOrEqual(d.from - 1); // a day with no rounds has to = from - 1
         next = d.to + 1;
       }
-      expect(next).toBe(96);
+      expect(next).toBe(122);
     }
   });
 
-  it("ten days is about ten rounds a day, finishing on round 95", () => {
+  it("ten days is about twelve rounds a day, finishing on round 121", () => {
     const p = plan(pace);
-    expect(p[0]).toMatchObject({ day: 1, date: "2026-11-01", from: 1, to: 10 });
-    expect(p[9]).toMatchObject({ day: 10, date: "2026-11-10", to: 95 });
+    expect(p[0]).toMatchObject({ day: 1, date: "2026-11-01", from: 1, to: 12 });
+    expect(p[9]).toMatchObject({ day: 10, date: "2026-11-10", to: 121 });
   });
 
   it("more days than rounds gives some days with none", () => {
-    const p = plan({ start: "2026-11-01", days: 120 });
+    const p = plan({ start: "2026-11-01", days: 150 });
     expect(p.some((d) => d.to < d.from)).toBe(true);
   });
 
@@ -44,14 +44,14 @@ describe("the pace planner", () => {
     expect(standing(pace, 0, "2026-10-30").text).toBe("The plan starts in 2 days.");
     expect(standing(pace, 0, "2026-10-31").text).toBe("The plan starts tomorrow.");
     const day1 = standing(pace, 4, "2026-11-01");
-    expect([day1.target, day1.diff]).toEqual([10, -6]);
-    expect(day1.text).toBe("By the end of today, aim for round 10: 6 rounds behind.");
-    expect(standing(pace, 10, "2026-11-01").text).toContain("on track");
-    expect(standing(pace, 13, "2026-11-01").text).toContain("3 rounds ahead");
-    expect(standing(pace, 11, "2026-11-01").text).toContain("1 round ahead");
-    expect(standing(pace, 95, "2026-11-12").text).toBe("The plan is finished, and so are you.");
-    expect(standing(pace, 80, "2026-11-12").text).toContain("The plan ended 2 days ago");
-    expect(doneByEndOfDay(10, 11)).toBe(95); // never more than 95
+    expect([day1.target, day1.diff]).toEqual([12, -8]);
+    expect(day1.text).toBe("By the end of today, aim for round 12: 8 rounds behind.");
+    expect(standing(pace, 12, "2026-11-01").text).toContain("on track");
+    expect(standing(pace, 15, "2026-11-01").text).toContain("3 rounds ahead");
+    expect(standing(pace, 13, "2026-11-01").text).toContain("1 round ahead");
+    expect(standing(pace, 121, "2026-11-12").text).toBe("The plan is finished, and so are you.");
+    expect(standing(pace, 100, "2026-11-12").text).toContain("The plan ended 2 days ago");
+    expect(doneByEndOfDay(10, 11)).toBe(121); // never more than 121
   });
 
   it("only accepts a real date and a sensible number of days", () => {

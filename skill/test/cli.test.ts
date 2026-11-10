@@ -80,8 +80,8 @@ describe("the command line", () => {
     expect(chart.ok).toBe(true);
     for (const f of [b.previews.outside, b.previews.inside]) {
       const img = PNG.sync.read(readFileSync(f));
-      expect(img.width).toBe(112 * 8);
-      expect(img.height).toBe(95 * 6);
+      expect(img.width).toBe(136 * 8);
+      expect(img.height).toBe(121 * 6);
     }
     expect(existsSync(b.previews.usedPartOfPicture)).toBe(true);
   });
@@ -118,8 +118,8 @@ describe("the command line", () => {
     for (const o of c.options) {
       expect(existsSync(o.file)).toBe(true);
       const img = PNG.sync.read(readFileSync(o.file));
-      expect(img.width).toBe(112 * 8);
-      expect(img.height).toBeGreaterThan(95 * 6 * 2);
+      expect(img.width).toBe(136 * 8);
+      expect(img.height).toBeGreaterThan(121 * 6 * 2);
     }
   });
 

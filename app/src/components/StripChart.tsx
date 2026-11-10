@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "preact/hooks";
+import { CHART_A_LAST_PAIR, PAIRS } from "@doubletake/core";
 import { draw, drawGutter, geometry, gutterWidth, hitTest } from "../lib/render";
 import type { ChartView } from "../lib/render";
 
 interface Props {
-  /** The whole round: all 112 pairs, pair 1 at the right. The round numbers are drawn on a separate, sticky canvas. */
+  /** The whole round: all 136 pairs, pair 1 at the right. The round numbers are drawn on a separate, sticky canvas. */
   view: ChartView;
   label: string;
   /** The last pair worked in the current round, or null. The strip scrolls to keep it in view. */
@@ -14,13 +15,12 @@ interface Props {
   onPinch?: (direction: 1 | -1) => void;
 }
 
-const PAIRS = 112;
 /** Where the marker sits across the visible strip, from the left. Work moves leftwards, so there is more room to the left of it. */
 const MARKER_AT = 0.68;
 
 const reducedMotion = () => typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/** One strip for the whole round that follows your place, with a minimap of the 112 pairs and a way back to your place. */
+/** One strip for the whole round that follows your place, with a minimap of the 136 pairs and a way back to your place. */
 export function StripChart({ view, label, focusPair, focusKey, onCell, onPinch }: Props) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const gutter = useRef<HTMLCanvasElement>(null);
@@ -73,7 +73,7 @@ export function StripChart({ view, label, focusPair, focusKey, onCell, onPinch }
     return a && b ? Math.hypot(a.x - b.x, a.y - b.y) : 0;
   };
 
-  // The minimap runs left to right in the strip's own order: pair 112 at the left, pair 1 at the right
+  // The minimap runs left to right in the strip's own order: pair 136 at the left, pair 1 at the right
   const firstCol = Math.max(0, (scroll.left - g.left) / g.cellW);
   const lastCol = Math.min(PAIRS, (scroll.left + scroll.width - gw - g.left) / g.cellW);
   const markerCol = focusPair === null ? null : view.cols.indexOf(focusPair);
@@ -93,7 +93,7 @@ export function StripChart({ view, label, focusPair, focusKey, onCell, onPinch }
           el.scrollTo({ left: Math.max(0, g.left + col * g.cellW - (el.clientWidth - gw) / 2), behavior: reducedMotion() ? "auto" : "smooth" });
         }}
       >
-        <span class="mm-join" style={`left:${((PAIRS - 56) / PAIRS) * 100}%`} aria-hidden="true" />
+        <span class="mm-join" style={`left:${((PAIRS - CHART_A_LAST_PAIR) / PAIRS) * 100}%`} aria-hidden="true" />
         <span class="mm-view" style={`left:${(firstCol / PAIRS) * 100}%;width:${Math.max(2, ((lastCol - firstCol) / PAIRS) * 100)}%`} aria-hidden="true" />
         {markerCol !== null && <span class="mm-marker" style={`left:${((markerCol + 0.5) / PAIRS) * 100}%`} aria-hidden="true" />}
       </button>

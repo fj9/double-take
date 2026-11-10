@@ -1,14 +1,14 @@
-import { CELL_ASPECT, LAST_ROUND, insideAt, outsideAt, crownLayout, BODY_ROUNDS, FIRST_CROWN_ROUND, yarnsInRound } from "@doubletake/core";
+import { CELL_ASPECT, CHART_A_LAST_PAIR, LAST_ROUND, PAIRS, insideAt, outsideAt, crownLayout, BODY_ROUNDS, FIRST_CROWN_ROUND, yarnsInRound } from "@doubletake/core";
 import type { Chart } from "@doubletake/core";
 import { CLOSE_COLOURS, colourDistance } from "./marks";
 
 export interface ChartView {
   chart: Chart;
-  /** Pair numbers, left to right. Outside charts run 56 … 1 (stitch 1 at the right). */
+  /** Pair numbers, left to right. Outside charts run 68 … 1 (stitch 1 at the right). */
   cols: number[];
   /** Round numbers, top to bottom. */
   rows: number[];
-  /** Cell width in CSS pixels. Cells are 1.36 times wider than tall, like the knitted fabric. */
+  /** Cell width in CSS pixels. Cells are 1.375 times wider than tall, like the knitted fabric. */
   cellW: number;
   /** Round to highlight. Other rows are faded. */
   current?: number;
@@ -32,7 +32,7 @@ export interface ChartView {
   picture?: boolean;
   /** Duplicate stitch as a filled square in its colour (with a dot and letter where it would be hard to tell from the colour underneath). Default: always a dot. */
   solidDuplicate?: boolean;
-  /** Label the join between pair 56 and pair 57 as "Chart A | Chart B", for people following the PDF. */
+  /** Label the join between pair 68 and pair 69 as "Chart A | Chart B", for people following the PDF. */
   divider?: boolean;
 }
 
@@ -379,13 +379,13 @@ function drawStripeStrip(ctx: CanvasRenderingContext2D, g: Geometry, view: Chart
   ctx.textAlign = "left";
 }
 
-/** A dashed line at the join between pair 56 and pair 57, labelled with the PDF's chart names. It is a reference only: the fabric has no break here. */
+/** A dashed line at the join between pair 68 and pair 69, labelled with the PDF's chart names. It is a reference only: the fabric has no break here. */
 function drawDivider(ctx: CanvasRenderingContext2D, g: Geometry, view: ChartView, ink: string, text: string): void {
   const { cols } = view;
   for (let ci = 0; ci < cols.length - 1; ci++) {
     const a = cols[ci] as number;
     const b = cols[ci + 1] as number;
-    if (!((a === 57 && b === 56) || (a === 56 && b === 57))) continue;
+    if (!((a === CHART_A_LAST_PAIR + 1 && b === CHART_A_LAST_PAIR) || (a === CHART_A_LAST_PAIR && b === CHART_A_LAST_PAIR + 1))) continue;
     const x = g.left + (ci + 1) * g.cellW;
     const bottom = g.top + view.rows.length * g.cellH;
     ctx.save();
@@ -401,9 +401,9 @@ function drawDivider(ctx: CanvasRenderingContext2D, g: Geometry, view: ChartView
     ctx.font = "500 11px system-ui, sans-serif";
     ctx.textBaseline = "middle";
     ctx.textAlign = "right";
-    ctx.fillText(a >= 57 ? "Chart B" : "Chart A", x - 5, g.band / 2);
+    ctx.fillText(a > CHART_A_LAST_PAIR ? "Chart B" : "Chart A", x - 5, g.band / 2);
     ctx.textAlign = "left";
-    ctx.fillText(a >= 57 ? "Chart A" : "Chart B", x + 5, g.band / 2);
+    ctx.fillText(a > CHART_A_LAST_PAIR ? "Chart A" : "Chart B", x + 5, g.band / 2);
     return;
   }
 }
@@ -428,7 +428,7 @@ export function drawGutter(canvas: HTMLCanvasElement, view: ChartView): void {
   drawStripeStrip(ctx, { ...g, top: own.top, cellH: own.cellH }, view, Math.max(28, view.cellW * 3));
 }
 
-/** Overview of the whole hat laid flat (rounds 1-95 by pairs 1-112, stitch 1 at the right), for duplicate stitch patches. */
+/** Overview of the whole hat laid flat (rounds 1-121 by pairs 1-136, stitch 1 at the right), for duplicate stitch patches. */
 export interface MapState {
   chart: Chart;
   /** Cell key -> patch id for every duplicate cell. */
@@ -442,9 +442,9 @@ export interface MapState {
 }
 
 export function mapGeometry(cssWidth: number) {
-  const cellW = Math.max(2.5, (cssWidth - 4) / 112);
+  const cellW = Math.max(2.5, (cssWidth - 4) / PAIRS);
   const cellH = cellW / CELL_ASPECT;
-  return { cellW, cellH, pad: 2, width: 112 * cellW + 4, height: LAST_ROUND * cellH + 4 };
+  return { cellW, cellH, pad: 2, width: PAIRS * cellW + 4, height: LAST_ROUND * cellH + 4 };
 }
 
 export function drawMap(canvas: HTMLCanvasElement, s: MapState): void {
@@ -461,9 +461,9 @@ export function drawMap(canvas: HTMLCanvasElement, s: MapState): void {
   // Hat cells: crown rounds are narrower, so draw only the pairs that exist.
   for (let round = 1; round <= LAST_ROUND; round++) {
     const y = m.pad + (LAST_ROUND - round) * m.cellH;
-    for (let pair = 1; pair <= 112; pair++) {
+    for (let pair = 1; pair <= PAIRS; pair++) {
       if (round >= FIRST_CROWN_ROUND && !crownLayout(round).present[pair - 1]) continue;
-      const x = m.pad + (112 - pair) * m.cellW;
+      const x = m.pad + (PAIRS - pair) * m.cellW;
       ctx.fillStyle = s.dark ? "#16233a" : "#ffffff";
       ctx.fillRect(x, y, m.cellW, m.cellH);
       const id = s.cellPatch.get(cellKey(round, pair));
@@ -487,7 +487,7 @@ export function drawMap(canvas: HTMLCanvasElement, s: MapState): void {
     for (const [key, id] of s.cellPatch) {
       if (id !== s.selected) continue;
       const [round, pair] = key.split(":").map(Number) as [number, number];
-      ctx.strokeRect(m.pad + (112 - pair) * m.cellW, m.pad + (LAST_ROUND - round) * m.cellH, m.cellW, m.cellH);
+      ctx.strokeRect(m.pad + (PAIRS - pair) * m.cellW, m.pad + (LAST_ROUND - round) * m.cellH, m.cellW, m.cellH);
     }
   }
 }
@@ -495,14 +495,14 @@ export function drawMap(canvas: HTMLCanvasElement, s: MapState): void {
 /** Which patch is at a point on the map (CSS pixels, relative to the canvas), if any. */
 export function mapHit(s: MapState, x: number, y: number): string | null {
   const m = mapGeometry(s.cssWidth);
-  const pair = 112 - Math.floor((x - m.pad) / m.cellW);
+  const pair = PAIRS - Math.floor((x - m.pad) / m.cellW);
   const round = LAST_ROUND - Math.floor((y - m.pad) / m.cellH);
   let best: string | null = null;
   // Allow a small miss: nearest duplicate cell within one cell in any direction
   for (let dr = 0; dr <= 1 && !best; dr++) {
     for (let dp = 0; dp <= 1 && !best; dp++) {
       for (const [sr, sp] of [[1, 1], [1, -1], [-1, 1], [-1, -1]] as const) {
-        const id = s.cellPatch.get(cellKey(round + dr * sr, ((pair + dp * sp - 1 + 112) % 112) + 1));
+        const id = s.cellPatch.get(cellKey(round + dr * sr, ((pair + dp * sp - 1 + PAIRS) % PAIRS) + 1));
         if (id !== undefined) {
           best = id;
           break;

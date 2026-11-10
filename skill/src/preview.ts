@@ -1,6 +1,6 @@
 import { writeFileSync } from "node:fs";
 import { PNG } from "pngjs";
-import { CELL_ASPECT, FIRST_CROWN_ROUND, LAST_ROUND, hasDuplicate, insideAt, outsideAt, crop as cropRgb, toRgb, thumbnail } from "@doubletake/core";
+import { CELL_ASPECT, FIRST_CROWN_ROUND, LAST_ROUND, PAIRS, hasDuplicate, insideAt, outsideAt, crop as cropRgb, toRgb, thumbnail } from "@doubletake/core";
 import type { Chart, CropBox, Pixels } from "@doubletake/core";
 
 export interface Raster {
@@ -18,7 +18,7 @@ const rgb = (hex: string): [number, number, number] => [parseInt(hex.slice(1, 3)
 export function renderChart(chart: Chart, opts: { inside?: boolean; cellW?: number } = {}): Raster {
   const cellW = opts.cellW ?? 8;
   const cellH = Math.max(2, Math.round(cellW / CELL_ASPECT));
-  const width = 112 * cellW;
+  const width = PAIRS * cellW;
   const height = LAST_ROUND * cellH;
   const data = new Uint8Array(width * height * 4).fill(255);
   const colour = new Map(chart.yarns.map((y) => [y.id, rgb(y.hex)] as const));
@@ -35,8 +35,8 @@ export function renderChart(chart: Chart, opts: { inside?: boolean; cellW?: numb
   };
   for (let round = 1; round <= LAST_ROUND; round++) {
     const y = (LAST_ROUND - round) * cellH;
-    for (let col = 0; col < 112; col++) {
-      const pair = opts.inside ? col + 1 : 112 - col;
+    for (let col = 0; col < PAIRS; col++) {
+      const pair = opts.inside ? col + 1 : PAIRS - col;
       const id = opts.inside ? insideAt(chart, round, pair) : outsideAt(chart, round, pair);
       if (id === null) continue;
       const c = colour.get(id);

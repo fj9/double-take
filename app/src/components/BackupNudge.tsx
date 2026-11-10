@@ -1,4 +1,5 @@
 import { useState } from "preact/hooks";
+import { BODY_ROUNDS, LAST_ROUND } from "@doubletake/core";
 import { backupHat } from "../lib/backups";
 import type { Progress, Project } from "../lib/model";
 
@@ -6,14 +7,14 @@ const key = (id: string) => `doubletake.nudge.${id}`;
 
 const MILESTONES = [
   { at: 3, message: "The body is finished and the crown is next. A good moment to save a backup of where you are." },
-  { at: 2, message: "You’re at round 75, the start of the crown. A good moment to save a backup of where you are." },
+  { at: 2, message: `You’re at round ${BODY_ROUNDS}, the start of the crown. A good moment to save a backup of where you are.` },
   { at: 1, message: "Cast on is done. A good moment to save a backup, so the hat is safe if anything happens to this device." },
 ];
 
-/** The furthest milestone reached: 1 cast on done, 2 round 75, 3 round 95. */
+/** The furthest milestone reached: 1 cast on done, 2 end of the body, 3 end of the crown. */
 export function milestone(progress: Progress): number {
-  if (progress.completed >= 95) return 3;
-  if (progress.completed >= 75) return 2;
+  if (progress.completed >= LAST_ROUND) return 3;
+  if (progress.completed >= BODY_ROUNDS) return 2;
   return progress.steps.caston ? 1 : 0;
 }
 
@@ -25,7 +26,7 @@ function seen(id: string): number {
   }
 }
 
-/** A gentle prompt at cast on, round 75 and round 95 to save a backup. It asks once per milestone. */
+/** A gentle prompt at cast on, the end of the body and the end of the crown to save a backup. It asks once per milestone. */
 export function BackupNudge({ project, progress }: { project: Project; progress: Progress }) {
   const [, redraw] = useState(0);
   const m = milestone(progress);

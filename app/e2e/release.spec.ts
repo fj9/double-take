@@ -17,8 +17,8 @@ test("the share-your-hat note appears when every round is done", async ({ page }
   await page.getByRole("link", { name: "Steps", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Share your hat" })).toHaveCount(0);
   await page.getByRole("link", { name: "Round", exact: true }).click();
-  for (let i = 0; i < 95; i++) await page.getByRole("button", { name: /done, next$/ }).click();
-  await expect(page.getByText("All 95 rounds are knitted")).toBeVisible();
+  for (let i = 0; i < 121; i++) await page.getByRole("button", { name: /done, next$/ }).click();
+  await expect(page.getByText("All 121 rounds are knitted")).toBeVisible();
   await page.getByRole("link", { name: "Steps", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Share your hat" })).toBeVisible();
   await expect(page.getByText(/#doubletakehat/)).toBeVisible();

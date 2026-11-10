@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import {
+  BODY_ROUNDS,
+  CROWN_ROUNDS,
+  FADE_ROUNDS,
+  FIRST_CROWN_ROUND,
   LAST_ROUND,
+  PAIRS,
   MAX_DUPLICATE_LAYERS,
   NO_SYMMETRY,
   REPEATS,
@@ -43,7 +48,7 @@ import { flushChartSave, saveChartSoon } from "../store";
 type Tool = "pencil" | "fill" | "pick";
 
 const ROWS = Array.from({ length: LAST_ROUND }, (_, i) => LAST_ROUND - i); // crown on top, round 1 at the bottom
-const COLS = Array.from({ length: 112 }, (_, i) => 112 - i); // stitch 1 at the right
+const COLS = Array.from({ length: PAIRS }, (_, i) => PAIRS - i); // stitch 1 at the right
 
 export function DrawScreen({ project }: { project: Project }) {
   const work = useRef<Chart>(structuredClone(project.chart));
@@ -216,8 +221,8 @@ export function DrawScreen({ project }: { project: Project }) {
   const decorate = (ctx: CanvasRenderingContext2D, g: Geometry) => {
     const ink = isDark() ? "#e8edf5" : "#1b2a41";
     if (underlay?.visible) {
-      // The picture covers the body (rounds 1-75). Its frame has the shape of the fabric, so it fits the grid exactly.
-      const rect = { x: g.left, y: g.top + 20 * g.cellH, w: COLS.length * g.cellW, h: 75 * g.cellH };
+      // The picture covers the body (the body rounds). Its frame has the shape of the fabric, so it fits the grid exactly.
+      const rect = { x: g.left, y: g.top + CROWN_ROUNDS * g.cellH, w: COLS.length * g.cellW, h: BODY_ROUNDS * g.cellH };
       const key = `${rect.w}|${underlay.crop.zoom}|${underlay.crop.cx}|${underlay.crop.cy}|${underlay.mirror}`;
       let cached = tiled.current;
       if (!cached || cached.key !== key || cached.src !== underlay.canvas) {
@@ -260,7 +265,7 @@ export function DrawScreen({ project }: { project: Project }) {
       ctx.restore();
     }
     // Where the crown starts
-    const crownY = g.top + 20 * g.cellH;
+    const crownY = g.top + CROWN_ROUNDS * g.cellH;
     ctx.beginPath();
     ctx.moveTo(g.left, crownY);
     ctx.lineTo(g.left + gridW, crownY);
@@ -271,14 +276,14 @@ export function DrawScreen({ project }: { project: Project }) {
     ctx.strokeStyle = "#f26b5b";
     ctx.lineWidth = 2;
     if (sym.mirrorX) {
-      const x = g.left + 56 * g.cellW;
+      const x = g.left + (PAIRS / 2) * g.cellW;
       ctx.beginPath();
       ctx.moveTo(x, g.top);
       ctx.lineTo(x, g.top + ROWS.length * g.cellH);
       ctx.stroke();
     }
     if (sym.mirrorY) {
-      const y = g.top + (LAST_ROUND - 38) * g.cellH + g.cellH / 2;
+      const y = g.top + (LAST_ROUND - (BODY_ROUNDS + 1) / 2) * g.cellH + g.cellH / 2;
       ctx.beginPath();
       ctx.moveTo(g.left, y);
       ctx.lineTo(g.left + gridW, y);
@@ -287,9 +292,9 @@ export function DrawScreen({ project }: { project: Project }) {
     if (sym.repeat > 1) {
       ctx.strokeStyle = ink;
       ctx.lineWidth = 1;
-      const step = 112 / sym.repeat;
+      const step = PAIRS / sym.repeat;
       for (let k = 1; k < sym.repeat; k++) {
-        const x = g.left + (112 - k * step) * g.cellW;
+        const x = g.left + (PAIRS - k * step) * g.cellW;
         ctx.beginPath();
         ctx.moveTo(x, g.top);
         ctx.lineTo(x, g.top + ROWS.length * g.cellH);
@@ -414,7 +419,7 @@ export function DrawScreen({ project }: { project: Project }) {
               ["y", "Top and bottom"],
               ["xy", "Both ways"],
             ])}
-            {select("Repeat round the hat", String(sym.repeat), (v) => setSym({ ...sym, repeat: Number(v) }), REPEATS.map((n) => [String(n), n === 1 ? "No repeat" : `${n} times (every ${112 / n} pairs)`]))}
+            {select("Repeat round the hat", String(sym.repeat), (v) => setSym({ ...sym, repeat: Number(v) }), REPEATS.map((n) => [String(n), n === 1 ? "No repeat" : `${n} times (every ${PAIRS / n} pairs)`]))}
           </div>
           {sym.mirrorX && <p class="small muted" style="margin:0">Left and right mirrors across the seam and the middle dashed line, so the print still wraps.</p>}
 
@@ -456,7 +461,7 @@ export function DrawScreen({ project }: { project: Project }) {
       {striped && (
         <section class="card" aria-labelledby="stripes-card">
           <h2 id="stripes-card">Stripes</h2>
-          <StripePlanner chart={chart} total={75} onPairs={(pairs) => change(() => void setRoundPairs(work.current, pairs))} />
+          <StripePlanner chart={chart} total={BODY_ROUNDS} onPairs={(pairs) => change(() => void setRoundPairs(work.current, pairs))} />
         </section>
       )}
 
@@ -584,7 +589,7 @@ export function DrawScreen({ project }: { project: Project }) {
         <EditorCanvas
           view={view}
           mode={mode}
-          label="Drawing grid: 112 stitch pairs across and 95 rounds up, crown at the top. Drawing needs a pointer or touch. You can also import a chart file."
+          label={`Drawing grid: ${PAIRS} stitch pairs across and ${LAST_ROUND} rounds up, crown at the top. Drawing needs a pointer or touch. You can also import a chart file.`}
           onStrokeStart={onStrokeStart}
           onStrokeCell={onStrokeCell}
           onStrokeEnd={onStrokeEnd}
@@ -593,7 +598,7 @@ export function DrawScreen({ project }: { project: Project }) {
 
       {crownPrint(chart) && (
         <p class="card note small" style="margin:0 0 12px">
-          <strong>Colour in the crown.</strong> Changing colour in the crown makes the knitting more complicated, because the rounds are short and the decreases move across the pattern, but it can be done. One colour from round 85 keeps it simple.
+          <strong>Colour in the crown.</strong> Changing colour in the crown makes the knitting more complicated, because the rounds are short and the decreases move across the pattern, but it can be done. One colour from round {FIRST_CROWN_ROUND + FADE_ROUNDS} keeps it simple.
         </p>
       )}
 
@@ -601,7 +606,7 @@ export function DrawScreen({ project }: { project: Project }) {
         <summary class="summary">Trace over a picture</summary>
         <div class="stack" style="margin-top:12px">
           <p class="small muted" style="margin:0">
-            Put a picture faintly over the grid and draw over it. It covers the body, rounds 1 to 75. It isn’t part of your chart, and it stays on this device.
+            Put a picture faintly over the grid and draw over it. It covers the body, rounds 1 to {BODY_ROUNDS}. It isn’t part of your chart, and it stays on this device.
           </p>
           <div class="row" style="flex-wrap:wrap">
             <input id="trace-file" class="sr-only" aria-label="Choose a picture to trace over" type="file" accept="image/*" onChange={(e) => chooseUnderlay((e.currentTarget as HTMLInputElement).files?.[0])} />
@@ -662,7 +667,7 @@ export function DrawScreen({ project }: { project: Project }) {
             <button class="btn small" disabled={!crownPrint(chart)} onClick={() => change(() => fadeCrown(work.current))}>
               Fade the print out of the crown
             </button>
-            <span class="small muted">Keeps the print next to the body, thins it out, and makes the crown one colour from round 85. Undo brings it back.</span>
+            <span class="small muted">Keeps the print next to the body, thins it out, and makes the crown one colour from round {FIRST_CROWN_ROUND + FADE_ROUNDS}. Undo brings it back.</span>
           </div>
         </div>
       </details>

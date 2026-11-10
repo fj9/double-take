@@ -10,7 +10,7 @@ export interface Warning {
 }
 
 export interface Analysis {
-  /** Cells in the hat: 8,400 in the body plus the crown's pairs. */
+  /** Cells in the hat: 12,920 in the body plus the crown's pairs. */
   totalCells: number;
   /** Share of the outside that each yarn covers, 0 to 1. */
   outsideShare: Record<string, number>;

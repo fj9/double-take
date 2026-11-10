@@ -1,5 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
 import type { Chart } from "@doubletake/core";
+import { BODY_ROUNDS, CHART_A_LAST_PAIR, FIRST_CROWN_ROUND, LAST_ROUND, PAIRS } from "@doubletake/core";
 import { LINKS } from "../content";
 import { chartPages, stripeBlocks } from "../lib/pages";
 import type { Project } from "../lib/model";
@@ -96,7 +97,7 @@ export function PrintScreen({ project }: { project: Project }) {
           <div class="rule" />
           <h2>how to read the charts</h2>
           <p class="meta">
-            Each square is one stitch pair: a knit stitch (the outside) and a purl stitch (the inside) worked together. The colour of the square is the colour on the outside. Every round has 112 stitch pairs, shown in two halves: Chart A (stitch pairs 1–56) and Chart B (57–112). Work Chart A, then Chart B, to finish the round. Read every round from right to left, starting at round 1 at the bottom of each chart. Rounds 1–75 are the body, and rounds 76–95 are the crown.
+            Each square is one stitch pair: a knit stitch (the outside) and a purl stitch (the inside) worked together. The colour of the square is the colour on the outside. Every round has {PAIRS} stitch pairs, shown in two halves: Chart A (stitch pairs 1–{CHART_A_LAST_PAIR}) and Chart B ({CHART_A_LAST_PAIR + 1}–{PAIRS}). Work Chart A, then Chart B, to finish the round. Read every round from right to left, starting at round 1 at the bottom of each chart. Rounds 1–{BODY_ROUNDS} are the body, and rounds {FIRST_CROWN_ROUND}–{LAST_ROUND} are the crown.
           </p>
           <h3>yarns</h3>
           <Key items={chart.yarns.map((y) => ({ hex: y.hex, letter: y.id, text: `${y.name} (${y.role === "main" ? "main colour" : y.role === "stripe" ? "stripe colour" : "duplicate stitch"})` }))} />

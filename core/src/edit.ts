@@ -15,15 +15,15 @@ export interface CellRef {
 }
 
 export const MAX_DUPLICATE_LAYERS = 4;
-/** Ways to repeat a motif evenly round the 112 pairs (1 = no repeat). */
-export const REPEATS = [1, 2, 4, 7, 8, 14, 16, 28, 56] as const;
+/** Ways to repeat a motif evenly round the 136 pairs (1 = no repeat). */
+export const REPEATS = [1, 2, 4, 8, 17, 34, 68] as const;
 
 export type EditLayer = { kind: "main" } | { kind: "duplicate"; index: number };
 
 export interface Symmetry {
-  /** Mirror across the seam and the Chart A / Chart B join: pair 1 with 112, 56 with 57. */
+  /** Mirror across the seam and the Chart A / Chart B join: pair 1 with 136, 68 with 69. */
   mirrorX: boolean;
-  /** Mirror the body top to bottom: round 1 with 75. The crown is not mirrored. */
+  /** Mirror the body top to bottom: round 1 with 95. The crown is not mirrored. */
   mirrorY: boolean;
   /** Repeat the motif this many times round the hat. */
   repeat: number;
@@ -276,7 +276,7 @@ const rgbOf = (hex: string): [number, number, number] => {
 };
 
 /**
- * Change which two yarns each body round is worked in (the crown follows round 75). What is drawn keeps its colour:
+ * Change which two yarns each body round is worked in (the crown follows round 95). What is drawn keeps its colour:
  * where the colour is still in the round's pair it is knitted, and where it isn't it becomes duplicate stitch over the
  * nearest yarn of the pair. If all four duplicate layers are taken, that cell takes the nearest yarn instead.
  */

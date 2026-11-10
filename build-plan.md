@@ -8,7 +8,7 @@ Draft v0.1, 29 October 2026. Builds the app in `doubletake-app-spec.md` using th
 |---|---|---|---|
 | 1 | ~~App name in the UI~~ | | **Decided:** Doubletake, one word (wordmark `doubletake`, `double` 300 and `take` 700). `style.md` updated to match |
 | 2 | ~~Stack~~ | | **Decided:** Vite + TypeScript + Preact + Workbox (vite-plugin-pwa) + Vitest + Playwright |
-| 3 | ~~Leopard source data~~ | | **Done:** converted from the old skill's CSVs to `fixtures/leopard/leopard.doubletake.json` by `tools/convert_leopard.py`; all checks pass. The crown fades out by round 85 (`tools/fade_leopard.ts`) |
+| 3 | ~~Leopard source data~~ | | **Done:** made by `tools/make_leopard.ts` from the leopard sample picture at the current hat size (first made from the old skill's CSVs at 112 × 75). The crown fades out by round 108 |
 | 4 | **Sample images and old skill outputs** (leopard photo, desert, Great Wave, transport fabric). | Parity tests for the new core | Needed before the generator is ported |
 | 5 | Labels: the style guide has a `Front` / `Back` switch, the pattern says outside / inside. | Review and tracker UI | Outside / Inside, to match the pattern |
 | 6 | Chart cell style: gridline weight, symbol set (open item in `style.md`). | Chart renderer | I propose a set in step 2.1 and you approve it |
@@ -30,7 +30,7 @@ Rules: `core` has no dependencies and no DOM or Node APIs. Each environment only
 ### Phase 1: core foundations (small, do first)
 1. Hat constants and the crown table as data (pairs per round, decrease positions by wedge position).
 2. Chart file types, parser and validation (spec 10.1 and 10.2), with specific error messages.
-3. Patch finder: diagonals connect, wraps at pair 112/1, crosses body to crown, skips removed pairs.
+3. Patch finder: diagonals connect, wraps at the last pair and pair 1, crosses body to crown, skips removed pairs.
 4. Convert the leopard to `doubletake-chart/1` and store it as a fixture.
 5. Tests: crown pair counts match the table (104 … 16), `.` positions match the decrease table, invalid files fail with the right error, patch cases (seam, diagonal, crown).
 
@@ -38,7 +38,7 @@ Rules: `core` has no dependencies and no DOM or Node APIs. Each environment only
 
 ### Phase 2: MVP app (the tracker)
 1. Scaffold, tokens and fonts from `style.md` (bundled Josefin Sans, light and dark), PWA shell, GitHub Actions to test and deploy to Pages.
-2. Chart renderer (canvas): cells at the knitted 1.36 : 1 proportion, colour plus symbol, 5-stitch and 5-round lines, removed pairs, decrease symbol, high-contrast option, zoom and pan.
+2. Chart renderer (canvas): cells at the knitted 1.375 : 1 proportion, colour plus symbol, 5-stitch and 5-round lines, removed pairs, decrease symbol, high-contrast option, zoom and pan.
 3. Storage: projects and progress in IndexedDB, progress kept apart from the chart; request persistent storage.
 4. Start screen, example (leopard), Import with validation (invalid file changes nothing).
 5. Knit stage: steps list, round view (A then B, highlight, faded neighbours), counts, next / previous / undo, position marker, wake lock, notes at the right moment (9.3 except stripes).
@@ -49,7 +49,7 @@ Rules: `core` has no dependencies and no DOM or Node APIs. Each environment only
 **Done when:** the MVP acceptance criteria in spec 17 pass in Playwright (offline reopen lands on the same round, bad import changes nothing, no network calls with an image or project), plus a manual run on iPhone and Android.
 
 ### Phase 3: v1 design routes (three tracks, can run in parallel after Phase 1)
-- **3a. Editor, Draw and Review.** Editor on the 112 × 75 grid and crown (pencil, eraser, fill, picker, undo / redo, mirror and repeat that respect the wrap, layers, palette, underlay, live checks), project list, Review stage (charts, duplicate charts, crown, warnings, shopping list, yardage placeholder with its warning), chart file export.
+- **3a. Editor, Draw and Review.** Editor on the 136 × 95 grid and crown (pencil, eraser, fill, picker, undo / redo, mirror and repeat that respect the wrap, layers, palette, underlay, live checks), project list, Review stage (charts, duplicate charts, crown, warnings, shopping list, yardage placeholder with its warning), chart file export.
 - **3b. Generator port in core.** Palette check, k-means, clean-up, crop, seam (fade or accept), duplicate split, route A vs B comparison, stripe planner, crown generation, colourways. Seeded random generator, own resize and blur. **Parity tests** against the old Python outputs on the sample images, cell by cell.
 - **3c. Generator UI.** Upload or camera, palette check screen, mode and colourway choice, route comparison table, sliders, crop with wrap preview, outside / inside / tube preview. Needs 3b and the editor from 3a.
 
@@ -92,8 +92,8 @@ Writers on the same files must not overlap: Phase 2 owns `app/` screens for trac
 | Parity of the new core with the Python skill (seeds, resize, blur, floating point) | Own seeded random generator and resampling in core; parity suite from the start of 3b |
 | Users stuck on an old version mid-hat | Update prompt, never reload mid-round, schema versioning and migration in the chart and progress files |
 | Yardage numbers are guesses | Provisional constants behind one function, strong warning everywhere, calibrate after sample knitting |
-| Drawing a 112 × 75 grid on a phone | Paint / pan toggle, big zoom, test on small screens in 3a before building more on it |
+| Drawing a 136 × 95 grid on a phone | Paint / pan toggle, big zoom, test on small screens in 3a before building more on it |
 
 ## 6. Not in the plan yet (waiting on you)
 
-Yardage calibration (sample knitting), tutorial links, jogless stripes test knit, hashtag, repo name and URL, pattern credit, the crown fade (round 85).
+Yardage calibration (sample knitting), tutorial links, jogless stripes test knit, hashtag, repo name and URL, pattern credit, the crown fade (round 108).

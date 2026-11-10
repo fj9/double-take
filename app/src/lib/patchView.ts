@@ -16,7 +16,7 @@ export interface PatchWindow {
 const wrapPair = (n: number) => ((((n - 1) % PAIRS) + PAIRS) % PAIRS) + 1;
 
 /**
- * The part of the hat to show for a patch. A patch that crosses the seam (pair 112 to pair 1) is shown as
+ * The part of the hat to show for a patch. A patch that crosses the seam (pair 136 to pair 1) is shown as
  * one piece by finding the shortest arc of pairs that holds it.
  */
 export function patchWindow(patch: Patch, margin = 1): PatchWindow {
